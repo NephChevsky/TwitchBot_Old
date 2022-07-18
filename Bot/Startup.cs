@@ -17,6 +17,17 @@ namespace Bot
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSignalR();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("devCORS",
+                builder =>
+                {
+                    builder.WithOrigins("http://localhost:4200")
+                        .AllowAnyHeader()
+                        .AllowCredentials();
+                });
+            });
             services.AddTwitchLibEventSubWebhooks(config =>
             {
                 config.CallbackPath = "/webhooks";
@@ -35,6 +46,9 @@ namespace Bot
 
             app.UseRouting();
 
+            if (env.EnvironmentName.Equals("Development"))
+                app.UseCors("devCORS");
+
             app.UseAuthorization();
 
             app.UseTwitchLibEventSubWebhooks();
@@ -42,6 +56,7 @@ namespace Bot
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<SignalService>("/hub");
             });
         }
     }
