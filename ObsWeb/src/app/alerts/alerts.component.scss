@@ -1,0 +1,27 @@
+.container {
+    font-family: 'myriad-pro', sans-serif;
+    font-weight: bold;
+    position: relative;
+    text-align: center;
+    opacity:0;
+}
+
+.container.change {
+    opacity: 1;
+    transition: all 1s;
+  }
+
+.centered {
+    font-size: 40px;
+    /*position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);*/
+    color: white;
+    /*text-shadow: -3px 0px black, -3px 3px black, 0px 3px black, 3px 3px black, 3px 0px black, 3px -3px black, 0px -3px black, -3px -3px black;*/
+    -webkit-text-stroke: 0.5px black;
+}
+
+.color {
+    color: #ff99ff;
+}
