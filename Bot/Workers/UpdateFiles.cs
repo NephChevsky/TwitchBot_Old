@@ -82,10 +82,10 @@ namespace Bot.Workers
             switch (name)
             {
                 case "follower_goal":
-                    value = "Nombre de followers";
+                    value = "Follower goal";
                     break;
                 case "follower_count":
-                    value = "Follower goal";
+                    value = "Nombre de followers";
                     break;
                 case "viewer_count":
                     value = "Nombre de viewers";
