@@ -35,6 +35,7 @@ namespace Bot
     {
         public int Timer { get; set; }
         public string OutputFolder { get; set; }
+        public int FollowerGoal { get; set; }
     }
 
     public class BotFunction

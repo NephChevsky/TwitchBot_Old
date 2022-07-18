@@ -36,7 +36,16 @@ namespace Bot.Workers
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
                 long follower_count = await _bot.GetFollowerCount();
-                File.WriteAllText(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "follower_count.txt"), follower_count.ToString());
+                if (follower_count > 0)
+                {
+                    File.WriteAllText(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "follower_goal.txt"), $"{follower_count} / {_options.UpdateFilesFunction.FollowerGoal}");
+                    File.Delete(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "follower_count.txt"));
+                }
+                else
+                {
+                    File.WriteAllText(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "follower_count.txt"), $"{follower_count}");
+                    File.Delete(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "follower_goal.txt"));
+                }
 
                 int viewer_count = await _bot.GetViewerCount();
                 File.WriteAllText(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "viewer_count.txt"), viewer_count.ToString());
@@ -72,8 +81,11 @@ namespace Bot.Workers
             string value = "";
             switch (name)
             {
-                case "follower_count":
+                case "follower_goal":
                     value = "Nombre de followers";
+                    break;
+                case "follower_count":
+                    value = "Follower goal";
                     break;
                 case "viewer_count":
                     value = "Nombre de viewers";
