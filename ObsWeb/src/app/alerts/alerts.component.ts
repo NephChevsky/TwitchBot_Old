@@ -1,25 +1,34 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-alerts',
-  templateUrl: './alerts.component.html',
-  styleUrls: ['./alerts.component.scss']
+	selector: 'app-alerts',
+	templateUrl: './alerts.component.html',
+	styleUrls: ['./alerts.component.scss']
 })
-export class AlertsComponent implements OnInit {
+export class AlertsComponent implements OnInit
+{
 
-  constructor() { }
+	constructor() { }
 
-  ngOnInit(): void {
-  }
+	ngOnInit(): void
+	{
 
-  show()
-  {
+	}
 
-  }
+	toggle(show: boolean = false)
+	{
+		var element = document.getElementById("container");
+		if (show)
+  			element?.classList.add("show-item");
+		else
+			element?.classList.remove("show-item");
+	}
 
-  hide()
-  {
-    
-  }
-
+	async triggerAlert()
+	{
+		var audio = new Audio('../assets/alerts.wav');
+		audio.play();
+		this.toggle(true);
+		setTimeout(this.toggle, 5000)
+	}
 }

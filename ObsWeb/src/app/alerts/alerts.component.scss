@@ -3,12 +3,11 @@
     font-weight: bold;
     position: relative;
     text-align: center;
-    opacity:0;
+    opacity: 0;
 }
 
 .container.change {
     opacity: 1;
-    transition: all 1s;
   }
 
 .centered {
@@ -20,6 +19,37 @@
     color: white;
     /*text-shadow: -3px 0px black, -3px 3px black, 0px 3px black, 3px 3px black, 3px 0px black, 3px -3px black, 0px -3px black, -3px -3px black;*/
     -webkit-text-stroke: 0.5px black;
+}
+
+.show-item {
+    animation: show-item-anim 5s;
+}
+
+.hide-item {
+    animation: hide-item-anim 1s;
+}
+
+@keyframes show-item-anim {
+    2% { opacity: 0.1; }
+    4% { opacity: 0.2; }
+    6% { opacity: 0.3; }
+    8% { opacity: 0.4; }
+    10% { opacity: 0.5; }
+    12% { opacity: 0.6; }
+    14% { opacity: 0.7; }
+    16% { opacity: 0.8; }
+    18% { opacity: 0.9; }
+    20% { opacity: 1; }
+    82% { opacity: 0.9; }
+    84% { opacity: 0.8; }
+    86% { opacity: 0.7; }
+    88% { opacity: 0.6; }
+    90% { opacity: 0.5; }
+    92% { opacity: 0.4; }
+    94% { opacity: 0.3; }
+    96% { opacity: 0.2; }
+    98% { opacity: 0.1; }
+    100% { opacity: 0; }
 }
 
 .color {
