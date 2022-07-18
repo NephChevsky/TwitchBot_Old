@@ -31,7 +31,7 @@ namespace Bot
             services.AddTwitchLibEventSubWebhooks(config =>
             {
                 config.CallbackPath = "/webhooks";
-                config.Secret = "supersecret";
+                config.Secret = Configuration.GetSection("Settings").Get<Settings>().Secret;
             });
 
             services.AddHostedService<EventSubService>();

@@ -26,7 +26,7 @@ namespace Bot.Workers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!_bot.IsConnected)
+            while (!_bot.ClientIsConnected)
             {
                 await Task.Delay(25);
             }

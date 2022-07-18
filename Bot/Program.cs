@@ -11,6 +11,7 @@ namespace Bot
             IHost host = Host.CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(webBuilder =>
             {
+                webBuilder.UseUrls("https://thecompany.p-balleydier.com:443");
                 webBuilder.UseStartup<Startup>();
             })
             .ConfigureAppConfiguration((hostingContext, configuration) =>

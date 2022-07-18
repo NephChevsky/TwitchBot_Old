@@ -30,7 +30,7 @@ namespace Bot.Workers
                 return;
             }
 
-            while (!_bot.IsConnected)
+            while (!_bot.ClientIsConnected)
             {
                 await Task.Delay(25);
             }
@@ -53,9 +53,9 @@ namespace Bot.Workers
 
                             if (!_bot.CurrentViewerList.Contains(x, StringComparer.OrdinalIgnoreCase))
                             {
-                                dbViewer.Seen++;
                                 if (shouldGreet)
                                 {
+                                    dbViewer.Seen++;
                                     _logger.LogInformation($"Say hi to known viewer {dbViewer.Username}");
                                     _bot.SendMessage($"Salut {dbViewer.Username} ! Bon retour sur le stream !");
                                 }

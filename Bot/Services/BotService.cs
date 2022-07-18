@@ -1,25 +1,22 @@
-﻿using Db;
+﻿using Bot.DTO;
+using Db;
 using Db.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System;
-using System.Collections.Generic;
 using System.Dynamic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using TwitchLib.Api;
 using TwitchLib.Api.Auth;
-using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Core.Models.Undocumented.Chatters;
-using TwitchLib.Api.Helix;
 using TwitchLib.Api.Helix.Models.ChannelPoints;
 using TwitchLib.Api.Helix.Models.ChannelPoints.GetCustomReward;
-using TwitchLib.Api.Helix.Models.Channels;
 using TwitchLib.Api.Helix.Models.Channels.GetChannelInformation;
 using TwitchLib.Api.Helix.Models.Channels.ModifyChannelInformation;
+using TwitchLib.Api.Helix.Models.EventSub;
 using TwitchLib.Api.Helix.Models.Games;
 using TwitchLib.Api.Helix.Models.Moderation.BanUser;
+using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
 using TwitchLib.Api.Helix.Models.Streams.GetStreams;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 using TwitchLib.Api.Helix.Models.Users.GetUsers;
@@ -35,12 +32,15 @@ namespace Bot.Services
     {
         private TwitchClient client;
         private TwitchAPI api;
-        private Random Rng = new Random();
+        private TwitchAPI eventsApi;
+        private Random Rng = new Random(Guid.NewGuid().GetHashCode());
+        private List<EventSubSubscription> Subscriptions;
         private Settings _options;
         private readonly ILogger<BotService> _logger;
 
         public List<string> CurrentViewerList { get; set; } = new List<string>();
-        public bool IsConnected { get; set; }
+        public bool ClientIsConnected { get; set; }
+        public bool EventSubIsConnected { get; set; }
 
         public BotService(ILogger<BotService> logger, IConfiguration configuration)
         {
@@ -52,7 +52,7 @@ namespace Bot.Services
             api.Settings.Secret = _options.Secret;
             api.Settings.AccessToken = _options.AccessToken;
 
-            var task = Task.Run(async () =>
+            Task<RefreshResponse> task = Task.Run(async () =>
             {
                 return await api.Auth.RefreshAuthTokenAsync(_options.RefreshToken, _options.Secret);
             });
@@ -78,6 +78,52 @@ namespace Bot.Services
             client.OnConnectionError += Client_OnConnectionError;
 
             client.Connect();
+
+            eventsApi = new TwitchAPI();
+            eventsApi.Settings.ClientId = _options.ClientId;
+            eventsApi.Settings.Secret = _options.Secret;
+
+            Task<string> credentialsTask = Task.Run(async () =>
+            {
+                return await eventsApi.Auth.GetAccessTokenAsync();
+            });
+            credentialsTask.Wait();
+            eventsApi.Settings.AccessToken = credentialsTask.Result;
+
+            Subscriptions = new();
+            Task<bool> subTask = Task.Run(async () =>
+            {
+                 GetEventSubSubscriptionsResponse oldEvents = await eventsApi.Helix.EventSub.GetEventSubSubscriptionsAsync();
+                oldEvents.Subscriptions.ToList().ForEach(async x => {
+                    await eventsApi.Helix.EventSub.DeleteEventSubSubscriptionAsync(x.Id);
+                });
+                await CreateSubscription("channel.follow");
+                await CreateSubscription("channel.raid");
+                await CreateSubscription("stream.online");
+                await CreateSubscription("stream.offline");
+                
+                return true;
+            });
+            subTask.Wait();
+            EventSubIsConnected = true;
+        }
+
+        public async Task CreateSubscription(string type)
+        {
+            Dictionary<string, string> conditions = new Dictionary<string, string>();
+            switch(type)
+            {
+                case "channel.raid":
+                    conditions.Add("to_broadcaster_user_id", _options.TwitchId);
+                    break;
+                case "channel.follow":
+                case "stream.online":
+                case "stream.offline":
+                    conditions.Add("broadcaster_user_id", _options.TwitchId);
+                    break;
+            }
+            CreateEventSubSubscriptionResponse response = await eventsApi.Helix.EventSub.CreateEventSubSubscriptionAsync(type, "1", conditions, "webhook", "https://thecompany.p-balleydier.com/webhooks", _options.Secret);
+            Subscriptions.Add(response.Subscriptions[0]);
         }
 
         private void Client_OnLog(object sender, OnLogArgs e)
@@ -94,7 +140,7 @@ namespace Bot.Services
         {
             _logger.LogInformation($"Joined channel {_options.Channel}");
             client.SendMessage(e.Channel, "Coucou, tu veux voir ma build?");
-            IsConnected = true;
+            ClientIsConnected = true;
         }
 
         private void Client_OnConnectionError(object sender, OnConnectionErrorArgs e)
@@ -142,45 +188,50 @@ namespace Bot.Services
                 return;
             }
 
-            if (_options.BotFunction.Timeout && string.Equals(e.Command.CommandText, "timeout", StringComparison.InvariantCultureIgnoreCase))
+            if (_options.BotFunction.Timeout && (string.Equals(e.Command.CommandText, "timeout", StringComparison.InvariantCultureIgnoreCase)
+                                                    || string.Equals(e.Command.CommandText, "to", StringComparison.InvariantCultureIgnoreCase)))
             {
                 if (e.Command.ArgumentsAsList.Count > 0)
                 {
-                    if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
+                    GetModeratorsResponse mods = await api.Helix.Moderation.GetModeratorsAsync(_options.TwitchId);
+                    Moderator mod = mods.Data.Where(x => string.Equals(e.Command.ArgumentsAsList[0], x.UserName)).FirstOrDefault();
+                    if (mod == null)
                     {
-                        if (e.Command.ArgumentsAsList.Count > 1)
+                        if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
                         {
-                            BanUser(e.Command.ArgumentsAsList[0], int.Parse(e.Command.ArgumentsAsList[1]));
+                            if (e.Command.ArgumentsAsList.Count > 1)
+                            {
+                                BanUser(e.Command.ArgumentsAsList[0], int.Parse(e.Command.ArgumentsAsList[1]));
+                            }
+                            else
+                            {
+                                BanUser(e.Command.ArgumentsAsList[0]);
+                            }
                         }
                         else
                         {
-                            BanUser(e.Command.ArgumentsAsList[0]);
-                        }
-
-                    }
-                    else
-                    {
-                        int dice = Rng.Next(5);
-                        int timer = Rng.Next(300);
-                        if (dice == 0)
-                        {
-                            client.SendMessage(_options.Channel, $"Roll: {dice}/300. Dommage {e.Command.ChatMessage.Username}!");
-                            BanUser(e.Command.ChatMessage.Username, timer);
-                        }
-                        else if (dice == 1)
-                        {
-                            client.SendMessage(_options.Channel, $"Roll: {dice}/300. Désolé {e.Command.ArgumentsAsString[0]}!");
-                            BanUser(e.Command.ArgumentsAsList[0], timer);
-                        }
-                        else if (dice == 2)
-                        {
-                            client.SendMessage(_options.Channel, $"Roll: {dice}/300. Allez ça dégage {e.Command.ChatMessage.Username} et {e.Command.ArgumentsAsString}!");
-                            BanUser(e.Command.ChatMessage.Username, timer);
-                            BanUser(e.Command.ArgumentsAsList[0], timer);
-                        }
-                        else
-                        {
-                            client.SendMessage(_options.Channel, $"Non, pas envie aujourd'hui");
+                            int dice = Rng.Next(5);
+                            int timer = Rng.Next(300);
+                            if (dice == 0)
+                            {
+                                client.SendMessage(_options.Channel, $"Roll: {dice}/300. Dommage {e.Command.ChatMessage.Username}!");
+                                BanUser(e.Command.ChatMessage.Username, timer);
+                            }
+                            else if (dice == 1)
+                            {
+                                client.SendMessage(_options.Channel, $"Roll: {dice}/300. Désolé {e.Command.ArgumentsAsList[0]}!");
+                                BanUser(e.Command.ArgumentsAsList[0], timer);
+                            }
+                            else if (dice == 2)
+                            {
+                                client.SendMessage(_options.Channel, $"Roll: {dice}/300. Allez ça dégage {e.Command.ChatMessage.Username} et {e.Command.ArgumentsAsString}!");
+                                BanUser(e.Command.ChatMessage.Username, timer);
+                                BanUser(e.Command.ArgumentsAsList[0], timer);
+                            }
+                            else
+                            {
+                                client.SendMessage(_options.Channel, $"Non, pas envie aujourd'hui");
+                            }
                         }
                     }
                 }
@@ -244,14 +295,14 @@ namespace Bot.Services
 
         public async void BanUser(string username, int duration = 300)
         {
-            GetUsersResponse user = await api.Helix.Users.GetUsersAsync(null, new List<string>() { username }, null);
+            GetUsersResponse user = await api.Helix.Users.GetUsersAsync(null, new List<string>() { username.Replace("@", "") }, null);
             if (user.Users.Length > 0)
             {
                 BanUserRequest banUserRequest = new();
                 banUserRequest.UserId = user.Users[0].Id;
                 banUserRequest.Duration = duration;
                 banUserRequest.Reason = "No reason";
-                await api.Helix.Moderation.BanUserAsync(_options.ClientId, _options.ClientId, banUserRequest);
+                await api.Helix.Moderation.BanUserAsync(_options.TwitchId, _options.TwitchId, banUserRequest);
             }
         }
 
@@ -274,6 +325,14 @@ namespace Bot.Services
                 return 0;
             else
                 return stream.Streams[0].ViewerCount;
+        }
+
+        public void UnSubscribe()
+        {
+            Subscriptions.ForEach(async x =>
+            {
+                await api.Helix.EventSub.DeleteEventSubSubscriptionAsync(x.Id);
+            });
         }
 
         public void SendMessage(string message)
@@ -316,6 +375,14 @@ namespace Bot.Services
             if (client.IsConnected)
             {
                 client.SendMessage(_options.Channel, $"Allez Bisous, mon peuple m'attend!");
+            }
+
+            if (EventSubIsConnected)
+            {
+                Subscriptions.ForEach(async x =>
+                {
+                    await eventsApi.Helix.EventSub.DeleteEventSubSubscriptionAsync(x.Id);
+                });
             }
         }
     }
