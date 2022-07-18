@@ -11,6 +11,9 @@ export class AlertsComponent implements OnInit
 	private hubConnection?: HubConnection;
 	private started?: Promise<void>;
 	public username: string = "";
+	public message: string = "";
+	public messageContinued: string = "";
+	public value: number = -1;
 
 	constructor(private ngZone: NgZone)
 	{
@@ -90,7 +93,22 @@ export class AlertsComponent implements OnInit
 
 	async triggerAlert(alert: any)
 	{
-		this.username = alert.username;
+		switch(alert.type)
+		{
+			case "follow":
+				this.username = alert.username;
+				this.message = "a follow la chaine";
+				this.value = alert.value;
+				this.messageContinued = ""
+				break;
+			case "raid":
+				this.username = alert.username;
+				this.message = "a raid la chaine avec";
+				this.value = alert.value;
+				this.messageContinued = "viewers"
+				break;
+		}
+		
 		var audio = new Audio('../assets/alerts.wav');
 		audio.play();
 		this.toggle(true);

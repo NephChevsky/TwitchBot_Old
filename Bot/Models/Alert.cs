@@ -12,10 +12,11 @@ namespace Bot.Models
         public string Username { get; set; }
         public double Value { get; set; }
 
-        public Alert(string type, string username)
+        public Alert(string type, string username, double value = -1)
         {
             Type = type;
             Username = username;
+            Value = value;
         }
     }
 }

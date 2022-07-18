@@ -25,6 +25,7 @@ namespace Bot.Services
         {
             _eventSubWebhooks.OnError += OnError;
             _eventSubWebhooks.OnChannelFollow += OnChannelFollow;
+            _eventSubWebhooks.OnChannelRaid += OnChannelRaid;
             return Task.CompletedTask;
         }
 
@@ -39,6 +40,13 @@ namespace Bot.Services
         {
             _logger.LogInformation($"{e.Notification.Event.UserName} followed {e.Notification.Event.BroadcasterUserName} at {e.Notification.Event.FollowedAt.ToUniversalTime()}");
             Alert alert = new("follow", e.Notification.Event.UserName);
+            _hub.Clients.All.SendAsync("TriggerAlert", alert);
+        }
+
+        private void OnChannelRaid(object sender, ChannelRaidArgs e)
+        {
+            _logger.LogInformation($"{e.Notification.Event.FromBroadcasterUserName} raided {e.Notification.Event.ToBroadcasterUserName} with {e.Notification.Event.Viewers} person");
+            Alert alert = new("raid", e.Notification.Event.FromBroadcasterUserName, e.Notification.Event.Viewers);
             _hub.Clients.All.SendAsync("TriggerAlert", alert);
         }
 
