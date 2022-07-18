@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using TwitchLib.EventSub.Webhooks.Core;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs.Channel;
+using TwitchLib.EventSub.Webhooks.Core.EventArgs.Stream;
 
 namespace Bot.Services
 {
@@ -12,13 +13,15 @@ namespace Bot.Services
         private readonly ITwitchEventSubWebhooks _eventSubWebhooks;
         private OBSService _OBSService;
         readonly IHubContext<SignalService> _hub;
+        private BotService _bot;
 
-        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, OBSService obs, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub)
+        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, OBSService obs, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, BotService bot)
         {
             _logger = logger;
             _eventSubWebhooks = eventSubWebhooks;
             _OBSService = obs;
             _hub = hub;
+            _bot = bot;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -26,6 +29,8 @@ namespace Bot.Services
             _eventSubWebhooks.OnError += OnError;
             _eventSubWebhooks.OnChannelFollow += OnChannelFollow;
             _eventSubWebhooks.OnChannelRaid += OnChannelRaid;
+            _eventSubWebhooks.OnStreamOnline += OnStreamOnline;
+            _eventSubWebhooks.OnStreamOffline += OnStreamOffline;
             return Task.CompletedTask;
         }
 
@@ -48,6 +53,18 @@ namespace Bot.Services
             _logger.LogInformation($"{e.Notification.Event.FromBroadcasterUserName} raided {e.Notification.Event.ToBroadcasterUserName} with {e.Notification.Event.Viewers} person");
             Alert alert = new("raid", e.Notification.Event.FromBroadcasterUserName, e.Notification.Event.Viewers);
             _hub.Clients.All.SendAsync("TriggerAlert", alert);
+        }
+
+        private void OnStreamOnline(object sender, StreamOnlineArgs e)
+        {
+            _logger.LogInformation($"{e.Notification.Event.BroadcasterUserName} is now live");
+            _bot.SendMessage("Le live vient de commencer!");
+        }
+
+        private void OnStreamOffline(object sender, StreamOfflineArgs e)
+        {
+            _logger.LogInformation($"{e.Notification.Event.BroadcasterUserName} is not live anymore");
+            _bot.SendMessage("Le live est terminé!");
         }
 
         private void OnError(object sender, OnErrorArgs e)
