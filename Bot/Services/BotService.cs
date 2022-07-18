@@ -29,20 +29,20 @@ using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
 
-namespace Bot
+namespace Bot.Services
 {
-    public class BotManager : IDisposable
+    public class BotService : IDisposable
     {
         private TwitchClient client;
         private TwitchAPI api;
         private Random Rng = new Random();
-        private readonly Settings _options;
-        private readonly ILogger<BotManager> _logger;
+        private Settings _options;
+        private readonly ILogger<BotService> _logger;
 
         public List<string> CurrentViewerList { get; set; } = new List<string>();
         public bool IsConnected { get; set; }
 
-        public BotManager(ILogger<BotManager> logger, IConfiguration configuration)
+        public BotService(ILogger<BotService> logger, IConfiguration configuration)
         {
             _logger = logger;
             _options = configuration.GetSection("Settings").Get<Settings>();
@@ -52,7 +52,8 @@ namespace Bot
             api.Settings.Secret = _options.Secret;
             api.Settings.AccessToken = _options.AccessToken;
 
-            var task = Task.Run(async () => {
+            var task = Task.Run(async () =>
+            {
                 return await api.Auth.RefreshAuthTokenAsync(_options.RefreshToken, _options.Secret);
             });
             task.Wait();
@@ -129,7 +130,7 @@ namespace Bot
                     Viewer viewer = db.Viewers.Where(obj => obj.Username == username).FirstOrDefault();
                     if (viewer != null)
                     {
-                        int hours = (int)Math.Floor(((decimal)viewer.Uptime) / 3600);
+                        int hours = (int)Math.Floor((decimal)viewer.Uptime / 3600);
                         int minutes = (int)Math.Floor((decimal)(viewer.Uptime % 3600) / 60);
                         client.SendMessage(_options.Channel, $"@{username} a regardé le stream pendant {hours} heures et {minutes.ToString().PadLeft(2, '0')} minutes. Il est passé {viewer.Seen} fois sur le stream.");
                     }
@@ -155,7 +156,7 @@ namespace Bot
                         {
                             BanUser(e.Command.ArgumentsAsList[0]);
                         }
-                        
+
                     }
                     else
                     {
@@ -197,7 +198,7 @@ namespace Bot
                         request.Title += " !bot";
                     }
                     await api.Helix.Channels.ModifyChannelInformationAsync(_options.TwitchId, request);
-                    client.SendMessage(_options.Channel, $"{e.Command.ChatMessage.Username}, le titre du stream a été changé en: {e.Command.ArgumentsAsString}");
+                    client.SendMessage(_options.Channel, $"{e.Command.ChatMessage.Username}, le titre du stream a été changé en: {request.Title}");
                 }
                 return;
             }
@@ -286,11 +287,13 @@ namespace Bot
             config.Settings.AccessToken = accessToken;
             config.Settings.RefreshToken = refreshToken;
             SaveAppSettings(config);
+            _options.AccessToken = accessToken;
+            _options.RefreshToken = refreshToken;
         }
 
         public dynamic LoadAppSettings()
         {
-            var appSettingsPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "appsettings.json");
+            var appSettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
             var json = File.ReadAllText(appSettingsPath);
             var jsonSettings = new JsonSerializerSettings();
             jsonSettings.Converters.Add(new ExpandoObjectConverter());
@@ -300,7 +303,7 @@ namespace Bot
 
         public void SaveAppSettings(dynamic config)
         {
-            var appSettingsPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "appsettings.json");
+            var appSettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
             var jsonSettings = new JsonSerializerSettings();
             jsonSettings.Converters.Add(new ExpandoObjectConverter());
             jsonSettings.Converters.Add(new StringEnumConverter());

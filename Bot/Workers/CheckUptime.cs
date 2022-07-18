@@ -1,3 +1,4 @@
+using Bot.Services;
 using Db;
 using Db.Models;
 using Microsoft.Extensions.Options;
@@ -13,9 +14,9 @@ namespace Bot.Workers
 
         private readonly ILogger<CheckUptime> _logger;
         private readonly Settings _options;
-        private BotManager _bot;
+        private BotService _bot;
 
-        public CheckUptime(ILogger<CheckUptime> logger, IConfiguration configuration, BotManager bot)
+        public CheckUptime(ILogger<CheckUptime> logger, IConfiguration configuration, BotService bot)
         {
             _logger = logger;
             _options = configuration.GetSection("Settings").Get<Settings>();

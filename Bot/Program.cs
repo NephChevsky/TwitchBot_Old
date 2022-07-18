@@ -1,13 +1,6 @@
-using Bot;
+using Bot.Services;
 using Bot.Workers;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using System.Configuration;
-using System.Runtime.Versioning;
-using TwitchLib.EventSub.Webhooks;
-using TwitchLib.EventSub.Webhooks.Extensions;
 
 namespace Bot
 {
@@ -30,8 +23,8 @@ namespace Bot
             .ConfigureServices(services =>
             {
                 //Settings settings = Configuration.GetSection(nameof(Settings)).Get<Settings>();
-
-                services.AddSingleton<BotManager>();
+                services.AddSingleton<BotService>();
+                services.AddSingleton<OBSService>();
                 services.AddHostedService<CheckUptime>();
                 services.AddHostedService<UpdateFiles>();
             })

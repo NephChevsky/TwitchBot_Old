@@ -20,6 +20,7 @@ namespace Bot
         public BotFunction BotFunction { get; set; }
         public CheckUptimeFunction CheckUptimeFunction { get; set; }
         public UpdateFilesFunction UpdateFilesFunction { get; set; }
+        public OBSFunction OBSFunction { get; set; }
     }
 
     public class CheckUptimeFunction
@@ -40,5 +41,11 @@ namespace Bot
     {
         public bool Timeout { get; set; }
         public bool AddBotSuffixInTitle { get; set; }
+    }
+
+    public class OBSFunction
+    {
+        public string Server { get; set; }
+        public string Password { get; set; }
     }
 }

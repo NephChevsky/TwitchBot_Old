@@ -1,4 +1,5 @@
-﻿using Db;
+﻿using Bot.Services;
+using Db;
 using Db.Models;
 using System;
 using System.Collections.Generic;
@@ -12,11 +13,11 @@ namespace Bot.Workers
     {
         private readonly ILogger<UpdateFiles> _logger;
         private readonly Settings _options;
-        private BotManager _bot;
+        private BotService _bot;
 
         private int CurrentButtonCursor = 0;
 
-        public UpdateFiles(ILogger<UpdateFiles> logger, IConfiguration configuration, BotManager bot)
+        public UpdateFiles(ILogger<UpdateFiles> logger, IConfiguration configuration, BotService bot)
         {
             _logger = logger;
             _options = configuration.GetSection("Settings").Get<Settings>();

@@ -8,17 +8,19 @@ using TwitchLib.EventSub.Webhooks.Core;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs.Channel;
 
-namespace Bot
+namespace Bot.Services
 {
     public class EventSubService : IHostedService
     {
         private readonly ILogger<EventSubService> _logger;
         private readonly ITwitchEventSubWebhooks _eventSubWebhooks;
+        private OBSService _OBSService;
 
-        public EventSubService(ILogger<EventSubService> logger, ITwitchEventSubWebhooks eventSubWebhooks)
+        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, OBSService obs, ITwitchEventSubWebhooks eventSubWebhooks)
         {
             _logger = logger;
             _eventSubWebhooks = eventSubWebhooks;
+            _OBSService = obs;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -38,6 +40,7 @@ namespace Bot
         private void OnChannelFollow(object sender, ChannelFollowArgs e)
         {
             _logger.LogInformation($"{e.Notification.Event.UserName} followed {e.Notification.Event.BroadcasterUserName} at {e.Notification.Event.FollowedAt.ToUniversalTime()}");
+
             /*SoundPlayer soundPlayer = new();
             soundPlayer.SoundLocation = @"D:\Twitch\alerts.wav";
             soundPlayer.Play();*/
