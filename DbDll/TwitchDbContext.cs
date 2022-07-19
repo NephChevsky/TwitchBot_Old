@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.Extensions.Configuration;
 using ModelsDll.Db;
 using ModelsDll.Interfaces;
 
@@ -20,7 +21,17 @@ namespace DbDll
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlServer("Server=NEPH-DESKTOP\\SQLEXPRESS;Database=Twitch;Trusted_Connection=True;Connect Timeout=10");
+
+            string dir = Directory.GetCurrentDirectory();
+            if (!dir.Contains("WebApp"))
+                dir = Path.Combine(Directory.GetParent(dir).FullName, "WebApp");
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                    .SetBasePath(dir)
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+
+            var connectionString = configuration.GetConnectionString("AzureDb");
+            optionsBuilder.UseSqlServer(connectionString);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

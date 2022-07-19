@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace DbDll
 {
@@ -7,8 +8,18 @@ namespace DbDll
     {
         public TwitchDbContext CreateDbContext(string[] args)
         {
+            string dir = Directory.GetCurrentDirectory();
+            if (!dir.Contains("WebApp"))
+                dir = Path.Combine(Directory.GetParent(dir).FullName, "WebApp");
+
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                    .SetBasePath(dir)
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+
+            var connectionString = configuration.GetConnectionString("AzureDb");
             var builder = new DbContextOptionsBuilder<TwitchDbContext>();
-            builder.UseSqlServer("Server=NEPH-DESKTOP\\SQLEXPRESS;Database=Twitch;Trusted_Connection=True;Connect Timeout=10");
+            builder.UseSqlServer(connectionString);
             return new TwitchDbContext(builder.Options);
         }
     }
