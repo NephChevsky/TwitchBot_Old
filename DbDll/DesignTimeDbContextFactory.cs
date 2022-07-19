@@ -1,14 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Db
+namespace DbDll
 {
     public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<TwitchDbContext>
     {
         public TwitchDbContext CreateDbContext(string[] args)
         {
             var builder = new DbContextOptionsBuilder<TwitchDbContext>();
-            builder.UseSqlServer("Server=localhost;Database=TheCompany;Trusted_Connection=True;");
+            builder.UseSqlServer("Server=NEPH-DESKTOP\\SQLEXPRESS;Database=Twitch;Trusted_Connection=True;Connect Timeout=10");
             return new TwitchDbContext(builder.Options);
         }
     }

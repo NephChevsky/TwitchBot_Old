@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Db.Interfaces
+namespace ModelsDll.Interfaces
 {
     public interface IDateTimeTrackable
     {

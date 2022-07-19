@@ -1,9 +1,9 @@
-﻿using Db.Interfaces;
-using Db.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using ModelsDll.Db;
+using ModelsDll.Interfaces;
 
-namespace Db
+namespace DbDll
 {
     public partial class TwitchDbContext : DbContext
     {
@@ -20,7 +20,7 @@ namespace Db
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlServer("Server=NEPH-DESKTOP\\SQLEXPRESS;Database=Twitch;Trusted_Connection=True;");
+            optionsBuilder.UseSqlServer("Server=NEPH-DESKTOP\\SQLEXPRESS;Database=Twitch;Trusted_Connection=True;Connect Timeout=10");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
