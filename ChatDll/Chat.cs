@@ -63,7 +63,7 @@ namespace ChatDll
 
         private void Client_OnConnected(object sender, OnConnectedArgs e)
         {
-            _logger.LogInformation($"Connected to {e.AutoJoinChannel}");
+            _logger.LogInformation($"Connected to {_settings.Channel}");
         }
 
         private void Client_OnJoinedChannel(object sender, OnJoinedChannelArgs e)
@@ -187,7 +187,7 @@ namespace ChatDll
             {
                 if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
                 {
-                    ModifyChannelInformationResponse response = await _api.ModifyChannelInformation(null, e.Command.ArgumentsAsList[0]);
+                    ModifyChannelInformationResponse response = await _api.ModifyChannelInformation(null, e.Command.ArgumentsAsString);
                     if (response != null)
                     {
                         _client.SendMessage(_settings.Channel, $"{e.Command.ChatMessage.Username}, le jeu du stream a été changé en: {response.Game}");
@@ -208,6 +208,7 @@ namespace ChatDll
 
         public void Dispose()
         {
+            _logger.LogInformation($"Disposing of ChatDll");
             if (_client.IsConnected)
             {
                 _client.SendMessage(_settings.Channel, $"Allez Bisous, mon peuple m'attend!");
