@@ -6,3 +6,5 @@
 */Properties
 /.vs
 *.csproj.user
+*/.angular
+*/.config
