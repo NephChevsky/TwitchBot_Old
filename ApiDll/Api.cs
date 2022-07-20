@@ -25,18 +25,21 @@ namespace ApiDll
     public class Api : IDisposable
     {
         private Settings _settings;
-
-        public TwitchAPI api;
+        private ILogger<Api> _logger;
+        private ILoggerFactory _loggerFactory;
+        private TwitchAPI api;
 
         public Api(IConfiguration configuration, bool useAppAccessToken)
         {
             _settings = configuration.GetSection("Settings").Get<Settings>();
-
+            _loggerFactory = LoggerFactory.Create(lf => { lf.AddAzureWebAppDiagnostics(); });
+            _logger = _loggerFactory.CreateLogger<Api>();
             Init(useAppAccessToken);
         }
 
         public void Init(bool useAppAccessToken)
         {
+            _logger.LogInformation("Starting api's initialisation");
             api = new TwitchAPI();
             api.Settings.ClientId = _settings.ClientId;
             api.Settings.Secret = _settings.Secret;
@@ -61,6 +64,7 @@ namespace ApiDll
                 UpdateTokens(token.AccessToken, token.RefreshToken);
                 api.Settings.AccessToken = _settings.AccessToken;
             }
+            _logger.LogInformation("End of api's initialisation");
         }
 
         public async Task<EventSubSubscription> CreateEventSubSubscription(string type)
@@ -107,7 +111,7 @@ namespace ApiDll
             if (!string.IsNullOrEmpty(game))
             {
                 GetGamesResponse games = await api.Helix.Games.GetGamesAsync(null, new List<string>() { game });
-                if (games.Games.Length > 0)
+                if (games.Games.Length == 0)
                 {
                     return null;
                 }
@@ -208,6 +212,7 @@ namespace ApiDll
 
         public void Dispose()
         {
+            _logger.LogInformation($"Disposing of ApiDll");
         }
     }
 }
