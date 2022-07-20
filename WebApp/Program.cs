@@ -24,6 +24,10 @@ namespace WebApp
                 services.AddSingleton<Chat>();
                 services.AddHostedService<CheckUptime>();
             })
+            .ConfigureLogging(logging =>
+            {
+                logging.AddAzureWebAppDiagnostics();
+            })
             .Build();
 
             host.Run();
