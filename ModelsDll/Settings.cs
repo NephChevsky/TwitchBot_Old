@@ -8,8 +8,7 @@
         public string Secret { get; set; }
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
-        public string TwitchAppScope { get; set; }
-        public string ChatScope { get; set; }
+        public string EventSubUrl { get; set; }
 
         public ChatFunction ChatFunction { get; set; }
         public CheckUptimeFunction CheckUptimeFunction { get; set; }

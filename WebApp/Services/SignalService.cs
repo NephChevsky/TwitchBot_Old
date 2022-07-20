@@ -12,7 +12,7 @@ namespace WebApp.Services
 			_logger = logger;
 		}
 
-		public void TriggerAlert(Alert alert)
+		public void TriggerAlert(Dictionary<string, object> alert)
 		{
 			Clients.All.SendAsync("TriggerAlert", alert);
 		}

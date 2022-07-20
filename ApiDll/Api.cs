@@ -76,12 +76,16 @@ namespace ApiDll
                     conditions.Add("to_broadcaster_user_id", _settings.TwitchId);
                     break;
                 case "channel.follow":
+                case "channel.subscribe":
+                case "channel.subscription.gift":
+                case "channel.subscription.message":
+                case "channel.cheer":
                 case "stream.online":
                 case "stream.offline":
                     conditions.Add("broadcaster_user_id", _settings.TwitchId);
                     break;
             }
-            CreateEventSubSubscriptionResponse response = await api.Helix.EventSub.CreateEventSubSubscriptionAsync(type, "1", conditions, "webhook", "https://thecompany.p-balleydier.com/webhooks", _settings.Secret);
+            CreateEventSubSubscriptionResponse response = await api.Helix.EventSub.CreateEventSubSubscriptionAsync(type, "1", conditions, "webhook", _settings.EventSubUrl, _settings.Secret);
             return response.Subscriptions[0];
         }
 

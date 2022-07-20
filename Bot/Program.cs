@@ -1,19 +1,16 @@
-using Bot.Services;
-using Bot.Workers;
-using Microsoft.AspNetCore.Hosting;
+﻿using Bot.Workers;
+using ChatDll;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Bot
 {
-    public class Program
-    {
-        static async Task Main(string[] args)
-        {
+	public class Program
+	{
+		static void Main(string[] args)
+		{
             IHost host = Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseUrls("https://thecompany.p-balleydier.com:443");
-                webBuilder.UseStartup<Startup>();
-            })
             .ConfigureAppConfiguration((hostingContext, configuration) =>
             {
                 configuration
@@ -23,15 +20,13 @@ namespace Bot
             })
             .ConfigureServices(services =>
             {
-                //Settings settings = Configuration.GetSection(nameof(Settings)).Get<Settings>();
-                services.AddSingleton<BotService>();
-                services.AddSingleton<OBSService>();
+                services.AddSingleton<Chat>();
                 services.AddHostedService<CheckUptime>();
                 services.AddHostedService<UpdateFiles>();
             })
             .Build();
 
-            await host.RunAsync();
+            host.Run();
         }
-    }
+	}
 }

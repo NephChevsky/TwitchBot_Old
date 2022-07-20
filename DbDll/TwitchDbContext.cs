@@ -23,7 +23,7 @@ namespace DbDll
             base.OnConfiguring(optionsBuilder);
 
             string dir = Directory.GetCurrentDirectory();
-            if (!dir.Contains("wwwroot"))
+            if (!dir.Contains("wwwroot") && !dir.Contains("Bot"))
                 dir = Path.Combine(Directory.GetParent(dir).FullName, "WebApp");
             IConfigurationRoot configuration = new ConfigurationBuilder()
                     .SetBasePath(dir)

@@ -1,5 +1,6 @@
-using ChatDll;
-using WebApp.Workers;
+using ModelsDll;
+using TwitchLib.EventSub.Webhooks.Extensions;
+using WebApp.Services;
 
 namespace WebApp
 {
@@ -7,30 +8,48 @@ namespace WebApp
 	{
 		public static void Main(string[] args)
 		{
-            IHost host = Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>();
-            })
-            .ConfigureAppConfiguration((hostingContext, configuration) =>
-            {
-                configuration
-                        .SetBasePath(Directory.GetCurrentDirectory())
-                        .AddJsonFile("appsettings.json")
-                        .Build();
-            })
-            .ConfigureServices(services =>
-            {
-                services.AddSingleton<Chat>();
-                services.AddHostedService<CheckUptime>();
-            })
-            .ConfigureLogging(logging =>
-            {
-                logging.AddAzureWebAppDiagnostics();
-            })
-            .Build();
+			IConfigurationRoot configuration = new ConfigurationBuilder()
+					.SetBasePath(Directory.GetCurrentDirectory())
+					.AddJsonFile("appsettings.json")
+					.Build();
 
-            host.Run();
-        }
+			var builder = WebApplication.CreateBuilder(args);
+
+			builder.Services.AddControllers();
+			builder.Services.AddSignalR();
+			builder.Services.AddTwitchLibEventSubWebhooks(config =>
+			{
+				config.CallbackPath = "/webhooks";
+				config.Secret = configuration.GetSection("Settings").Get<Settings>().Secret;
+			});
+
+			builder.Services.AddHostedService<EventSubService>();
+
+			builder.Logging.ClearProviders();
+			builder.Logging.AddAzureWebAppDiagnostics();
+
+			var app = builder.Build();
+
+			if (!app.Environment.IsDevelopment())
+			{
+				app.UseDeveloperExceptionPage();
+				app.UseHsts();
+			}
+
+			app.UseHttpsRedirection();
+			app.UseStaticFiles();
+			app.UseRouting();
+			app.UseTwitchLibEventSubWebhooks();
+
+			app.MapControllerRoute(
+				name: "default",
+				pattern: "{controller}/{action=Index}/{id?}");
+			
+			app.MapHub<SignalService>("/hub");
+
+			app.MapFallbackToFile("index.html");
+
+			app.Run();
+		}
 	}
 }

@@ -1,11 +1,11 @@
-﻿using Bot.Services;
-using Db;
-using Db.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ApiDll;
+using DbDll;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using ModelsDll;
+using ModelsDll.Db;
+using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 
 namespace Bot.Workers
 {
@@ -13,29 +13,25 @@ namespace Bot.Workers
     {
         private readonly ILogger<UpdateFiles> _logger;
         private readonly Settings _options;
-        private BotService _bot;
+        private Api _api;
 
         private int CurrentButtonCursor = 0;
 
-        public UpdateFiles(ILogger<UpdateFiles> logger, IConfiguration configuration, BotService bot)
+        public UpdateFiles(ILogger<UpdateFiles> logger, IConfiguration configuration)
         {
             _logger = logger;
             _options = configuration.GetSection("Settings").Get<Settings>();
-            _bot = bot;
+            _api = new Api(configuration, false);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!_bot.ClientIsConnected)
-            {
-                await Task.Delay(25);
-            }
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
-                long follower_count = await _bot.GetFollowerCount();
+                List<Follow> followers = await _api.GetFollowers();
+                long follower_count = followers.Count;
                 if (follower_count > 0)
                 {
                     File.WriteAllText(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "follower_goal.txt"), $"{follower_count} / {_options.UpdateFilesFunction.FollowerGoal}");
@@ -47,7 +43,7 @@ namespace Bot.Workers
                     File.Delete(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "follower_goal.txt"));
                 }
 
-                int viewer_count = await _bot.GetViewerCount();
+                int viewer_count = await _api.GetViewerCount();
                 File.WriteAllText(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "viewer_count.txt"), viewer_count.ToString());
 
                 using (TwitchDbContext db = new())
@@ -59,7 +55,7 @@ namespace Bot.Workers
                     }
                 }
 
-                File.WriteAllText(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "last_follower.txt"), await _bot.GetLastFollower());
+                File.WriteAllText(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "last_follower.txt"), followers[0].FromUserName);
 
                 List<string> files = Directory.GetFiles(_options.UpdateFilesFunction.OutputFolder).Where(name => !name.Contains("button")).ToList();
                 string button1_title = Path.GetFileNameWithoutExtension(files[CurrentButtonCursor]);

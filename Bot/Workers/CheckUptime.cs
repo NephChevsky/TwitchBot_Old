@@ -1,10 +1,13 @@
-using Bot.Services;
-using Db;
-using Db.Models;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using ApiDll;
+using ChatDll;
+using DbDll;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using ModelsDll;
+using ModelsDll.Db;
 using TwitchLib.Api;
+using TwitchLib.Api.Core.Models.Undocumented.Chatters;
 
 namespace Bot.Workers
 {
@@ -14,13 +17,16 @@ namespace Bot.Workers
 
         private readonly ILogger<CheckUptime> _logger;
         private readonly Settings _options;
-        private BotService _bot;
+        private Chat _chat;
+        private Api _api;
+        private List<ChatterFormatted> CurrentChatters = new List<ChatterFormatted>();
 
-        public CheckUptime(ILogger<CheckUptime> logger, IConfiguration configuration, BotService bot)
+        public CheckUptime(ILogger<CheckUptime> logger, IConfiguration configuration, Chat chat)
         {
             _logger = logger;
             _options = configuration.GetSection("Settings").Get<Settings>();
-            _bot = bot;
+            _chat = chat;
+            _api = new(configuration, false);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -30,7 +36,7 @@ namespace Bot.Workers
                 return;
             }
 
-            while (!_bot.ClientIsConnected)
+            while (!_chat.IsConnected)
             {
                 await Task.Delay(25);
             }
@@ -39,25 +45,24 @@ namespace Bot.Workers
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
-                List<string> chatters = await _bot.GetChatters();
+                List<ChatterFormatted> chatters = await _api.GetChatters();
 
                 chatters.ForEach(x =>
                 {
                     using (TwitchDbContext db = new())
                     {
-                        bool shouldGreet = _options.CheckUptimeFunction.WelcomeOnJoin && !string.Equals(x, _options.Channel, StringComparison.InvariantCultureIgnoreCase);
-                        Viewer dbViewer = db.Viewers.Where(obj => obj.Username == x).FirstOrDefault();
+                        bool shouldGreet = _options.CheckUptimeFunction.WelcomeOnJoin && !string.Equals(x.Username, _options.Channel, StringComparison.InvariantCultureIgnoreCase);
+                        Viewer dbViewer = db.Viewers.Where(obj => obj.Username == x.Username).FirstOrDefault();
                         if (dbViewer != null)
                         {
                             shouldGreet &= dbViewer.LastViewedDateTime < DateTime.Now.AddSeconds(-_options.CheckUptimeFunction.WelcomeOnJoinTimer) && !dbViewer.IsBot;
-
-                            if (!_bot.CurrentViewerList.Contains(x, StringComparer.OrdinalIgnoreCase))
+                            if (!CurrentChatters.Select(y => y.Username).ToList().Contains(x.Username, StringComparer.OrdinalIgnoreCase))
                             {
                                 if (shouldGreet)
                                 {
                                     dbViewer.Seen++;
                                     _logger.LogInformation($"Say hi to known viewer {dbViewer.Username}");
-                                    _bot.SendMessage($"Salut {dbViewer.Username} ! Bon retour sur le stream !");
+                                    _chat.SendMessage($"Salut {dbViewer.Username} ! Bon retour sur le stream !");
                                 }
                             }
                             else
@@ -68,18 +73,18 @@ namespace Bot.Workers
                         }
                         else
                         {
-                            dbViewer = new Viewer(x);
+                            dbViewer = new Viewer(x.Username);
                             db.Viewers.Add(dbViewer);
                             if (shouldGreet)
                             {
                                 _logger.LogInformation($"Say hi to new viewer {dbViewer.Username}");
-                                _bot.SendMessage($"Salut {dbViewer.Username} ! Bienvenue sur le stream. Tu peux nous faire un petit coucou ou bien taper ton meilleur lurk. Tape !bot pour voir les commandes disponibles ;)");
+                                _chat.SendMessage($"Salut {dbViewer.Username} ! Bienvenue sur le stream. Tu peux nous faire un petit coucou ou bien taper ton meilleur lurk. Tape !bot pour voir les commandes disponibles ;)");
                             }
                         }
                         db.SaveChanges();
                     }
                 });
-                _bot.CurrentViewerList = chatters;
+                CurrentChatters = chatters;
 
                 await Task.Delay(TimeSpan.FromSeconds(_options.CheckUptimeFunction.Timer), stoppingToken);
             }

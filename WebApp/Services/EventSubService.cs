@@ -1,12 +1,10 @@
 ﻿using ApiDll;
-using ChatDll;
 using Microsoft.AspNetCore.SignalR;
 using ModelsDll;
 using TwitchLib.Api.Helix.Models.EventSub;
 using TwitchLib.EventSub.Webhooks.Core;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs.Channel;
-using TwitchLib.EventSub.Webhooks.Core.EventArgs.Stream;
 
 namespace WebApp.Services
 {
@@ -16,17 +14,16 @@ namespace WebApp.Services
         private readonly ITwitchEventSubWebhooks _eventSubWebhooks;
         readonly IHubContext<SignalService> _hub;
         private Settings _settings;
-        private Chat _chat;
         private Api _api;
         private List<EventSubSubscription> Subscriptions;
+        private List<string> HandledEvents = new List<string>();
 
-        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, Chat chat)
+        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub)
         {
             _logger = logger;
             _eventSubWebhooks = eventSubWebhooks;
             _hub = hub;
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            _chat = chat;
             _api = new(configuration, true);
 
             Subscriptions = new();
@@ -35,9 +32,11 @@ namespace WebApp.Services
                 List<EventSubSubscription> subs = await _api.GetEventSubSubscription();
                 _api.DeleteEventSubSubscription(subs);
                 Subscriptions.Add(await _api.CreateEventSubSubscription("channel.follow"));
+                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.subscribe"));
+                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.subscription.gift"));
+                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.subscription.message"));
+                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.cheer"));
                 Subscriptions.Add(await _api.CreateEventSubSubscription("channel.raid"));
-                Subscriptions.Add(await _api.CreateEventSubSubscription("stream.online"));
-                Subscriptions.Add(await _api.CreateEventSubSubscription("stream.offline"));
 
                 return true;
             });
@@ -46,52 +45,123 @@ namespace WebApp.Services
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation($"Service starting");
             _eventSubWebhooks.OnError += OnError;
             _eventSubWebhooks.OnChannelFollow += OnChannelFollow;
+            _eventSubWebhooks.OnChannelSubscribe += OnChannelSubscribe;
+            _eventSubWebhooks.OnChannelSubscriptionGift += OnChannelSubscriptionGift;
+            _eventSubWebhooks.OnChannelSubscriptionMessage += OnChannelSubscriptionMessage;
+            _eventSubWebhooks.OnChannelCheer += OnChannelCheer;
             _eventSubWebhooks.OnChannelRaid += OnChannelRaid;
-            _eventSubWebhooks.OnStreamOnline += OnStreamOnline;
-            _eventSubWebhooks.OnStreamOffline += OnStreamOffline;
-
+            _logger.LogInformation($"Service started");
             return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation($"Service stoping");
             _api.DeleteEventSubSubscription(Subscriptions);
-
             _eventSubWebhooks.OnError -= OnError;
             _eventSubWebhooks.OnChannelFollow -= OnChannelFollow;
+            _eventSubWebhooks.OnChannelSubscribe += OnChannelSubscribe;
+            _eventSubWebhooks.OnChannelSubscriptionGift += OnChannelSubscriptionGift;
+            _eventSubWebhooks.OnChannelSubscriptionMessage += OnChannelSubscriptionMessage;
+            _eventSubWebhooks.OnChannelCheer += OnChannelCheer;
             _eventSubWebhooks.OnChannelRaid -= OnChannelRaid;
-            _eventSubWebhooks.OnStreamOnline -= OnStreamOnline;
-            _eventSubWebhooks.OnStreamOffline -= OnStreamOffline;
-
+            _logger.LogInformation($"Service stopped");
             return Task.CompletedTask;
         }
 
         private void OnChannelFollow(object sender, ChannelFollowArgs e)
         {
-            _logger.LogInformation($"{e.Notification.Event.UserName} followed {e.Notification.Event.BroadcasterUserName} at {e.Notification.Event.FollowedAt.ToUniversalTime()}");
-            Alert alert = new("follow", e.Notification.Event.UserName);
-            _hub.Clients.All.SendAsync("TriggerAlert", alert);
+            if (!HandledEvents.Contains(e.Notification.Subscription.Id))
+            {
+                _logger.LogInformation($"{e.Notification.Event.UserName} followed {e.Notification.Event.BroadcasterUserName}");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "follow");
+                alert.Add("username", e.Notification.Event.UserName);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Notification.Subscription.Id);
+            }
+        }
+
+        private void OnChannelSubscribe(object sender, ChannelSubscribeArgs e)
+        {
+            if (!HandledEvents.Contains(e.Notification.Subscription.Id))
+            {
+                _logger.LogInformation($"{e.Notification.Event.UserName} subscribed to {e.Notification.Event.BroadcasterUserName}");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "subscribe");
+                alert.Add("username", e.Notification.Event.UserName);
+                alert.Add("isGift", e.Notification.Event.IsGift);
+                alert.Add("tier", e.Notification.Event.Tier);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Notification.Subscription.Id);
+            }
+        }
+
+        private void OnChannelSubscriptionGift(object sender, ChannelSubscriptionGiftArgs e)
+        {
+            if (!HandledEvents.Contains(e.Notification.Subscription.Id))
+            {
+                _logger.LogInformation($"{e.Notification.Event.UserName} gifted a subscription to {e.Notification.Event.BroadcasterUserName}");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "subscribegift");
+                alert.Add("username", e.Notification.Event.UserName);
+                alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
+                alert.Add("tier", e.Notification.Event.Tier);
+                alert.Add("total", e.Notification.Event.Total);
+                alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Notification.Subscription.Id);
+            }
+        }
+
+        private void OnChannelSubscriptionMessage(object sender, ChannelSubscriptionMessageArgs e)
+        {
+            if (!HandledEvents.Contains(e.Notification.Subscription.Id))
+            {
+                _logger.LogInformation($"{e.Notification.Event.UserName} re-subscribed to {e.Notification.Event.BroadcasterUserName}");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "subscribeMessage");
+                alert.Add("username", e.Notification.Event.UserName);
+                alert.Add("message", e.Notification.Event.Message);
+                alert.Add("tier", e.Notification.Event.Tier);
+                alert.Add("durationMonths", e.Notification.Event.DurationMonths);
+                alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Notification.Subscription.Id);
+            }
+        }
+
+        private void OnChannelCheer(object sender, ChannelCheerArgs e)
+        {
+            if (!HandledEvents.Contains(e.Notification.Subscription.Id))
+            {
+                _logger.LogInformation($"{e.Notification.Event.UserName} gifted {e.Notification.Event.Bits} cheers to {e.Notification.Event.BroadcasterUserName}");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "subscribeMessage");
+                alert.Add("username", e.Notification.Event.UserName);
+                alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
+                alert.Add("bits", e.Notification.Event.Bits);
+                alert.Add("message", e.Notification.Event.Message);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Notification.Subscription.Id);
+            } 
         }
 
         private void OnChannelRaid(object sender, ChannelRaidArgs e)
         {
-            _logger.LogInformation($"{e.Notification.Event.FromBroadcasterUserName} raided {e.Notification.Event.ToBroadcasterUserName} with {e.Notification.Event.Viewers} person");
-            Alert alert = new("raid", e.Notification.Event.FromBroadcasterUserName, e.Notification.Event.Viewers);
-            _hub.Clients.All.SendAsync("TriggerAlert", alert);
-        }
-
-        private void OnStreamOnline(object sender, StreamOnlineArgs e)
-        {
-            _logger.LogInformation($"{e.Notification.Event.BroadcasterUserName} is now live");
-            _chat.SendMessage("Le live vient de commencer!");
-        }
-
-        private void OnStreamOffline(object sender, StreamOfflineArgs e)
-        {
-            _logger.LogInformation($"{e.Notification.Event.BroadcasterUserName} is not live anymore");
-            _chat.SendMessage("Le live est terminé!");
+            if (!HandledEvents.Contains(e.Notification.Subscription.Id))
+            {
+                _logger.LogInformation($"{e.Notification.Event.FromBroadcasterUserName} raided {e.Notification.Event.ToBroadcasterUserName} with {e.Notification.Event.Viewers} person");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "raid");
+                alert.Add("username", e.Notification.Event.FromBroadcasterUserName);
+                alert.Add("viewers", e.Notification.Event.Viewers);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Notification.Subscription.Id);
+            }
         }
 
         private void OnError(object sender, OnErrorArgs e)
