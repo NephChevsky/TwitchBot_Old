@@ -9,7 +9,7 @@ namespace DbDll
         public TwitchDbContext CreateDbContext(string[] args)
         {
             string dir = Directory.GetCurrentDirectory();
-            if (!dir.Contains("WebApp"))
+            if (!dir.Contains("wwwroot"))
                 dir = Path.Combine(Directory.GetParent(dir).FullName, "WebApp");
 
             IConfigurationRoot configuration = new ConfigurationBuilder()
