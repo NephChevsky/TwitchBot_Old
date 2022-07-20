@@ -49,7 +49,7 @@ namespace Bot.Workers
 
                 chatters.ForEach(x =>
                 {
-                    using (TwitchDbContext db = new())
+                    using (TwitchDbContext db = new(Guid.Empty))
                     {
                         bool shouldGreet = _options.CheckUptimeFunction.WelcomeOnJoin && !string.Equals(x.Username, _options.Channel, StringComparison.InvariantCultureIgnoreCase);
                         Viewer dbViewer = db.Viewers.Where(obj => obj.Username == x.Username).FirstOrDefault();

@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatDll", "ChatDll\ChatDll.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiDll", "ApiDll\ApiDll.csproj", "{E75CFCAE-C2D8-4D57-B5A6-F8A65BF28D9B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bot", "Bot\Bot.csproj", "{3C5F875E-D1C1-4986-9138-623E2FA19F6E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,14 @@ Global
 		{E75CFCAE-C2D8-4D57-B5A6-F8A65BF28D9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E75CFCAE-C2D8-4D57-B5A6-F8A65BF28D9B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E75CFCAE-C2D8-4D57-B5A6-F8A65BF28D9B}.Release|x64.ActiveCfg = Release|Any CPU
+		{3C5F875E-D1C1-4986-9138-623E2FA19F6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C5F875E-D1C1-4986-9138-623E2FA19F6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C5F875E-D1C1-4986-9138-623E2FA19F6E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3C5F875E-D1C1-4986-9138-623E2FA19F6E}.Debug|x64.Build.0 = Debug|Any CPU
+		{3C5F875E-D1C1-4986-9138-623E2FA19F6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C5F875E-D1C1-4986-9138-623E2FA19F6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C5F875E-D1C1-4986-9138-623E2FA19F6E}.Release|x64.ActiveCfg = Release|Any CPU
+		{3C5F875E-D1C1-4986-9138-623E2FA19F6E}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

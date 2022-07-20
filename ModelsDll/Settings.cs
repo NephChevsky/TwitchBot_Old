@@ -34,5 +34,6 @@
     {
         public bool Timeout { get; set; }
         public bool AddBotSuffixInTitle { get; set; }
+        public bool AddCustomCommands { get; set; }
     }
 }

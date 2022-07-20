@@ -1,22 +1,28 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Configuration;
 using ModelsDll.Db;
 using ModelsDll.Interfaces;
+using System.Linq.Expressions;
 
 namespace DbDll
 {
     public partial class TwitchDbContext : DbContext
     {
+        private Guid Owner;
+
         public TwitchDbContext(DbContextOptions options) : base(options)
         {
         }
 
-        public TwitchDbContext()
+        public TwitchDbContext(Guid owner)
         {
+            Owner = owner;
         }
 
         public DbSet<Viewer> Viewers => Set<Viewer>();
+        public DbSet<Command> Commands => Set<Command>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -62,9 +68,60 @@ namespace DbDll
 
                 AddGenericFields<Viewer>(entity);
             });
-
             modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Id }).IsUnique(true);
             modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Username }).IsUnique(true);
+
+            modelBuilder.Entity<Command>(entity =>
+            {
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(512);
+
+                entity.Property(e => e.Message)
+                    .IsRequired()
+                    .HasMaxLength(512);
+
+                entity.Property(e => e.Value)
+                    .HasDefaultValue(0);
+
+                AddGenericFields<Command>(entity);
+            });
+            modelBuilder.Entity<Command>().HasIndex(t => new { t.Name }).IsUnique(true);
+
+            Expression<Func<ISoftDeleteable, bool>> filterSoftDeleteable = bm => !bm.Deleted;
+            Expression<Func<IOwnable, bool>> filterOwnable = bm => Owner == Guid.Empty || bm.Owner == Owner;
+            foreach (var type in modelBuilder.Model.GetEntityTypes())
+            {
+                Expression filter = null;
+                var param = Expression.Parameter(type.ClrType, "entity");
+                if (typeof(ISoftDeleteable).IsAssignableFrom(type.ClrType))
+                {
+                    filter = AddFilter(filter, ReplacingExpressionVisitor.Replace(filterSoftDeleteable.Parameters.First(), param, filterSoftDeleteable.Body));
+                }
+
+                if (typeof(IOwnable).IsAssignableFrom(type.ClrType))
+                {
+                    filter = AddFilter(filter, ReplacingExpressionVisitor.Replace(filterOwnable.Parameters.First(), param, filterOwnable.Body));
+                }
+
+                if (filter != null)
+                {
+                    type.SetQueryFilter(Expression.Lambda(filter, param));
+                }
+            }
+        }
+
+        private Expression AddFilter(Expression filter, Expression newFilter)
+        {
+            if (filter == null)
+            {
+                filter = newFilter;
+            }
+            else
+            {
+                filter = Expression.And(filter, newFilter);
+            }
+            return filter;
         }
 
         public void AddGenericFields<T>(EntityTypeBuilder entity)
@@ -86,12 +143,19 @@ namespace DbDll
                     .IsRequired()
                     .HasDefaultValue(false);
             }
+
+            if (typeof(IOwnable).IsAssignableFrom(typeof(T)))
+            {
+                entity.Property("Owner")
+                    .IsRequired();
+            }
         }
 
         public override int SaveChanges()
         {
             SoftDelete();
             TimeTrack();
+            Ownable();
             return base.SaveChanges();
         }
 
@@ -99,6 +163,7 @@ namespace DbDll
         {
             SoftDelete();
             TimeTrack();
+            Ownable();
             return await base.SaveChangesAsync(cancellationToken);
         }
 
@@ -129,6 +194,33 @@ namespace DbDll
                     if (item.State == EntityState.Added && (entity.CreationDateTime == null || entity.CreationDateTime == DateTime.MinValue))
                     {
                         entity.CreationDateTime = now;
+                    }
+                }
+            }
+        }
+
+        private void Ownable()
+        {
+            ChangeTracker.DetectChanges();
+            var markedEntries = ChangeTracker.Entries();
+            foreach (var item in markedEntries)
+            {
+                if (item.Entity is IOwnable entity)
+                {
+                    if (item.State == EntityState.Added)
+                    {
+                        if (Owner != Guid.Empty)
+                        {
+                            entity.Owner = Owner;
+                        }
+                        else
+                        {
+                            throw new Exception("Unauthorized database insert detected");
+                        }
+                    }
+                    if (entity.Owner != Owner && Owner != Guid.Empty)
+                    {
+                        throw new Exception("Unauthorized database request detected");
                     }
                 }
             }

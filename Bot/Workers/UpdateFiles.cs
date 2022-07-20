@@ -46,7 +46,7 @@ namespace Bot.Workers
                 int viewer_count = await _api.GetViewerCount();
                 File.WriteAllText(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "viewer_count.txt"), viewer_count.ToString());
 
-                using (TwitchDbContext db = new())
+                using (TwitchDbContext db = new(Guid.Empty))
                 {
                     Viewer bestViewer = db.Viewers.Where(x => x.IsBot == false).OrderByDescending(x => x.Uptime).FirstOrDefault();
                     if (bestViewer != null)

@@ -22,6 +22,7 @@ namespace ChatDll
         private TwitchClient _client;
         private Api _api;
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
+        private Guid InvalidGuid = Guid.Parse("INVALID0-0000-0000-0000-000000000000");
 
         public Chat(ILogger<Chat> logger, IConfiguration configuration)
         {
@@ -69,7 +70,7 @@ namespace ChatDll
         private void Client_OnJoinedChannel(object sender, OnJoinedChannelArgs e)
         {
             _logger.LogInformation($"Joined channel {_settings.Channel}");
-            _client.SendMessage(e.Channel, "Coucou, tu veux voir ma build?");
+            SendMessage("Coucou, tu veux voir ma build?");
         }
 
         private void Client_OnConnectionError(object sender, OnConnectionErrorArgs e)
@@ -81,25 +82,28 @@ namespace ChatDll
         {
             if (string.Equals(e.Command.CommandText, "bot", StringComparison.InvariantCultureIgnoreCase)
                 || string.Equals(e.Command.CommandText, "command", StringComparison.InvariantCultureIgnoreCase)
-                || string.Equals(e.Command.CommandText, "commande", StringComparison.InvariantCultureIgnoreCase)
                 || string.Equals(e.Command.CommandText, "commands", StringComparison.InvariantCultureIgnoreCase)
+                || string.Equals(e.Command.CommandText, "commande", StringComparison.InvariantCultureIgnoreCase)
                 || string.Equals(e.Command.CommandText, "commandes", StringComparison.InvariantCultureIgnoreCase))
             {
-                _client.SendMessage(_settings.Channel, "Commandes disponibles:");
+                SendMessage("Commandes disponibles:");
                 if (_settings.CheckUptimeFunction.ComputeUptime)
                 {
-                    _client.SendMessage(_settings.Channel, "!uptime : Affiche le temps de stream visionné");
+                    SendMessage("!uptime : Affiche l'uptime d'un viewer");
                 }
                 if (_settings.ChatFunction.Timeout)
                 {
-                    _client.SendMessage(_settings.Channel, "!timeout : Permet de TO quelqu'un, mais faut du courage");
+                    SendMessage("!timeout : TO quelqu'un, mais faut du courage");
                 }
-                return;
+                if (_settings.ChatFunction.AddCustomCommands)
+                {
+                    SendMessage("!addcmd : Ajoute une commande");
+                    SendMessage("!delcmd : Supprime une commande");
+                }
             }
-
-            if (_settings.CheckUptimeFunction.ComputeUptime && string.Equals(e.Command.CommandText, "uptime", StringComparison.InvariantCultureIgnoreCase))
+            else if (_settings.CheckUptimeFunction.ComputeUptime && string.Equals(e.Command.CommandText, "uptime", StringComparison.InvariantCultureIgnoreCase))
             {
-                using (TwitchDbContext db = new())
+                using (TwitchDbContext db = new(Guid.Empty))
                 {
                     string username = e.Command.ArgumentsAsList.Count > 0 ? e.Command.ArgumentsAsList[0] : e.Command.ChatMessage.Username;
                     Viewer viewer = db.Viewers.Where(obj => obj.Username == username).FirstOrDefault();
@@ -107,17 +111,15 @@ namespace ChatDll
                     {
                         int hours = (int)Math.Floor((decimal)viewer.Uptime / 3600);
                         int minutes = (int)Math.Floor((decimal)(viewer.Uptime % 3600) / 60);
-                        _client.SendMessage(_settings.Channel, $"@{username} a regardé le stream pendant {hours} heures et {minutes.ToString().PadLeft(2, '0')} minutes. Il est passé {viewer.Seen} fois sur le stream.");
+                        SendMessage($"@{username} a regardé le stream pendant {hours} heures et {minutes.ToString().PadLeft(2, '0')} minutes. Il est passé {viewer.Seen} fois sur le stream.");
                     }
                     else
                     {
-                        _client.SendMessage(_settings.Channel, $"{e.Command.ChatMessage.Username}, je connais pas ce con");
+                        SendMessage($"{e.Command.ChatMessage.Username}, je connais pas ce con");
                     }
                 }
-                return;
             }
-
-            if (_settings.ChatFunction.Timeout && (string.Equals(e.Command.CommandText, "timeout", StringComparison.InvariantCultureIgnoreCase)
+            else if (_settings.ChatFunction.Timeout && (string.Equals(e.Command.CommandText, "timeout", StringComparison.InvariantCultureIgnoreCase)
                                                     || string.Equals(e.Command.CommandText, "to", StringComparison.InvariantCultureIgnoreCase)))
             {
                 if (e.Command.ArgumentsAsList.Count > 0)
@@ -140,35 +142,41 @@ namespace ChatDll
                         }
                         else
                         {
-                            int dice = Rng.Next(5);
-                            int timer = Rng.Next(300);
-                            if (dice == 0)
+                            if (e.Command.ArgumentsAsList.Count == 0)
                             {
-                                _client.SendMessage(_settings.Channel, $"Roll: {dice}/300. Dommage {e.Command.ChatMessage.Username}!");
-                                _api.BanUser(e.Command.ChatMessage.Username, timer);
-                            }
-                            else if (dice == 1)
-                            {
-                                _client.SendMessage(_settings.Channel, $"Roll: {dice}/300. Désolé {e.Command.ArgumentsAsList[0]}!");
-                                _api.BanUser(username, timer);
-                            }
-                            else if (dice == 2)
-                            {
-                                _client.SendMessage(_settings.Channel, $"Roll: {dice}/300. Allez ça dégage {e.Command.ChatMessage.Username} et {e.Command.ArgumentsAsString}!");
-                                _api.BanUser(e.Command.ChatMessage.Username, timer);
-                                _api.BanUser(username, timer);
+                                SendMessage($"{e.Command.ChatMessage.Username} Idiot!");
+                                _api.BanUser(username);
                             }
                             else
                             {
-                                _client.SendMessage(_settings.Channel, $"Non, pas envie aujourd'hui");
+                                int dice = Rng.Next(5);
+                                int timer = Rng.Next(300);
+                                if (dice == 0)
+                                {
+                                    SendMessage($"Roll: {dice}/300. Dommage {e.Command.ChatMessage.Username}!");
+                                    _api.BanUser(e.Command.ChatMessage.Username, timer);
+                                }
+                                else if (dice == 1)
+                                {
+                                    SendMessage($"Roll: {dice}/300. Désolé {e.Command.ArgumentsAsList[0]}!");
+                                    _api.BanUser(username, timer);
+                                }
+                                else if (dice == 2)
+                                {
+                                    SendMessage($"Roll: {dice}/300. Allez ça dégage {e.Command.ChatMessage.Username} et {e.Command.ArgumentsAsString}!");
+                                    _api.BanUser(e.Command.ChatMessage.Username, timer);
+                                    _api.BanUser(username, timer);
+                                }
+                                else
+                                {
+                                    SendMessage($"Non, pas envie aujourd'hui");
+                                }
                             }
                         }
                     }
                 }
-                return;
             }
-
-            if (string.Equals(e.Command.CommandText, "settitle", StringComparison.InvariantCultureIgnoreCase))
+            else if (string.Equals(e.Command.CommandText, "settitle", StringComparison.InvariantCultureIgnoreCase))
             {
                 if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
                 {
@@ -178,27 +186,128 @@ namespace ChatDll
                         title += " !bot";
                     }
                     await _api.ModifyChannelInformation(title, null);
-                    _client.SendMessage(_settings.Channel, $"{e.Command.ChatMessage.Username}, le titre du stream a été changé en: {title}");
+                    SendMessage($"{e.Command.ChatMessage.Username}, le titre du stream a été changé en: {title}");
                 }
-                return;
             }
-
-            if (string.Equals(e.Command.CommandText, "setgame", StringComparison.InvariantCultureIgnoreCase))
+            else if  (string.Equals(e.Command.CommandText, "setgame", StringComparison.InvariantCultureIgnoreCase))
             {
                 if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
                 {
                     ModifyChannelInformationResponse response = await _api.ModifyChannelInformation(null, e.Command.ArgumentsAsString);
                     if (response != null)
                     {
-                        _client.SendMessage(_settings.Channel, $"{e.Command.ChatMessage.Username}, le jeu du stream a été changé en: {response.Game}");
+                        SendMessage($"{e.Command.ChatMessage.Username}, le jeu du stream a été changé en: {response.Game}");
                     }
                     else
                     {
-                        _client.SendMessage(_settings.Channel, $"{e.Command.ChatMessage.Username}, je connais pas ton jeu de merde");
+                        SendMessage($"{e.Command.ChatMessage.Username}, je connais pas ton jeu de merde");
                     }
+                }
+            }
+            else if (_settings.ChatFunction.AddCustomCommands && string.Equals(e.Command.CommandText, "addcmd", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if ((e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator) && e.Command.ArgumentsAsList.Count >= 2)
+                {
+                    Command cmd = new();
+                    cmd.Name = e.Command.ArgumentsAsList[0];
+                    cmd.Message = e.Command.ArgumentsAsString.Substring(e.Command.ArgumentsAsList[0].Length + 1);
+                    Guid guid = GetUserGuid(e.Command.ChatMessage.Username);
+                    if (guid != InvalidGuid)
+                    {
+                        using (TwitchDbContext db = new(guid))
+                        {
+                            db.Commands.Add(cmd);
+                            db.SaveChanges();
+                            SendMessage($"Command {e.Command.ArgumentsAsList[0]} créée");
+                        }
+                    }
+                    else
+                    {
+                        SendMessage("Utilisateur inconnu");
+					}
                 }
                 return;
             }
+            else if (_settings.ChatFunction.AddCustomCommands && string.Equals(e.Command.CommandText, "delcmd", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (e.Command.ArgumentsAsList.Count == 1)
+                {
+                    using (TwitchDbContext db = new (Guid.Empty))
+                    {
+                        Guid guid = Guid.Empty;
+                        if (!e.Command.ChatMessage.IsBroadcaster && !e.Command.ChatMessage.IsModerator)
+                        {
+                            Viewer dbViewer = db.Viewers.Where(x => string.Equals(x.Username, e.Command.ChatMessage.Username, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+                            if (dbViewer != null)
+                            {
+                                guid = dbViewer.Id;
+                            }
+                            else
+                            {
+                                SendMessage("Utilisateur inconnu");
+                                return;
+							}
+                        }
+                        Command dbCmd = db.Commands.Where(x => string.Equals(x.Name, e.Command.ArgumentsAsList[0], StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+                        if (dbCmd != null)
+                        {
+                            if (guid == Guid.Empty || guid == dbCmd.Owner)
+                            {
+                                db.Remove(dbCmd);
+                                db.SaveChanges();
+                                SendMessage($"Command {e.Command.ArgumentsAsList[0]} supprimée");
+                            }
+                            else
+                            {
+                                SendMessage($"Pas touche!");
+                            }
+                        }
+                        else
+                        {
+                            SendMessage($"Commande inconnue");
+						}
+                    }
+                }
+                else if (_settings.ChatFunction.AddCustomCommands)
+                {
+                    using(TwitchDbContext db = new(Guid.Empty))
+                    {
+                        Command dbCmd = db.Commands.Where(x => string.Equals(x.Name, e.Command.CommandText, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+                        if (dbCmd != null)
+                        {
+                            dbCmd.Value++;
+                            string message = dbCmd.Message.Replace("{0}", dbCmd.Value.ToString());
+                            SendMessage($"{message}");
+                            db.SaveChanges();
+						}
+                        else
+                        {
+                            SendMessage($"Commande inconnue");
+                        }
+					}
+                }
+                else
+                {
+                    SendMessage($"Commande inconnue");
+                }
+                return;
+            }
+        }
+
+        public Guid GetUserGuid(string name)
+        {
+            using (TwitchDbContext db = new(Guid.Empty))
+            {
+                Viewer dbViewer = db.Viewers.Where(x => x.Username == name).FirstOrDefault();
+                if (dbViewer != null)
+                {
+                    return dbViewer.Id;
+                }
+                else
+                {
+                    return InvalidGuid;
+                }
+			}
         }
 
         public void SendMessage(string message)
@@ -211,7 +320,7 @@ namespace ChatDll
             _logger.LogInformation($"Disposing of ChatDll");
             if (_client.IsConnected)
             {
-                _client.SendMessage(_settings.Channel, $"Allez Bisous, mon peuple m'attend!");
+                SendMessage($"Allez Bisous, mon peuple m'attend!");
             }
         }
     }
