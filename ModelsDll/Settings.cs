@@ -13,6 +13,7 @@
         public ChatFunction ChatFunction { get; set; }
         public CheckUptimeFunction CheckUptimeFunction { get; set; }
         public UpdateFilesFunction UpdateFilesFunction { get; set; }
+        public SpotifyFunction SpotifyFunction { get; set; }
     }
 
     public class CheckUptimeFunction
@@ -35,5 +36,11 @@
         public bool Timeout { get; set; }
         public bool AddBotSuffixInTitle { get; set; }
         public bool AddCustomCommands { get; set; }
+    }
+
+    public class SpotifyFunction
+    {
+        public string ClientId { get; set; }
+        public string ClientSecret { get; set; }
     }
 }

@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using ModelsDll;
 using ModelsDll.Db;
 using ModelsDll.DTO;
+using SpotifyAPI.Web;
+using SpotifyDll;
 using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -23,6 +25,7 @@ namespace ChatDll
 
         private TwitchClient _client;
         private Api _api;
+        private Spotify _spotify;
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
         private Guid InvalidGuid = Guid.Parse("12345678-1234-1234-1234-123456789000");
 
@@ -31,6 +34,7 @@ namespace ChatDll
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
             _api = new(configuration, false);
+            _spotify = new(configuration);
 
             ConnectionCredentials credentials = new ConnectionCredentials(_settings.Channel, _settings.AccessToken);
             var clientOptions = new ClientOptions
@@ -102,6 +106,9 @@ namespace ChatDll
                     SendMessage("!addcmd : Ajoute une commande");
                     SendMessage("!delcmd : Supprime une commande");
                 }
+                SendMessage("!song : Affiche la musique en cours");
+                SendMessage("!nextsong : Passe à la musique suivante");
+                SendMessage("!barrelroll : Do a barrel roll!");
             }
             else if (_settings.CheckUptimeFunction.ComputeUptime && string.Equals(e.Command.CommandText, "uptime", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -278,6 +285,25 @@ namespace ChatDll
                             SendMessage($"{e.Command.ChatMessage.Username} Commande inconnue");
                         }
                     }
+                }
+            }
+            else if (string.Equals(e.Command.CommandText, "song", StringComparison.InvariantCultureIgnoreCase))
+            {
+                FullTrack song = await _spotify.GetCurrentSong();
+                if (song != null)
+                {
+                    SendMessage($"{e.Command.ChatMessage.Username} SingsNote {song.Artists[0].Name} - {song.Name} SingsNote");
+                }
+                else
+                {
+                    SendMessage($"{e.Command.ChatMessage.Username} On écoute pas de musique bouffon");
+                }
+            }
+            else if (string.Equals(e.Command.CommandText, "nextsong", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (!(await _spotify.SkipSong()))
+                {
+                    SendMessage($"{e.Command.ChatMessage.Username} On écoute pas de musique bouffon");
                 }
             }
             else if (_settings.ChatFunction.AddCustomCommands)
