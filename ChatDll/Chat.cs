@@ -9,6 +9,7 @@ using ModelsDll.Db;
 using ModelsDll.DTO;
 using SpotifyAPI.Web;
 using SpotifyDll;
+using System.Runtime.Versioning;
 using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
