@@ -15,6 +15,7 @@ using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
+using WindowsInput;
 
 namespace ChatDll
 {
@@ -305,6 +306,18 @@ namespace ChatDll
                 {
                     SendMessage($"{e.Command.ChatMessage.Username} On écoute pas de musique bouffon");
                 }
+            }
+            else if (string.Equals(e.Command.CommandText, "barrelroll", StringComparison.InvariantCultureIgnoreCase))
+            {
+                SendMessage("DO A BARREL ROLL!");
+                var simulator = new InputSimulator();
+                simulator.Mouse.LeftButtonDown();
+                simulator.Mouse.RightButtonDown();
+                simulator.Keyboard.KeyDown(VirtualKeyCode.VK_E);
+                Task.Delay(1100).Wait();
+                simulator.Keyboard.KeyUp(VirtualKeyCode.VK_E);
+                simulator.Mouse.RightButtonUp();
+                simulator.Mouse.LeftButtonUp();
             }
             else if (_settings.ChatFunction.AddCustomCommands)
             {
