@@ -1,5 +1,7 @@
 ﻿using ApiDll;
 using DbDll;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ModelsDll;
@@ -22,7 +24,7 @@ namespace ChatDll
         private TwitchClient _client;
         private Api _api;
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
-        private Guid InvalidGuid = Guid.Parse("INVALID0-0000-0000-0000-000000000000");
+        private Guid InvalidGuid = Guid.Parse("12345678-1234-1234-1234-123456789000");
 
         public Chat(ILogger<Chat> logger, IConfiguration configuration)
         {
@@ -169,7 +171,7 @@ namespace ChatDll
                                 }
                                 else
                                 {
-                                    SendMessage($"Non, pas envie aujourd'hui");
+                                    SendMessage($"{e.Command.ChatMessage.Username} Non, pas envie aujourd'hui");
                                 }
                             }
                         }
@@ -181,7 +183,7 @@ namespace ChatDll
                 if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
                 {
                     string title = e.Command.ArgumentsAsString;
-                     if (_settings.ChatFunction.AddBotSuffixInTitle && !title.Contains("!bot", StringComparison.InvariantCultureIgnoreCase))
+                    if (_settings.ChatFunction.AddBotSuffixInTitle && !title.Contains("!bot", StringComparison.InvariantCultureIgnoreCase))
                     {
                         title += " !bot";
                     }
@@ -189,7 +191,7 @@ namespace ChatDll
                     SendMessage($"{e.Command.ChatMessage.Username}, le titre du stream a été changé en: {title}");
                 }
             }
-            else if  (string.Equals(e.Command.CommandText, "setgame", StringComparison.InvariantCultureIgnoreCase))
+            else if (string.Equals(e.Command.CommandText, "setgame", StringComparison.InvariantCultureIgnoreCase))
             {
                 if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
                 {
@@ -209,7 +211,7 @@ namespace ChatDll
                 if ((e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator) && e.Command.ArgumentsAsList.Count >= 2)
                 {
                     Command cmd = new();
-                    cmd.Name = e.Command.ArgumentsAsList[0];
+                    cmd.Name = e.Command.ArgumentsAsList[0].Replace("!", "");
                     cmd.Message = e.Command.ArgumentsAsString.Substring(e.Command.ArgumentsAsList[0].Length + 1);
                     Guid guid = GetUserGuid(e.Command.ChatMessage.Username);
                     if (guid != InvalidGuid)
@@ -217,14 +219,23 @@ namespace ChatDll
                         using (TwitchDbContext db = new(guid))
                         {
                             db.Commands.Add(cmd);
-                            db.SaveChanges();
-                            SendMessage($"Command {e.Command.ArgumentsAsList[0]} créée");
+                            try
+                            {
+                                db.SaveChanges();
+                            }
+                            catch (DbUpdateException ex)
+                            when ((ex.InnerException as SqlException)?.Number == 2601 || (ex.InnerException as SqlException)?.Number == 2627)
+                            {
+                                SendMessage($"{e.Command.ChatMessage.Username} Une commande du même nom existe déja");
+                                return;
+                            }
+                            SendMessage($"{e.Command.ChatMessage.Username} Command {e.Command.ArgumentsAsList[0]} créée");
                         }
                     }
                     else
                     {
-                        SendMessage("Utilisateur inconnu");
-					}
+                        SendMessage($"{e.Command.ChatMessage.Username} Utilisateur inconnu");
+                    }
                 }
                 return;
             }
@@ -232,7 +243,7 @@ namespace ChatDll
             {
                 if (e.Command.ArgumentsAsList.Count == 1)
                 {
-                    using (TwitchDbContext db = new (Guid.Empty))
+                    using (TwitchDbContext db = new(Guid.Empty))
                     {
                         Guid guid = Guid.Empty;
                         if (!e.Command.ChatMessage.IsBroadcaster && !e.Command.ChatMessage.IsModerator)
@@ -244,54 +255,54 @@ namespace ChatDll
                             }
                             else
                             {
-                                SendMessage("Utilisateur inconnu");
+                                SendMessage($"{e.Command.ChatMessage.Username} Utilisateur inconnu");
                                 return;
-							}
+                            }
                         }
-                        Command dbCmd = db.Commands.Where(x => string.Equals(x.Name, e.Command.ArgumentsAsList[0], StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+                        Command dbCmd = db.Commands.Where(x => x.Name == e.Command.ArgumentsAsList[0]).FirstOrDefault();
                         if (dbCmd != null)
                         {
                             if (guid == Guid.Empty || guid == dbCmd.Owner)
                             {
                                 db.Remove(dbCmd);
                                 db.SaveChanges();
-                                SendMessage($"Command {e.Command.ArgumentsAsList[0]} supprimée");
+                                SendMessage($"{e.Command.ChatMessage.Username} Command {e.Command.ArgumentsAsList[0]} supprimée");
                             }
                             else
                             {
-                                SendMessage($"Pas touche!");
+                                SendMessage($"{e.Command.ChatMessage.Username} Pas touche!");
                             }
                         }
                         else
                         {
-                            SendMessage($"Commande inconnue");
-						}
+                            SendMessage($"{e.Command.ChatMessage.Username} Commande inconnue");
+                        }
                     }
                 }
-                else if (_settings.ChatFunction.AddCustomCommands)
-                {
-                    using(TwitchDbContext db = new(Guid.Empty))
-                    {
-                        Command dbCmd = db.Commands.Where(x => string.Equals(x.Name, e.Command.CommandText, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
-                        if (dbCmd != null)
-                        {
-                            dbCmd.Value++;
-                            string message = dbCmd.Message.Replace("{0}", dbCmd.Value.ToString());
-                            SendMessage($"{message}");
-                            db.SaveChanges();
-						}
-                        else
-                        {
-                            SendMessage($"Commande inconnue");
-                        }
-					}
-                }
-                else
-                {
-                    SendMessage($"Commande inconnue");
-                }
-                return;
             }
+            else if (_settings.ChatFunction.AddCustomCommands)
+            {
+                using (TwitchDbContext db = new(Guid.Empty))
+                {
+                    Command dbCmd = db.Commands.Where(x => x.Name == e.Command.CommandText).FirstOrDefault();
+                    if (dbCmd != null)
+                    {
+                        dbCmd.Value++;
+                        string message = dbCmd.Message.Replace("{0}", dbCmd.Value.ToString());
+                        SendMessage($"{message}");
+                        db.SaveChanges();
+                    }
+                    else
+                    {
+                        SendMessage($"{e.Command.ChatMessage.Username} Commande inconnue");
+                    }
+                }
+            }
+            else
+            {
+                SendMessage($"{e.Command.ChatMessage.Username} Commande inconnue");
+            }
+            return;
         }
 
         public Guid GetUserGuid(string name)

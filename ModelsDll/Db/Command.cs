@@ -9,6 +9,7 @@ namespace ModelsDll.Db
 {
 	public class Command : ISoftDeleteable, IDateTimeTrackable, IOwnable
 	{
+		public Guid Id { get; set; }
 		public string Name { get; set; }
 		public string Message { get; set; }
 		public int Value { get; set; }

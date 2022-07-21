@@ -69,7 +69,7 @@ namespace DbDll
                 AddGenericFields<Viewer>(entity);
             });
             modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Id }).IsUnique(true);
-            modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Username }).IsUnique(true);
+            modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Username }).HasFilter($"{nameof(Viewer.Deleted)} = 0").IsUnique(true);
 
             modelBuilder.Entity<Command>(entity =>
             {
@@ -86,7 +86,8 @@ namespace DbDll
 
                 AddGenericFields<Command>(entity);
             });
-            modelBuilder.Entity<Command>().HasIndex(t => new { t.Name }).IsUnique(true);
+            modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Id }).IsUnique(true);
+            modelBuilder.Entity<Command>().HasIndex(t => new { t.Name }).HasFilter($"{nameof(Command.Deleted)} = 0").IsUnique(true);
 
             Expression<Func<ISoftDeleteable, bool>> filterSoftDeleteable = bm => !bm.Deleted;
             Expression<Func<IOwnable, bool>> filterOwnable = bm => Owner == Guid.Empty || bm.Owner == Owner;
