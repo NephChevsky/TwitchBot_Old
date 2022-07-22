@@ -6,13 +6,13 @@ General
 ===============
 Commands
 ===============
-
 Ajouter un anti-spam
+!rocketleague => fait partir la voiture en aerial de déglingo
 
 ===============
 Channel Rewards
 ===============
-
+This is rocket league => faire payer pour activer
 Do a barrel roll => faire payer pour activer
 Next song => faire payer pour activer
 Ajouter une musique à la playlist
