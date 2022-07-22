@@ -39,7 +39,7 @@ namespace ChatDll
             _api = new(configuration, false);
             _spotify = spotify;
 
-            ConnectionCredentials credentials = new ConnectionCredentials(_settings.Channel, _settings.AccessToken);
+            ConnectionCredentials credentials = new ConnectionCredentials(_settings.Channel, _api.AccessToken);
             var clientOptions = new ClientOptions
             {
                 MessagesAllowedInPeriod = 750,
@@ -119,6 +119,7 @@ namespace ChatDll
                     SendMessage("!song : Affiche la musique en cours");
                     SendMessage("!nextsong : Passe à la musique suivante");
                     SendMessage("!barrelroll : Do a barrel roll!");
+                    SendMessage("!rocketleague : This is rocket league!");
                     updateTimer = true;
                 }
                 else if (_settings.CheckUptimeFunction.ComputeUptime && string.Equals(e.Command.CommandText, "uptime", StringComparison.InvariantCultureIgnoreCase))

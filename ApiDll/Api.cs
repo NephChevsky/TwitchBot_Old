@@ -28,7 +28,7 @@ namespace ApiDll
         private ILogger<Api> _logger;
         private ILoggerFactory _loggerFactory;
         private TwitchAPI api;
-
+        public string AccessToken;
         public Api(IConfiguration configuration, bool useAppAccessToken)
         {
             _settings = configuration.GetSection("Settings").Get<Settings>();
@@ -63,6 +63,7 @@ namespace ApiDll
                 RefreshResponse token = task.Result;
                 UpdateTokens(token.AccessToken, token.RefreshToken);
                 api.Settings.AccessToken = _settings.AccessToken;
+                AccessToken = _settings.AccessToken;
             }
             _logger.LogInformation("End of api's initialisation");
         }
