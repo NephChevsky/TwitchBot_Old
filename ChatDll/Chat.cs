@@ -89,6 +89,7 @@ namespace ChatDll
         private async void Client_OnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
         {
             if (string.Equals(e.Command.CommandText, "bot", StringComparison.InvariantCultureIgnoreCase)
+                || string.Equals(e.Command.CommandText, "cmd", StringComparison.InvariantCultureIgnoreCase)
                 || string.Equals(e.Command.CommandText, "command", StringComparison.InvariantCultureIgnoreCase)
                 || string.Equals(e.Command.CommandText, "commands", StringComparison.InvariantCultureIgnoreCase)
                 || string.Equals(e.Command.CommandText, "commande", StringComparison.InvariantCultureIgnoreCase)
@@ -321,6 +322,23 @@ namespace ChatDll
                 simulator.Mouse.RightButtonUp();
                 simulator.Mouse.LeftButtonUp();
                 SendMessage("DO A BARREL ROLL!");
+            }
+            else if (string.Equals(e.Command.CommandText, "rocketleague", StringComparison.InvariantCultureIgnoreCase))
+            {
+                SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\rocketleague.wav");
+                player.Play();
+                var simulator = new InputSimulator();
+                simulator.Mouse.LeftButtonDown();
+                simulator.Mouse.RightButtonDown();
+                simulator.Keyboard.KeyDown(VirtualKeyCode.VK_S);
+                Task.Delay(250).Wait();
+                simulator.Keyboard.KeyUp(VirtualKeyCode.VK_S);
+                simulator.Mouse.RightButtonUp();
+                simulator.Mouse.RightButtonDown();
+                Task.Delay(1300).Wait();
+                simulator.Mouse.RightButtonUp();
+                simulator.Mouse.LeftButtonUp();
+                SendMessage("THIS IS ROCKET LEAGUE!");
             }
             else if (_settings.ChatFunction.AddCustomCommands)
             {
