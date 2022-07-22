@@ -5,6 +5,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelsDll;
 using ModelsDll.Db;
+using SpotifyAPI.Web;
+using SpotifyDll;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 
 namespace Bot.Workers
@@ -14,14 +16,16 @@ namespace Bot.Workers
         private readonly ILogger<UpdateFiles> _logger;
         private readonly Settings _options;
         private Api _api;
+        private Spotify _spotify;
 
         private int CurrentButtonCursor = 0;
 
-        public UpdateFiles(ILogger<UpdateFiles> logger, IConfiguration configuration)
+        public UpdateFiles(ILogger<UpdateFiles> logger, IConfiguration configuration, Spotify spotify)
         {
             _logger = logger;
             _options = configuration.GetSection("Settings").Get<Settings>();
             _api = new Api(configuration, false);
+            _spotify = spotify;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -57,6 +61,16 @@ namespace Bot.Workers
 
                 File.WriteAllText(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "last_follower.txt"), followers[0].FromUserName);
 
+                /*FullTrack song = await _spotify.GetCurrentSong();
+                if (song != null)
+                {
+                    File.WriteAllText(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "current_song.txt"), $"{song.Artists[0].Name} - {song.Name}");
+                }
+                else
+                {
+                    File.Delete(Path.Combine(_options.UpdateFilesFunction.OutputFolder, "current_song.txt"));
+                }*/
+
                 List<string> files = Directory.GetFiles(_options.UpdateFilesFunction.OutputFolder).Where(name => !name.Contains("button")).ToList();
                 string button1_title = Path.GetFileNameWithoutExtension(files[CurrentButtonCursor]);
                 string button2_title = Path.GetFileNameWithoutExtension(files[(CurrentButtonCursor + 1) % files.Count]);
@@ -91,6 +105,9 @@ namespace Bot.Workers
                     break;
                 case "last_follower":
                     value = "Dernier follower";
+                    break;
+                case "current_song":
+                    value = "Musique";
                     break;
             }
             return value;

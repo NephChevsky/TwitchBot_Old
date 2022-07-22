@@ -9,7 +9,7 @@ using ModelsDll.Db;
 using ModelsDll.DTO;
 using SpotifyAPI.Web;
 using SpotifyDll;
-using System.Runtime.Versioning;
+using System.Media;
 using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -31,12 +31,12 @@ namespace ChatDll
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
         private Guid InvalidGuid = Guid.Parse("12345678-1234-1234-1234-123456789000");
 
-        public Chat(ILogger<Chat> logger, IConfiguration configuration)
+        public Chat(ILogger<Chat> logger, IConfiguration configuration, Spotify spotify)
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
             _api = new(configuration, false);
-            _spotify = new(configuration);
+            _spotify = spotify;
 
             ConnectionCredentials credentials = new ConnectionCredentials(_settings.Channel, _settings.AccessToken);
             var clientOptions = new ClientOptions
@@ -310,7 +310,8 @@ namespace ChatDll
             }
             else if (string.Equals(e.Command.CommandText, "barrelroll", StringComparison.InvariantCultureIgnoreCase))
             {
-                SendMessage("DO A BARREL ROLL!");
+                SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\barrelroll.wav");
+                player.Play();
                 var simulator = new InputSimulator();
                 simulator.Mouse.LeftButtonDown();
                 simulator.Mouse.RightButtonDown();
@@ -319,6 +320,7 @@ namespace ChatDll
                 simulator.Keyboard.KeyUp(VirtualKeyCode.VK_E);
                 simulator.Mouse.RightButtonUp();
                 simulator.Mouse.LeftButtonUp();
+                SendMessage("DO A BARREL ROLL!");
             }
             else if (_settings.ChatFunction.AddCustomCommands)
             {

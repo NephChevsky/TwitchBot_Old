@@ -3,6 +3,7 @@ using ChatDll;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SpotifyDll;
 
 namespace Bot
 {
@@ -21,6 +22,7 @@ namespace Bot
             .ConfigureServices(services =>
             {
                 services.AddSingleton<Chat>();
+                services.AddSingleton<Spotify>();
                 services.AddHostedService<CheckUptime>();
                 services.AddHostedService<UpdateFiles>();
             })
