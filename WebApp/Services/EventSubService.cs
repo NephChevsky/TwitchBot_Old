@@ -78,7 +78,7 @@ namespace WebApp.Services
             {
                 _logger.LogInformation($"{e.Notification.Event.UserName} followed {e.Notification.Event.BroadcasterUserName}");
                 Dictionary<string, object> alert = new Dictionary<string, object>();
-                alert.Add("type", "follow");
+                alert.Add("type", "channel_follow");
                 alert.Add("username", e.Notification.Event.UserName);
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
                 HandledEvents.Add(e.Notification.Subscription.Id);
@@ -91,7 +91,7 @@ namespace WebApp.Services
             {
                 _logger.LogInformation($"{e.Notification.Event.UserName} subscribed to {e.Notification.Event.BroadcasterUserName}");
                 Dictionary<string, object> alert = new Dictionary<string, object>();
-                alert.Add("type", "subscribe");
+                alert.Add("type", "channel.subscribe");
                 alert.Add("username", e.Notification.Event.UserName);
                 alert.Add("isGift", e.Notification.Event.IsGift);
                 alert.Add("tier", e.Notification.Event.Tier);
@@ -106,7 +106,7 @@ namespace WebApp.Services
             {
                 _logger.LogInformation($"{e.Notification.Event.UserName} gifted a subscription to {e.Notification.Event.BroadcasterUserName}");
                 Dictionary<string, object> alert = new Dictionary<string, object>();
-                alert.Add("type", "subscribegift");
+                alert.Add("type", "channel.subscription.gift");
                 alert.Add("username", e.Notification.Event.UserName);
                 alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
                 alert.Add("tier", e.Notification.Event.Tier);
@@ -123,7 +123,7 @@ namespace WebApp.Services
             {
                 _logger.LogInformation($"{e.Notification.Event.UserName} re-subscribed to {e.Notification.Event.BroadcasterUserName}");
                 Dictionary<string, object> alert = new Dictionary<string, object>();
-                alert.Add("type", "subscribeMessage");
+                alert.Add("type", "channel.subscription.message");
                 alert.Add("username", e.Notification.Event.UserName);
                 alert.Add("message", e.Notification.Event.Message);
                 alert.Add("tier", e.Notification.Event.Tier);
@@ -140,7 +140,7 @@ namespace WebApp.Services
             {
                 _logger.LogInformation($"{e.Notification.Event.UserName} gifted {e.Notification.Event.Bits} cheers to {e.Notification.Event.BroadcasterUserName}");
                 Dictionary<string, object> alert = new Dictionary<string, object>();
-                alert.Add("type", "subscribeMessage");
+                alert.Add("type", "channel.cheer");
                 alert.Add("username", e.Notification.Event.UserName);
                 alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
                 alert.Add("bits", e.Notification.Event.Bits);
@@ -156,7 +156,7 @@ namespace WebApp.Services
             {
                 _logger.LogInformation($"{e.Notification.Event.FromBroadcasterUserName} raided {e.Notification.Event.ToBroadcasterUserName} with {e.Notification.Event.Viewers} person");
                 Dictionary<string, object> alert = new Dictionary<string, object>();
-                alert.Add("type", "raid");
+                alert.Add("type", "channel.raid");
                 alert.Add("username", e.Notification.Event.FromBroadcasterUserName);
                 alert.Add("viewers", e.Notification.Event.Viewers);
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
