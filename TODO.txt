@@ -8,7 +8,7 @@ Comprendre pourquoi le chat bot arrive a se connecter une fois sur deux
 ===============
 Commands
 ===============
-Ajouter un anti-spam
+
 
 ===============
 Channel Rewards
