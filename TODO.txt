@@ -4,13 +4,11 @@ General
 Trouver un moyen pour afficher un titre de musique dans les boutons sans que ça déborde
 Envoyer directement le text de UpdateFiles dans OBS
 Comprendre pourquoi le chat bot arrive a se connecter une fois sur deux
-Verifier le fonctionnement de CreationDateTime == null
 
 ===============
 Commands
 ===============
 Ajouter un anti-spam
-!rocketleague => fait partir la voiture en aerial de déglingo
 
 ===============
 Channel Rewards
