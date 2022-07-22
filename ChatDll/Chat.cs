@@ -55,7 +55,10 @@ namespace ChatDll
             _client.OnChatCommandReceived += Client_OnChatCommandReceived;
             _client.OnConnectionError += Client_OnConnectionError;
 
-            _client.Connect();
+            if (!_client.Connect())
+            {
+                _logger.LogError("Couldn't connect IRC client");
+			}
         }
 
         public bool IsConnected
