@@ -16,7 +16,7 @@ namespace Bot.Workers
         public TwitchAPI api = new TwitchAPI();
 
         private readonly ILogger<CheckUptime> _logger;
-        private readonly Settings _options;
+        private readonly Settings _settings;
         private Chat _chat;
         private Api _api;
         private List<ChatterFormatted> CurrentChatters = new List<ChatterFormatted>();
@@ -24,14 +24,14 @@ namespace Bot.Workers
         public CheckUptime(ILogger<CheckUptime> logger, IConfiguration configuration, Chat chat)
         {
             _logger = logger;
-            _options = configuration.GetSection("Settings").Get<Settings>();
+            _settings = configuration.GetSection("Settings").Get<Settings>();
             _chat = chat;
             _api = new(configuration, false);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (!_options.CheckUptimeFunction.ComputeUptime)
+            if (!_settings.CheckUptimeFunction.ComputeUptime)
             {
                 return;
             }
@@ -51,11 +51,11 @@ namespace Bot.Workers
                 {
                     using (TwitchDbContext db = new(Guid.Empty))
                     {
-                        bool shouldGreet = _options.CheckUptimeFunction.WelcomeOnJoin && !string.Equals(x.Username, _options.Channel, StringComparison.InvariantCultureIgnoreCase);
+                        bool shouldGreet = _settings.CheckUptimeFunction.WelcomeOnJoin && !string.Equals(x.Username, _settings.Channel, StringComparison.InvariantCultureIgnoreCase);
                         Viewer dbViewer = db.Viewers.Where(obj => obj.Username == x.Username).FirstOrDefault();
                         if (dbViewer != null)
                         {
-                            shouldGreet &= dbViewer.LastViewedDateTime < DateTime.Now.AddSeconds(-_options.CheckUptimeFunction.WelcomeOnJoinTimer) && !dbViewer.IsBot;
+                            shouldGreet &= dbViewer.LastViewedDateTime < DateTime.Now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer) && !dbViewer.IsBot;
                             if (!CurrentChatters.Select(y => y.Username).ToList().Contains(x.Username, StringComparer.OrdinalIgnoreCase))
                             {
                                 if (shouldGreet)
@@ -86,7 +86,7 @@ namespace Bot.Workers
                 });
                 CurrentChatters = chatters;
 
-                await Task.Delay(TimeSpan.FromSeconds(_options.CheckUptimeFunction.Timer), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(_settings.CheckUptimeFunction.Timer), stoppingToken);
             }
         }
     }

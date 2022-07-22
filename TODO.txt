@@ -1,7 +1,10 @@
 ===============
 General
 ===============
-
+Trouver un moyen pour afficher un titre de musique dans les boutons sans que ça déborde
+Envoyer directement le text de UpdateFiles dans OBS
+Comprendre pourquoi le chat bot arrive a se connecter une fois sur deux
+Verifier le fonctionnement de CreationDateTime == null
 
 ===============
 Commands
@@ -15,4 +18,4 @@ Channel Rewards
 This is rocket league => faire payer pour activer
 Do a barrel roll => faire payer pour activer
 Next song => faire payer pour activer
-Ajouter une musique à la playlist
+Ajouter une musique à la playlist Streaming
