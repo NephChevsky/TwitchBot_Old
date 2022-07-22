@@ -192,7 +192,7 @@ namespace DbDll
                 if (item.Entity is IDateTimeTrackable entity)
                 {
                     entity.LastModificationDateTime = now;
-                    if (item.State == EntityState.Added && (entity.CreationDateTime == null || entity.CreationDateTime == DateTime.MinValue))
+                    if (item.State == EntityState.Added && entity.CreationDateTime == DateTime.MinValue)
                     {
                         entity.CreationDateTime = now;
                     }
