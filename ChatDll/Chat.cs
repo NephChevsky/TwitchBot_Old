@@ -331,9 +331,9 @@ namespace ChatDll
                     var simulator = new InputSimulator();
                     simulator.Mouse.LeftButtonDown();
                     simulator.Mouse.RightButtonDown();
-                    simulator.Keyboard.KeyDown(VirtualKeyCode.VK_E);
+                    simulator.Keyboard.KeyDown(VirtualKeyCode.VK_A);
                     Task.Delay(1100).Wait();
-                    simulator.Keyboard.KeyUp(VirtualKeyCode.VK_E);
+                    simulator.Keyboard.KeyUp(VirtualKeyCode.VK_A);
                     simulator.Mouse.RightButtonUp();
                     simulator.Mouse.LeftButtonUp();
                     SendMessage("DO A BARREL ROLL!");
