@@ -84,7 +84,7 @@ export class AlertsComponent implements OnInit {
       case "channel_follow":
         this.username = alert.username;
         this.message = "a follow la chaine";
-        this.messageContinued = ""
+        this.messageContinued = "";
         break;
       case "channel.subscribe":
         break;
@@ -98,7 +98,7 @@ export class AlertsComponent implements OnInit {
         this.username = alert.username;
         this.message = "a raid la chaine avec";
         this.value = alert.viewers;
-        this.messageContinued = "viewers"
+        this.messageContinued = "viewers";
         break;
     }
 
