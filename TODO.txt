@@ -1,9 +1,8 @@
 ===============
 General
 ===============
-Trouver un moyen pour afficher un titre de musique dans les boutons sans que ça déborde
-Envoyer directement le text de UpdateFiles dans OBS
-Comprendre pourquoi le chat bot arrive a se connecter une fois sur deux
+Trouver un moyen pour afficher un titre de musique dans les boutons sans que ça déborde => ObsWebSocket maybe?
+Envoyer directement le text de UpdateFiles dans OBS => faut attendre qu'ils fixent les websocket en 6.0
 
 ===============
 Commands
