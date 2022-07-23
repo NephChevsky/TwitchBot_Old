@@ -36,7 +36,7 @@ namespace Bot.Workers
 
                 List<Follow> followers = await _api.GetFollowers();
                 long follower_count = followers.Count;
-                if (follower_count > 0)
+                if (_settings.UpdateFilesFunction.FollowerGoal > 0)
                 {
                     File.WriteAllText(Path.Combine(_settings.UpdateFilesFunction.OutputFolder, "follower_goal.txt"), $"{follower_count} / {_settings.UpdateFilesFunction.FollowerGoal}");
                     File.Delete(Path.Combine(_settings.UpdateFilesFunction.OutputFolder, "follower_count.txt"));
