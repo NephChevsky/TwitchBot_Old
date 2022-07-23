@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
+using System.Diagnostics;
 
 namespace SpotifyDll
 {
@@ -34,6 +35,7 @@ namespace SpotifyDll
 			};
 			Uri uri = loginRequest.ToUri();
 			BrowserUtil.Open(uri);
+			_logger.LogInformation($"Spotify login: {uri}");
 		}
 
 		private async Task OnAuthorizationCodeReceived(object sender, AuthorizationCodeResponse response)
@@ -57,15 +59,15 @@ namespace SpotifyDll
 
 		public async Task<FullTrack> GetCurrentSong()
 		{
-			CurrentlyPlaying song = await _client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
-			if (song != null)
+			if (_client != null)
 			{
-				return (FullTrack)song.Item;
+				CurrentlyPlaying song = await _client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+				if (song != null)
+				{
+					return (FullTrack)song.Item;
+				}
 			}
-			else
-			{
-				return null;
-			}
+			return null;
 		}
 
 		public async Task<bool> SkipSong()
