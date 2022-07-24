@@ -50,10 +50,6 @@
 	</Target>
 
 	<ItemGroup>
-	  <None Remove="ClientApp\src\app\services\hub.service.ts" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\ModelsDll\ModelsDll.csproj" />
 	</ItemGroup>
 	<ItemGroup>
@@ -64,8 +60,5 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\DbDll\DbDll.csproj" />
-	</ItemGroup>
-	<ItemGroup>
-	  <TypeScriptCompile Include="ClientApp\src\app\services\hub.service.ts" />
 	</ItemGroup>
 </Project>
