@@ -12,9 +12,6 @@ namespace SpotifyDll
 		private Settings _settings;
 		private readonly ILogger<Spotify> _logger;
 		private SpotifyClient _client;
-		private EmbedIOAuthServer _server;
-		private string _accessToken;
-		private string _refreshToken;
 
 		public Spotify(ILogger<Spotify> logger, IConfiguration configuration)
 		{
@@ -89,7 +86,7 @@ namespace SpotifyDll
 
 		public void Dispose()
 		{
-			_server.Stop();
+			_logger.LogInformation("Closing spotify api");
 		}
 	}
 }
