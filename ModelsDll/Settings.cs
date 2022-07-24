@@ -20,7 +20,8 @@
     {
         public int Timer { get; set; }
         public bool ComputeUptime { get; set; }
-        public bool WelcomeOnJoin { get; set; }
+        public bool WelcomeOnFirstJoin { get; set; }
+        public bool WelcomeOnReJoin { get; set; }
         public int WelcomeOnJoinTimer { get; set; }
     }
 

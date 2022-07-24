@@ -51,19 +51,17 @@ namespace Bot.Workers
                 {
                     using (TwitchDbContext db = new(Guid.Empty))
                     {
-                        bool shouldGreet = _settings.CheckUptimeFunction.WelcomeOnJoin && !string.Equals(x.Username, _settings.Channel, StringComparison.InvariantCultureIgnoreCase);
                         Viewer dbViewer = db.Viewers.Where(obj => obj.Username == x.Username).FirstOrDefault();
                         if (dbViewer != null)
                         {
-                            shouldGreet &= dbViewer.LastViewedDateTime < DateTime.Now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer) && !dbViewer.IsBot;
                             if (!CurrentChatters.Select(y => y.Username).ToList().Contains(x.Username, StringComparer.OrdinalIgnoreCase))
                             {
-                                if (shouldGreet)
+                                if (_settings.CheckUptimeFunction.WelcomeOnReJoin && !dbViewer.IsBot && dbViewer.LastViewedDateTime < DateTime.Now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer))
                                 {
-                                    dbViewer.Seen++;
                                     _logger.LogInformation($"Say hi to known viewer {dbViewer.Username}");
                                     _chat.SendMessage($"Salut {dbViewer.Username} ! Bon retour sur le stream !");
                                 }
+                                dbViewer.Seen++;
                             }
                             else
                             {
@@ -75,7 +73,7 @@ namespace Bot.Workers
                         {
                             dbViewer = new Viewer(x.Username);
                             db.Viewers.Add(dbViewer);
-                            if (shouldGreet)
+                            if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin)
                             {
                                 _logger.LogInformation($"Say hi to new viewer {dbViewer.Username}");
                                 _chat.SendMessage($"Salut {dbViewer.Username} ! Bienvenue sur le stream. Tu peux nous faire un petit coucou ou bien taper ton meilleur lurk. Tape !bot pour voir les commandes disponibles ;)");
