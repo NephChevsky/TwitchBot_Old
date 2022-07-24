@@ -329,6 +329,8 @@ namespace ChatDll
                     player.Play();
                     SendMessage("THIS IS ROCKET LEAGUE!");
                     var simulator = new InputSimulator();
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_1);
                     simulator.Mouse.LeftButtonDown();
                     simulator.Mouse.RightButtonDown();
                     simulator.Keyboard.KeyDown(VirtualKeyCode.VK_S);
@@ -339,6 +341,27 @@ namespace ChatDll
                     Task.Delay(1300).Wait();
                     simulator.Mouse.RightButtonUp();
                     simulator.Mouse.LeftButtonUp();
+                    updateTimer = true;
+                }
+                else if (string.Equals(e.Command.CommandText, "whatasave", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var simulator = new InputSimulator();
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_2);
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
+                    updateTimer = true;
+                }
+                else if (string.Equals(e.Command.CommandText, "wow", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var simulator = new InputSimulator();
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
+                    updateTimer = true;
+                }
+                else if (string.Equals(e.Command.CommandText, "faking", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var simulator = new InputSimulator();
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
+                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
                     updateTimer = true;
                 }
                 else if (_settings.ChatFunction.AddCustomCommands)
