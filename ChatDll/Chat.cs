@@ -235,7 +235,7 @@ namespace ChatDll
                                     return;
                                 }
                                 SendMessage($"{e.Command.ChatMessage.Username} Command {e.Command.ArgumentsAsList[0]} créée");
-                                updateTimer = true;
+                                updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
                             }
                         }
                         else
@@ -273,7 +273,7 @@ namespace ChatDll
                                     db.Remove(dbCmd);
                                     db.SaveChanges();
                                     SendMessage($"{e.Command.ChatMessage.Username} Command {e.Command.ArgumentsAsList[0]} supprimée");
-                                    updateTimer = true;
+                                    updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
                                 }
                                 else
                                 {
