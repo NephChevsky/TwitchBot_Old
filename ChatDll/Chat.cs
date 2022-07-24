@@ -54,6 +54,7 @@ namespace ChatDll
             _client.OnConnected += Client_OnConnected;
             _client.OnChatCommandReceived += Client_OnChatCommandReceived;
             _client.OnConnectionError += Client_OnConnectionError;
+            _client.OnMessageReceived += Client_OnMessageReceived;
 
             if (!_client.Connect())
             {
@@ -377,6 +378,19 @@ namespace ChatDll
 				}
             }
         }
+
+        private void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
+        {
+            using (TwitchDbContext db = new(Guid.Empty))
+            {
+                Viewer dbViewer = db.Viewers.Where(x => x.Username == e.ChatMessage.Username).FirstOrDefault();
+                if (dbViewer != null)
+                {
+                    dbViewer.MessageCount++;
+                    db.SaveChanges();
+                }
+			}
+		}
 
         public Guid GetUserGuid(string name)
         {

@@ -11,6 +11,7 @@ namespace ModelsDll.Db
         public int Seen { get; set; }
         public DateTime LastViewedDateTime { get; set; }
         public long Uptime { get; set; }
+        public int MessageCount { get; set; }
 
         // IDateTimeTrackable
         public DateTime CreationDateTime { get; set; }

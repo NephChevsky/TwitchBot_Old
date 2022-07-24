@@ -66,6 +66,10 @@ namespace DbDll
                     .IsRequired()
                     .HasDefaultValue(0);
 
+                entity.Property(e => e.MessageCount)
+                    .IsRequired()
+                    .HasDefaultValue(0);
+
                 AddGenericFields<Viewer>(entity);
             });
             modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Id }).IsUnique(true);
