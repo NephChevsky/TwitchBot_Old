@@ -126,13 +126,41 @@ namespace SpotifyDll
 					if (playlists != null)
 					{
 						SimplePlaylist playlist = playlists.Items.Where(x => x.Name == "Streaming").FirstOrDefault();
-						PlaylistAddItemsRequest addQuery = new(new List<string> { tracks.Tracks.Items[0].Uri });
-						SnapshotResponse response = await _client.Playlists.AddItems(playlist.Id, addQuery);
-						ret = response != null && response.SnapshotId != null;
+						if (playlist != null)
+						{
+							PlaylistAddItemsRequest addQuery = new(new List<string> { tracks.Tracks.Items[0].Uri });
+							SnapshotResponse response = await _client.Playlists.AddItems(playlist.Id, addQuery);
+							ret = response != null && response.SnapshotId != null;
+						}
 					}
 				}
 			}
 			
+			return ret;
+		}
+
+		public async Task<bool> RemoveSong()
+		{
+			bool ret = false;
+			if (_client != null)
+			{
+				FullTrack song = await GetCurrentSong();
+				if (song != null)
+				{
+					Paging<SimplePlaylist> playlists = await _client.Playlists.CurrentUsers();
+					if (playlists != null)
+					{
+						SimplePlaylist playlist = playlists.Items.Where(x => x.Name == "Streaming").FirstOrDefault();
+						PlaylistRemoveItemsRequest removeQuery = new();
+						PlaylistRemoveItemsRequest.Item item = new PlaylistRemoveItemsRequest.Item();
+						item.Uri = song.Uri;
+						removeQuery.Tracks = new List<PlaylistRemoveItemsRequest.Item>() { item };
+						SnapshotResponse response = await _client.Playlists.RemoveItems(playlist.Id, removeQuery);
+						ret = response != null && response.SnapshotId != null;
+					}
+				}
+			}
+
 			return ret;
 		}
 

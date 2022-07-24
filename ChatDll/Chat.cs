@@ -310,11 +310,27 @@ namespace ChatDll
                 }
                 else if (string.Equals(e.Command.CommandText, "addsong", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (!(await _spotify.AddSong(e.Command.ArgumentsAsString)))
+                    if (await _spotify.AddSong(e.Command.ArgumentsAsString))
                     {
-                        SendMessage($"{e.Command.ChatMessage.Username} On écoute pas de musique bouffon");
+                        updateTimer = true;
+                        SendMessage($"{e.Command.ChatMessage.Username} La musique a été ajoutée à la playlist");
                     }
-                    updateTimer = true;
+                    else
+                    {
+                        SendMessage($"{e.Command.ChatMessage.Username} La musique n'a pas pu être ajoutée à la playlist");
+                    }
+                }
+                else if (string.Equals(e.Command.CommandText, "delsong", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    if (await _spotify.RemoveSong())
+                    {
+                        updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
+                        SendMessage($"{e.Command.ChatMessage.Username} La musique a été supprimée de la playlist");
+                    }
+                    else
+                    {
+                        SendMessage($"{e.Command.ChatMessage.Username} La musique n'a pas pu être supprimée de la playlist");
+                    }
                 }
                 else if (string.Equals(e.Command.CommandText, "barrelroll", StringComparison.InvariantCultureIgnoreCase))
                 {
