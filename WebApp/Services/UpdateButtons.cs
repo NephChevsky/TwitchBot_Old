@@ -82,14 +82,26 @@ namespace WebApp.Services
             {
                 return (await _api.GetViewerCount()).ToString();
             }
-            else if (name == "best_viewer")
+            else if (name == "most_present_viewer")
             {
                 using (TwitchDbContext db = new(Guid.Empty))
                 {
-                    Viewer bestViewer = db.Viewers.Where(x => x.IsBot == false).OrderByDescending(x => x.Uptime).FirstOrDefault();
-                    if (bestViewer != null)
+                    Viewer mostPresentViewer = db.Viewers.Where(x => x.IsBot == false && x.Username != _settings.Channel).OrderByDescending(x => x.Uptime).FirstOrDefault();
+                    if (mostPresentViewer != null)
                     {
-                        return bestViewer.Username;
+                        return mostPresentViewer.Username;
+                    }
+                    return "";
+                }
+            }
+            else if (name == "most_speaking_viewer")
+            {
+                using (TwitchDbContext db = new(Guid.Empty))
+                {
+                    Viewer mostSpeakingViewer = db.Viewers.Where(x => x.IsBot == false && x.Username != _settings.Channel).OrderByDescending(x => x.MessageCount).FirstOrDefault();
+                    if (mostSpeakingViewer != null)
+                    {
+                        return mostSpeakingViewer.Username;
                     }
                     return "";
                 }
@@ -124,8 +136,11 @@ namespace WebApp.Services
                 case "viewer_count":
                     value = "Nombre de viewers";
                     break;
-                case "best_viewer":
+                case "most_present_viewer":
                     value = "Viewer le plus présent";
+                    break;
+                case "most_speaking_viewer":
+                    value = "Viewer parlant le plus";
                     break;
                 case "last_follower":
                     value = "Dernier follower";
