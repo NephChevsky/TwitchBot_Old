@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SpotifyAPI.Web.Auth;
 using SpotifyDll;
 
 namespace WebApp.Controllers
@@ -19,7 +20,8 @@ namespace WebApp.Controllers
 		[HttpGet]
 		public async Task<ActionResult> GetAsync([FromQuery] string code)
 		{
-			await _spotify.OnAuthorizationCodeReceived(code);
+			AuthorizationCodeResponse query = new(code);
+			await _spotify.OnAuthorizationCodeReceived(null, query);
 			return Redirect("https://bot-neph.azurewebsites.net/");
 		}
 	}

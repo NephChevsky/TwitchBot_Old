@@ -308,6 +308,14 @@ namespace ChatDll
                     }
                     updateTimer = true;
                 }
+                else if (string.Equals(e.Command.CommandText, "addsong", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    if (!(await _spotify.AddSong(e.Command.ArgumentsAsString)))
+                    {
+                        SendMessage($"{e.Command.ChatMessage.Username} On écoute pas de musique bouffon");
+                    }
+                    updateTimer = true;
+                }
                 else if (string.Equals(e.Command.CommandText, "barrelroll", StringComparison.InvariantCultureIgnoreCase))
                 {
                     SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\barrelroll.wav");

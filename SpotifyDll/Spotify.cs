@@ -12,44 +12,70 @@ namespace SpotifyDll
 		private Settings _settings;
 		private readonly ILogger<Spotify> _logger;
 		private SpotifyClient _client;
+		private string _accessToken;
+		private string _refreshToken;
+		private static EmbedIOAuthServer _server;
 
 		public Spotify(ILogger<Spotify> logger, IConfiguration configuration)
 		{
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
 
-			Task refresh = Task.Run(async () =>
+			if (!Directory.GetCurrentDirectory().Contains("wwwroot"))
 			{
-				await RefreshToken();
-			});
-			refresh.Wait();
+				_server = new EmbedIOAuthServer(new Uri("http://localhost:5001/callback"), 5001);
+				Task credentials = Task.Run(async () => {
+					await _server.Start();
+				});
+				credentials.Wait();
+				_server.AuthorizationCodeReceived += OnAuthorizationCodeReceived;
+
+				var request = new LoginRequest(_server.BaseUri, _settings.SpotifyFunction.ClientId, LoginRequest.ResponseType.Code)
+				{
+					Scope = new List<string> { Scopes.UserReadCurrentlyPlaying, Scopes.UserModifyPlaybackState, Scopes.PlaylistModifyPrivate, Scopes.PlaylistModifyPublic }
+				};
+
+				Uri uri = request.ToUri();
+				try
+				{
+					BrowserUtil.Open(uri);
+				}
+				catch (Exception)
+				{
+					_logger.LogInformation("Unable to open URL for spotify connection, manually open: {0}", uri);
+				}
+			}
 		}
 
-		public async Task OnAuthorizationCodeReceived(string code)
+		public async Task OnAuthorizationCodeReceived(object sender, AuthorizationCodeResponse code)
 		{
 			var oauth = new OAuthClient();
-
-			var tokenRequest = new AuthorizationCodeTokenRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, code, new Uri("https://bot-neph.azurewebsites.net/callback"));
+			Uri uri;
+			if (!Directory.GetCurrentDirectory().Contains("wwwroot"))
+			{
+				uri = new Uri("http://localhost:5001/callback");
+			}
+			else
+			{
+				uri = new Uri("https://bot-neph.azurewebsites.net/callback");
+			}
+			var tokenRequest = new AuthorizationCodeTokenRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, code.Code, uri);
 			var tokenResponse = await oauth.RequestToken(tokenRequest);
+			_accessToken = tokenResponse.AccessToken;
+			_refreshToken = tokenResponse.RefreshToken;
 
-			Helpers.UpdateTokens("spotifyapi", tokenResponse.AccessToken, tokenResponse.RefreshToken);
-			_settings.SpotifyFunction.AccessToken = tokenResponse.AccessToken;
-			_settings.SpotifyFunction.RefreshToken = tokenResponse.RefreshToken;
-
-			_client = new SpotifyClient(tokenResponse.AccessToken);
+			_client = new SpotifyClient(_accessToken);
 		}
 
+		// may be usefull later
 		private async Task RefreshToken() 
 		{
 			try
 			{
-				var newResponse = await new OAuthClient().RequestToken(new AuthorizationCodeRefreshRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, _settings.SpotifyFunction.RefreshToken));
-
-				Helpers.UpdateTokens("spotifyapi", newResponse.AccessToken, newResponse.RefreshToken);
-				_settings.SpotifyFunction.AccessToken = newResponse.AccessToken;
-				_settings.SpotifyFunction.RefreshToken = newResponse.RefreshToken;
-
-				_client = new SpotifyClient(newResponse.AccessToken);
+				var tokenResponse = await new OAuthClient().RequestToken(new AuthorizationCodeRefreshRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, _refreshToken));
+				_accessToken = tokenResponse.AccessToken;
+				_refreshToken = tokenResponse.RefreshToken;
+				_client = new SpotifyClient(_accessToken);
 			}
 			catch
 			{
@@ -73,14 +99,40 @@ namespace SpotifyDll
 		public async Task<bool> SkipSong()
 		{
 			bool ret = false;
-			try
+			if (_client != null)
 			{
-				ret = await _client.Player.SkipNext();
+				try
+				{
+					ret = await _client.Player.SkipNext();
+				}
+				catch
+				{
+					return false;
+				}
 			}
-			catch
+			
+			return ret;
+		}
+		public async Task<bool> AddSong(string name)
+		{
+			bool ret = false;
+			if (_client != null)
 			{
-				return false;
+				SearchRequest searchQuery = new(SearchRequest.Types.Track, name);
+				SearchResponse tracks = await _client.Search.Item(searchQuery);
+				if (tracks != null)
+				{
+					Paging<SimplePlaylist> playlists = await _client.Playlists.CurrentUsers();
+					if (playlists != null)
+					{
+						SimplePlaylist playlist = playlists.Items.Where(x => x.Name == "Streaming").FirstOrDefault();
+						PlaylistAddItemsRequest addQuery = new(new List<string> { tracks.Tracks.Items[0].Uri });
+						SnapshotResponse response = await _client.Playlists.AddItems(playlist.Id, addQuery);
+						ret = response != null && response.SnapshotId != null;
+					}
+				}
 			}
+			
 			return ret;
 		}
 
