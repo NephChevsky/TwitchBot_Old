@@ -149,7 +149,7 @@ namespace ChatDll
                         string username = e.Command.ArgumentsAsList[0].Replace("@", "");
                         List<Moderator> mods = await _api.GetModerators();
                         Moderator mod = mods.Where(x => string.Equals(username, x.UserName)).FirstOrDefault();
-                        if (mod == null)
+                        if (mod == null && !string.Equals(e.Command.ChatMessage.Username, _settings.Channel, StringComparison.InvariantCultureIgnoreCase))
                         {
                             if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
                             {
