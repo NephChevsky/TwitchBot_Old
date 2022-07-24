@@ -61,7 +61,9 @@ namespace ApiDll
                 });
                 task.Wait();
                 RefreshResponse token = task.Result;
-                UpdateTokens(token.AccessToken, token.RefreshToken);
+                Helpers.UpdateTokens("twitchapi", token.AccessToken, token.RefreshToken);
+                _settings.AccessToken = token.AccessToken;
+                _settings.RefreshToken = token.RefreshToken;
                 api.Settings.AccessToken = _settings.AccessToken;
                 AccessToken = _settings.AccessToken;
             }
@@ -183,36 +185,6 @@ namespace ApiDll
                 return 0;
             else
                 return stream.Streams[0].ViewerCount;
-        }
-
-        public void UpdateTokens(string accessToken, string refreshToken)
-        {
-            dynamic config = LoadAppSettings();
-            config.Settings.AccessToken = accessToken;
-            config.Settings.RefreshToken = refreshToken;
-            SaveAppSettings(config);
-            _settings.AccessToken = accessToken;
-            _settings.RefreshToken = refreshToken;
-        }
-
-        public dynamic LoadAppSettings()
-        {
-            var appSettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
-            var json = File.ReadAllText(appSettingsPath);
-            var jsonSettings = new JsonSerializerSettings();
-            jsonSettings.Converters.Add(new ExpandoObjectConverter());
-            jsonSettings.Converters.Add(new StringEnumConverter());
-            return JsonConvert.DeserializeObject<ExpandoObject>(json, jsonSettings);
-        }
-
-        public void SaveAppSettings(dynamic config)
-        {
-            var appSettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
-            var jsonSettings = new JsonSerializerSettings();
-            jsonSettings.Converters.Add(new ExpandoObjectConverter());
-            jsonSettings.Converters.Add(new StringEnumConverter());
-            var newJson = JsonConvert.SerializeObject(config, Formatting.Indented, jsonSettings);
-            File.WriteAllText(appSettingsPath, newJson);
         }
 
         public void Dispose()

@@ -7,12 +7,14 @@ import { RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { AlertsComponent } from './alerts/alerts.component';
+import { ButtonsComponent } from './buttons/buttons.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    AlertsComponent
+    AlertsComponent,
+    ButtonsComponent
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -21,6 +23,7 @@ import { AlertsComponent } from './alerts/alerts.component';
     RouterModule.forRoot([
       { path: '', component: HomeComponent, pathMatch: 'full' },
       { path: 'alerts', component: AlertsComponent },
+      { path: 'buttons', component: ButtonsComponent },
       { path: 'webhooks', redirectTo: 'webhooks' }
     ])
   ],

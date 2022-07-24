@@ -1,0 +1,123 @@
+.buttons {
+  margin-top: 10px;
+  background-image: url("../../assets/buttons.png");
+  width: 712px;
+  height: 71px;
+}
+
+.buttonstitle {
+  height: 10px;
+  width: 712px;
+  display: inline-flex;
+}
+
+.buttonsvalue {
+  height: 61px;
+  width: 712px;
+  display: inline-flex;
+  position: relative;
+  top: -20px;
+}
+
+.button1title {
+  width: 356px;
+  position: relative;
+  color: #ff99ff;
+  top: -13px;
+  left: 50px;
+  font-size: 25px;
+  font-weight: bold;
+  white-space: nowrap;
+  -webkit-text-stroke: 1px black;
+  text-shadow: -2px -2px 0 #000, 0 -2px 0 #000, 2px -2px 0 #000, 2px 0 0 #000, 2px 2px 0 #000, 0 2px 0 #000, -2px 2px 0 #000, -2px 0 0 #000;
+}
+
+.button2title {
+  width: 356px;
+  position: relative;
+  color: #ff99ff;
+  top: -13px;
+  left: 40px;
+  font-size: 25px;
+  font-weight: bold;
+  white-space: nowrap;
+  -webkit-text-stroke: 1px black;
+  text-shadow: -2px -2px 0 #000, 0 -2px 0 #000, 2px -2px 0 #000, 2px 0 0 #000, 2px 2px 0 #000, 0 2px 0 #000, -2px 2px 0 #000, -2px 0 0 #000;
+}
+
+.button1valuecontainer {
+  position: relative;
+  left: 40px;
+  width: 276px;
+  overflow: hidden;
+}
+
+.button2valuecontainer {
+  position: relative;
+  left: 110px;
+  width: 276px;
+  overflow: hidden;
+}
+
+.button1value {
+  width: 306px;
+  color: white;
+  text-align: center;
+  font-size: 25px;
+  white-space: nowrap;
+  position: relative;
+  left: -10px;
+}
+
+.button2value {
+  width: 306px;
+  color: white;
+  text-align: center;
+  font-size: 25px;
+  white-space: nowrap;
+  position: relative;
+  left: -10px;
+}
+
+.scroll-text {
+  -moz-transform: translateX(100%);
+  -webkit-transform: translateX(100%);
+  transform: translateX(100%);
+  -moz-animation: scroll-animation 15s linear infinite;
+  -webkit-animation: scroll-animation 15s linear infinite;
+  animation: scroll-animation 15s linear infinite;
+}
+
+@-moz-keyframes scroll-animation {
+  from {
+    -moz-transform: translateX(100%);
+  }
+
+  to {
+    -moz-transform: translateX(-100%);
+  }
+}
+
+@-webkit-keyframes scroll-animation {
+  from {
+    -webkit-transform: translateX(100%);
+  }
+
+  to {
+    -webkit-transform: translateX(-100%);
+  }
+}
+
+@keyframes scroll-animation {
+  from {
+    -moz-transform: translateX(100%);
+    -webkit-transform: translateX(100%);
+    transform: translateX(100%);
+  }
+
+  to {
+    -moz-transform: translateX(-100%);
+    -webkit-transform: translateX(-100%);
+    transform: translateX(-100%);
+  }
+}

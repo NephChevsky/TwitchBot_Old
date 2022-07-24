@@ -11,10 +11,5 @@ namespace WebApp.Services
 		{
 			_logger = logger;
 		}
-
-		public void TriggerAlert(Dictionary<string, object> alert)
-		{
-			Clients.All.SendAsync("TriggerAlert", alert);
-		}
 	}
 }

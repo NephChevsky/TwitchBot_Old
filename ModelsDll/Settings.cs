@@ -12,7 +12,7 @@
 
         public ChatFunction ChatFunction { get; set; }
         public CheckUptimeFunction CheckUptimeFunction { get; set; }
-        public UpdateFilesFunction UpdateFilesFunction { get; set; }
+        public UpdateButtonsFunction UpdateButtonsFunction { get; set; }
         public SpotifyFunction SpotifyFunction { get; set; }
     }
 
@@ -24,11 +24,11 @@
         public int WelcomeOnJoinTimer { get; set; }
     }
 
-    public class UpdateFilesFunction
+    public class UpdateButtonsFunction
     {
         public int Timer { get; set; }
-        public string OutputFolder { get; set; }
         public int FollowerGoal { get; set; }
+        public List<string> AvailableButtons { get; set; }
     }
 
     public class ChatFunction
@@ -43,5 +43,7 @@
     {
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
+        public string AccessToken { get; set; }
+        public string RefreshToken { get; set; }
     }
 }

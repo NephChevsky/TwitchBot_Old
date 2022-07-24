@@ -24,7 +24,6 @@ namespace Bot
                 services.AddSingleton<Chat>();
                 services.AddSingleton<Spotify>();
                 services.AddHostedService<CheckUptime>();
-                services.AddHostedService<UpdateFiles>();
             })
             .Build();
 

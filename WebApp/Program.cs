@@ -1,4 +1,5 @@
 using ModelsDll;
+using SpotifyDll;
 using TwitchLib.EventSub.Webhooks.Extensions;
 using WebApp.Services;
 
@@ -23,18 +24,14 @@ namespace WebApp
 				config.Secret = configuration.GetSection("Settings").Get<Settings>().Secret;
 			});
 
+			builder.Services.AddSingleton<Spotify>();
 			builder.Services.AddHostedService<EventSubService>();
+			builder.Services.AddHostedService<UpdateButtons>();
 
 			builder.Logging.ClearProviders();
 			builder.Logging.AddAzureWebAppDiagnostics();
 
 			var app = builder.Build();
-
-			if (!app.Environment.IsDevelopment())
-			{
-				app.UseDeveloperExceptionPage();
-				app.UseHsts();
-			}
 
 			app.UseHttpsRedirection();
 			app.UseStaticFiles();

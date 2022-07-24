@@ -21,40 +21,43 @@ namespace SpotifyDll
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
 
-			_server = new EmbedIOAuthServer(new Uri("http://localhost:5001/callback"), 5001);
-			Task server = Task.Run(async () =>
+			Task refresh = Task.Run(async () =>
 			{
-				await _server.Start();
+				await RefreshToken();
 			});
-			server.Wait();
-			_server.AuthorizationCodeReceived += OnAuthorizationCodeReceived;
-
-			LoginRequest loginRequest = new(new Uri("http://localhost:5001/callback"), _settings.SpotifyFunction.ClientId, LoginRequest.ResponseType.Code)
-			{
-				Scope = new[] { Scopes.UserReadCurrentlyPlaying, Scopes.UserModifyPlaybackState }
-			};
-			Uri uri = loginRequest.ToUri();
-			BrowserUtil.Open(uri);
-			_logger.LogInformation($"Spotify login: {uri}");
+			refresh.Wait();
 		}
 
-		private async Task OnAuthorizationCodeReceived(object sender, AuthorizationCodeResponse response)
+		public async Task OnAuthorizationCodeReceived(string code)
 		{
 			var oauth = new OAuthClient();
 
-			var tokenRequest = new AuthorizationCodeTokenRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, response.Code, new Uri("http://localhost:5001/callback"));
+			var tokenRequest = new AuthorizationCodeTokenRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, code, new Uri("https://bot-neph.azurewebsites.net/callback"));
 			var tokenResponse = await oauth.RequestToken(tokenRequest);
-			_accessToken = tokenResponse.AccessToken;
-			_refreshToken = tokenResponse.RefreshToken;
+
+			Helpers.UpdateTokens("spotifyapi", tokenResponse.AccessToken, tokenResponse.RefreshToken);
+			_settings.SpotifyFunction.AccessToken = tokenResponse.AccessToken;
+			_settings.SpotifyFunction.RefreshToken = tokenResponse.RefreshToken;
 
 			_client = new SpotifyClient(tokenResponse.AccessToken);
 		}
 
-		// may be usefull to refresh token one day
 		private async Task RefreshToken() 
 		{
-			var newResponse = await new OAuthClient().RequestToken(new AuthorizationCodeRefreshRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, _refreshToken));
-			_client = new SpotifyClient(newResponse.AccessToken);
+			try
+			{
+				var newResponse = await new OAuthClient().RequestToken(new AuthorizationCodeRefreshRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, _settings.SpotifyFunction.RefreshToken));
+
+				Helpers.UpdateTokens("spotifyapi", newResponse.AccessToken, newResponse.RefreshToken);
+				_settings.SpotifyFunction.AccessToken = newResponse.AccessToken;
+				_settings.SpotifyFunction.RefreshToken = newResponse.RefreshToken;
+
+				_client = new SpotifyClient(newResponse.AccessToken);
+			}
+			catch
+			{
+				_logger.LogError("Couldn't refresh token for spotify");
+			}
 		}
 
 		public async Task<FullTrack> GetCurrentSong()
