@@ -17,9 +17,10 @@ namespace WebApp.Controllers
 		}
 
 		[HttpGet]
-		public async Task Get([FromQuery] string code)
+		public async Task<ActionResult> GetAsync([FromQuery] string code)
 		{
 			await _spotify.OnAuthorizationCodeReceived(code);
+			return Redirect("https://bot-neph.azurewebsites.net/");
 		}
 	}
 }
