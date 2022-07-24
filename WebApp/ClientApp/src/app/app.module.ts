@@ -8,13 +8,15 @@ import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { AlertsComponent } from './alerts/alerts.component';
 import { ButtonsComponent } from './buttons/buttons.component';
+import { CommandsListComponent } from './commands-list/commands-list.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
     AlertsComponent,
-    ButtonsComponent
+    ButtonsComponent,
+    CommandsListComponent
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -24,6 +26,7 @@ import { ButtonsComponent } from './buttons/buttons.component';
       { path: '', component: HomeComponent, pathMatch: 'full' },
       { path: 'alerts', component: AlertsComponent },
       { path: 'buttons', component: ButtonsComponent },
+      { path: 'commands-list', component: CommandsListComponent },
       { path: 'webhooks', redirectTo: 'webhooks' }
     ])
   ],

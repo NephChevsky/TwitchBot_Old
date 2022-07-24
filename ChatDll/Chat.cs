@@ -102,24 +102,7 @@ namespace ChatDll
                 || string.Equals(e.Command.CommandText, "commande", StringComparison.InvariantCultureIgnoreCase)
                 || string.Equals(e.Command.CommandText, "commandes", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    SendMessage("Commandes disponibles:");
-                    if (_settings.CheckUptimeFunction.ComputeUptime)
-                    {
-                        SendMessage("!uptime : Affiche l'uptime d'un viewer");
-                    }
-                    if (_settings.ChatFunction.Timeout)
-                    {
-                        SendMessage("!timeout : TO quelqu'un, mais faut du courage");
-                    }
-                    if (_settings.ChatFunction.AddCustomCommands)
-                    {
-                        SendMessage("!addcmd : Ajoute une commande");
-                        SendMessage("!delcmd : Supprime une commande");
-                    }
-                    SendMessage("!song : Affiche la musique en cours");
-                    SendMessage("!nextsong : Passe à la musique suivante");
-                    SendMessage("!barrelroll : Do a barrel roll!");
-                    SendMessage("!rocketleague : This is rocket league!");
+                    SendMessage("Commandes disponibles: https://bit.ly/3J4wUdP");
                     updateTimer = true;
                 }
                 else if (_settings.CheckUptimeFunction.ComputeUptime && string.Equals(e.Command.CommandText, "uptime", StringComparison.InvariantCultureIgnoreCase))
@@ -328,6 +311,7 @@ namespace ChatDll
                 {
                     SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\barrelroll.wav");
                     player.Play();
+                    SendMessage("DO A BARREL ROLL!");
                     var simulator = new InputSimulator();
                     simulator.Mouse.LeftButtonDown();
                     simulator.Mouse.RightButtonDown();
@@ -336,13 +320,13 @@ namespace ChatDll
                     simulator.Keyboard.KeyUp(VirtualKeyCode.VK_A);
                     simulator.Mouse.RightButtonUp();
                     simulator.Mouse.LeftButtonUp();
-                    SendMessage("DO A BARREL ROLL!");
                     updateTimer = true;
                 }
                 else if (string.Equals(e.Command.CommandText, "rocketleague", StringComparison.InvariantCultureIgnoreCase))
                 {
                     SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\rocketleague.wav");
                     player.Play();
+                    SendMessage("THIS IS ROCKET LEAGUE!");
                     var simulator = new InputSimulator();
                     simulator.Mouse.LeftButtonDown();
                     simulator.Mouse.RightButtonDown();
@@ -354,7 +338,6 @@ namespace ChatDll
                     Task.Delay(1300).Wait();
                     simulator.Mouse.RightButtonUp();
                     simulator.Mouse.LeftButtonUp();
-                    SendMessage("THIS IS ROCKET LEAGUE!");
                     updateTimer = true;
                 }
                 else if (_settings.ChatFunction.AddCustomCommands)

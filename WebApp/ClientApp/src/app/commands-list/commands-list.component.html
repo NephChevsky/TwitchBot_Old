@@ -1,0 +1,71 @@
+<div class="content">
+  <h1>Listes des commandes</h1>
+  <br />
+  <h3>General</h3>
+  <table>
+    <tr>
+      <th>Nom</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>!bot</td>
+      <td>Montre la liste des commandes</td>
+    </tr>
+    <tr *ngIf="options.computeUpTime">
+      <td>!uptime ({{"{"}}username{{"}"}})</td>
+      <td>Affiche votre uptime sur le stream. Vous pouvez ajouter un autre nom d'utilisateur en paramètre pour voir son uptime</td>
+    </tr>
+    <tr *ngIf="options.timeout">
+      <td>!timeout {{"{"}}username{{"}"}}</td>
+      <td>Permet de timeout un autre utilisateur, mais à vos risques et périls</td>
+    </tr>
+    <tr *ngIf="options.addCustomCommands">
+      <td>!addcmd {{"{"}}command_name{{"}"}} {{"{"}}message{{"}"}}</td>
+      <td>Crée une commande pour afficher un message personalisé. Si vous ajouter {{"{"}}0{{"}"}} dans le message, la valeur sera remplacé par un compteur</td>
+    </tr>
+    <tr *ngIf="options.addCustomCommands">
+      <td>!delcmd {{"{"}}command_name{{"}"}}</td>
+      <td>Supprime une commande personalisé. Vous ne pouvez supprimer que les commandes que vous avez créé</td>
+    </tr>
+    <tr>
+      <td>!song</td>
+      <td>Affiche l'artiste et le titre de la chanson en cours</td>
+    </tr>
+    <tr>
+      <td>!nextsong</td>
+      <td>Passer à la musique suivante</td>
+    </tr>
+  </table>
+  <br />
+  <br />
+  <h3>Rocket League</h3>
+  <table>
+    <tr>
+      <th>Nom</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>!barrelroll</td>
+      <td>Intéragit avec ma manette: DO A BARREL ROLL!</td>
+    </tr>
+    <tr>
+      <td>!rocketleague</td>
+      <td>Intéragit avec ma manette: THIS IS ROCKET LEAGUE!</td>
+    </tr>
+  </table>
+  <br />
+  <br />
+  <div *ngIf="commands && commands.length > 0">
+    <h3>Commandes customisables</h3>
+    <table>
+      <tr>
+        <th>Nom</th>
+        <th>Description</th>
+      </tr>
+      <tr *ngFor="let item of commands">
+        <td>!{{item.key}}</td>
+        <td>{{item.value}}</td>
+      </tr>
+    </table>
+  </div>
+</div>

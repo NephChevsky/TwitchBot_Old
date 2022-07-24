@@ -1,13 +1,13 @@
 ===============
 General
 ===============
-Trouver un moyen pour afficher un titre de musique dans les boutons sans que ça déborde => ObsWebSocket maybe?
-Envoyer directement le text de UpdateFiles dans OBS => faut attendre qu'ils fixent les websocket en 6.0
+
 
 ===============
 Commands
 ===============
-
+Lancer des commandes quickchat => what a save, wow, faking
+ajouter le quick chat this is rocket league lors de la commande !rocketleague
 
 ===============
 Channel Rewards
@@ -16,3 +16,4 @@ This is rocket league => faire payer pour activer
 Do a barrel roll => faire payer pour activer
 Next song => faire payer pour activer
 Ajouter une musique à la playlist Streaming
+commandes quickchat RL => faire payer pour activer
