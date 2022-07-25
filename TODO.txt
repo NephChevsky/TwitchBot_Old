@@ -2,18 +2,16 @@
 General
 ===============
 Monthly/daily uptime and message count
-implement retry and refresh on spotify
+Show DisplayName plutot que Username
+Get user before inserting in db
 
 ===============
 Commands
 ===============
-verifier que la chanson n'est pas déja dans la playlist quand on l'ajoute
 
 ===============
 Channel Rewards
 ===============
-This is rocket league => faire payer pour activer
-Do a barrel roll => faire payer pour activer
+Pour toute les commandes rocket league => faire payer pour activer
 Next song => faire payer pour activer
-commandes quickchat RL => faire payer pour activer
-Ajouter une musique à la playlist Streaming
+Ajouter une musique à la playlist Streaming => faire payer pour activer

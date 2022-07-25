@@ -124,9 +124,9 @@ namespace SpotifyDll
 			return ret;
 		}
 
-		public async Task<bool> AddSong(string name)
+		public async Task<int> AddSong(string name)
 		{
-			bool ret = false;
+			int ret = 0;
 			if (_client != null)
 			{
 				SearchRequest searchQuery = new(SearchRequest.Types.Track, name);
@@ -149,9 +149,30 @@ namespace SpotifyDll
 						SimplePlaylist playlist = playlists.Items.Where(x => x.Name == "Streaming").FirstOrDefault();
 						if (playlist != null)
 						{
+							int offset = 0;
+							do
+							{
+								PlaylistGetItemsRequest query = new();
+								query.Offset = offset;
+								Paging<PlaylistTrack<IPlayableItem>> playlistTracks = await _client.Playlists.GetItems(playlist.Id, query);
+								PlaylistTrack<IPlayableItem> existingSong = playlistTracks.Items.Where(x => ((FullTrack)x.Track).Uri == tracks.Tracks.Items[0].Uri).FirstOrDefault();
+								if (playlistTracks.Items.Count == 0)
+								{
+									offset = 0;
+								}
+								else if (existingSong != null)
+								{
+									return 2;
+								}
+								else
+								{
+									offset += playlistTracks.Items.Count;
+								}
+							} while (offset != 0);
+							
 							PlaylistAddItemsRequest addQuery = new(new List<string> { tracks.Tracks.Items[0].Uri });
 							SnapshotResponse response = await _client.Playlists.AddItems(playlist.Id, addQuery);
-							ret = response != null && response.SnapshotId != null;
+							ret = (response != null && response.SnapshotId != null) ? 1 : 0;
 						}
 					}
 				}

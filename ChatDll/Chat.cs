@@ -310,10 +310,15 @@ namespace ChatDll
                 }
                 else if (string.Equals(e.Command.CommandText, "addsong", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (await _spotify.AddSong(e.Command.ArgumentsAsString))
+                    int ret = await _spotify.AddSong(e.Command.ArgumentsAsString);
+                    if (ret == 1)
                     {
                         updateTimer = true;
                         SendMessage($"{e.Command.ChatMessage.Username} La musique a été ajoutée à la playlist");
+                    }
+                    else if (ret == 2)
+                    {
+                        SendMessage($"{e.Command.ChatMessage.Username} La musique est déjà dans la playlist");
                     }
                     else
                     {
