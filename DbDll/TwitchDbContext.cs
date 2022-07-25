@@ -48,7 +48,12 @@ namespace DbDll
                     .IsRequired()
                     .HasMaxLength(512);
 
+                entity.Property(e => e.DisplayName)
+                    .IsRequired()
+                    .HasMaxLength(512);
+
                 entity.Property(e => e.TwitchId)
+                    .IsRequired()
                     .HasMaxLength(512);
 
                 entity.Property(e => e.IsBot)

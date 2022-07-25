@@ -166,6 +166,19 @@ namespace ApiDll
             }
         }
 
+        public async Task<User> GetUser(string username)
+        {
+            GetUsersResponse users = await api.Helix.Users.GetUsersAsync(null, new List<string>() { username }, null);
+            if (users.Users.Length > 0)
+            {
+                return users.Users[0];
+			}
+            else
+            {
+                return null;
+            }
+        }
+
         public async Task<List<ChatterFormatted>> GetChatters()
         {
             List<ChatterFormatted> chatters = await api.Undocumented.GetChattersAsync(_settings.Channel);

@@ -6,7 +6,8 @@ namespace ModelsDll.Db
     {
         public Guid Id { get; set; }
         public string Username { get; set; }
-        public int TwitchId { get; set; }
+        public string DisplayName { get; set; }
+        public string TwitchId { get; set; }
         public bool IsBot { get; set; }
         public int Seen { get; set; }
         public DateTime LastViewedDateTime { get; set; }
@@ -25,9 +26,11 @@ namespace ModelsDll.Db
 
         }
 
-        public Viewer(string username)
+        public Viewer(string username, string displayname, string id)
         {
             Username = username;
+            DisplayName = displayname;
+            TwitchId = id;
             CreationDateTime = DateTime.Now;
             LastViewedDateTime = CreationDateTime;
             Uptime = 0;

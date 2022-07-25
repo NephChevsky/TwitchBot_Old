@@ -8,6 +8,7 @@ using ModelsDll;
 using ModelsDll.Db;
 using TwitchLib.Api;
 using TwitchLib.Api.Core.Models.Undocumented.Chatters;
+using TwitchLib.Api.Helix.Models.Users.GetUsers;
 
 namespace Bot.Workers
 {
@@ -47,7 +48,7 @@ namespace Bot.Workers
 
                 List<ChatterFormatted> chatters = await _api.GetChatters();
 
-                chatters.ForEach(x =>
+                chatters.ForEach(async x =>
                 {
                     using (TwitchDbContext db = new(Guid.Empty))
                     {
@@ -71,12 +72,13 @@ namespace Bot.Workers
                         }
                         else
                         {
-                            dbViewer = new Viewer(x.Username);
+                            User user = await _api.GetUser(x.Username);
+                            dbViewer = new Viewer(user.Login, user.DisplayName, user.Id);
                             db.Viewers.Add(dbViewer);
                             if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin)
                             {
                                 _logger.LogInformation($"Show commands when a new viewer is here");
-                                _chat.SendMessage($"Tape !bot pour voir les commandes disponibles ;)");
+                                _chat.SendMessage($"Je développe un bot Twitch pour créer des intéractions entre le chat, mon stream et mon gameplay. Teste le en tapant !bot pour voir les commandes disponibles ;)");
                             }
                         }
                         db.SaveChanges();

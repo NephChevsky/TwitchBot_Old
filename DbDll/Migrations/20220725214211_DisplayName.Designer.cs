@@ -4,6 +4,7 @@ using DbDll;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DbDll.Migrations
 {
     [DbContext(typeof(TwitchDbContext))]
-    partial class TwitchDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220725214211_DisplayName")]
+    partial class DisplayName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,8 +84,7 @@ namespace DbDll.Migrations
 
                     b.Property<string>("DisplayName")
                         .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsBot")
                         .ValueGeneratedOnAdd()
@@ -106,10 +107,9 @@ namespace DbDll.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
-                    b.Property<string>("TwitchId")
-                        .IsRequired()
+                    b.Property<int>("TwitchId")
                         .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
+                        .HasColumnType("int");
 
                     b.Property<long>("Uptime")
                         .ValueGeneratedOnAdd()
