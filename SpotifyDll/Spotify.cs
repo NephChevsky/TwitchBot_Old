@@ -67,7 +67,7 @@ namespace SpotifyDll
 			_client = new SpotifyClient(_accessToken);
 		}
 
-		public async Task RefreshToken() 
+		private async Task RefreshToken() 
 		{
 			try
 			{
@@ -82,7 +82,7 @@ namespace SpotifyDll
 			}
 		}
 
-		private async Task<FullTrack> GetCurrentSong()
+		public async Task<FullTrack> GetCurrentSong()
 		{
 			if (_client != null)
 			{
