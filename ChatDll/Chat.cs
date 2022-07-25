@@ -116,12 +116,12 @@ namespace ChatDll
                         {
                             int hours = (int)Math.Floor((decimal)viewer.Uptime / 3600);
                             int minutes = (int)Math.Floor((decimal)(viewer.Uptime % 3600) / 60);
-                            SendMessage($"@{username} a regardé le stream pendant {hours} heures et {minutes.ToString().PadLeft(2, '0')} minutes. Il est passé {viewer.Seen} fois sur le stream.");
+                            SendMessage($"@{viewer.DisplayName} a regardé le stream pendant {hours} heures et {minutes.ToString().PadLeft(2, '0')} minutes. Il est passé {viewer.Seen} fois sur le stream.");
                             updateTimer = true;
                         }
                         else
                         {
-                            SendMessage($"{e.Command.ChatMessage.Username}, je connais pas ce con");
+                            SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ce con");
                         }
                     }
                 }
@@ -150,7 +150,7 @@ namespace ChatDll
                             {
                                 if (e.Command.ArgumentsAsList.Count == 0)
                                 {
-                                    SendMessage($"{e.Command.ChatMessage.Username} Idiot!");
+                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Idiot!");
                                     _api.BanUser(username);
                                 }
                                 else
@@ -159,7 +159,7 @@ namespace ChatDll
                                     int timer = Rng.Next(300);
                                     if (dice == 0)
                                     {
-                                        SendMessage($"Roll: {dice}/300. Dommage {e.Command.ChatMessage.Username}!");
+                                        SendMessage($"Roll: {dice}/300. Dommage {e.Command.ChatMessage.DisplayName}!");
                                         _api.BanUser(e.Command.ChatMessage.Username, timer);
                                     }
                                     else if (dice == 1)
@@ -169,13 +169,13 @@ namespace ChatDll
                                     }
                                     else if (dice == 2)
                                     {
-                                        SendMessage($"Roll: {dice}/300. Allez ça dégage {e.Command.ChatMessage.Username} et {e.Command.ArgumentsAsString}!");
+                                        SendMessage($"Roll: {dice}/300. Allez ça dégage {e.Command.ChatMessage.DisplayName} et {e.Command.ArgumentsAsString}!");
                                         _api.BanUser(e.Command.ChatMessage.Username, timer);
                                         _api.BanUser(username, timer);
                                     }
                                     else
                                     {
-                                        SendMessage($"{e.Command.ChatMessage.Username} Non, pas envie aujourd'hui");
+                                        SendMessage($"{e.Command.ChatMessage.DisplayName} : Non, pas envie aujourd'hui");
                                     }
                                 }
                                 updateTimer = true;
@@ -193,7 +193,7 @@ namespace ChatDll
                             title += " !bot";
                         }
                         await _api.ModifyChannelInformation(title, null);
-                        SendMessage($"{e.Command.ChatMessage.Username}, le titre du stream a été changé en: {title}");
+                        SendMessage($"{e.Command.ChatMessage.DisplayName} : le titre du stream a été changé en: {title}");
                     }
                 }
                 else if (string.Equals(e.Command.CommandText, "setgame", StringComparison.InvariantCultureIgnoreCase))
@@ -203,11 +203,11 @@ namespace ChatDll
                         ModifyChannelInformationResponse response = await _api.ModifyChannelInformation(null, e.Command.ArgumentsAsString);
                         if (response != null)
                         {
-                            SendMessage($"{e.Command.ChatMessage.Username}, le jeu du stream a été changé en: {response.Game}");
+                            SendMessage($"{e.Command.ChatMessage.DisplayName} : le jeu du stream a été changé en: {response.Game}");
                         }
                         else
                         {
-                            SendMessage($"{e.Command.ChatMessage.Username}, je connais pas ton jeu de merde");
+                            SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ton jeu de merde");
                         }
                     }
                 }
@@ -231,16 +231,16 @@ namespace ChatDll
                                 catch (DbUpdateException ex)
                                 when ((ex.InnerException as SqlException)?.Number == 2601 || (ex.InnerException as SqlException)?.Number == 2627)
                                 {
-                                    SendMessage($"{e.Command.ChatMessage.Username} Une commande du même nom existe déja");
+                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Une commande du même nom existe déja");
                                     return;
                                 }
-                                SendMessage($"{e.Command.ChatMessage.Username} Command {e.Command.ArgumentsAsList[0]} créée");
+                                SendMessage($"{e.Command.ChatMessage.DisplayName} : Command {e.Command.ArgumentsAsList[0]} créée");
                                 updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
                             }
                         }
                         else
                         {
-                            SendMessage($"{e.Command.ChatMessage.Username} Utilisateur inconnu");
+                            SendMessage($"{e.Command.ChatMessage.DisplayName} : Utilisateur inconnu");
                         }
                     }
                     return;
@@ -261,7 +261,7 @@ namespace ChatDll
                                 }
                                 else
                                 {
-                                    SendMessage($"{e.Command.ChatMessage.Username} Utilisateur inconnu");
+                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Utilisateur inconnu");
                                     return;
                                 }
                             }
@@ -272,17 +272,17 @@ namespace ChatDll
                                 {
                                     db.Remove(dbCmd);
                                     db.SaveChanges();
-                                    SendMessage($"{e.Command.ChatMessage.Username} Command {e.Command.ArgumentsAsList[0]} supprimée");
+                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Command {e.Command.ArgumentsAsList[0]} supprimée");
                                     updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
                                 }
                                 else
                                 {
-                                    SendMessage($"{e.Command.ChatMessage.Username} Pas touche!");
+                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Pas touche!");
                                 }
                             }
                             else
                             {
-                                SendMessage($"{e.Command.ChatMessage.Username} Commande inconnue");
+                                SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
                             }
                         }
                     }
@@ -292,11 +292,11 @@ namespace ChatDll
                     FullTrack song = await _spotify.GetCurrentSong();
                     if (song != null)
                     {
-                        SendMessage($"{e.Command.ChatMessage.Username} SingsNote {song.Artists[0].Name} - {song.Name} SingsNote");
+                        SendMessage($"{e.Command.ChatMessage.DisplayName} : SingsNote {song.Artists[0].Name} - {song.Name} SingsNote");
                     }
                     else
                     {
-                        SendMessage($"{e.Command.ChatMessage.Username} On écoute pas de musique bouffon");
+                        SendMessage($"{e.Command.ChatMessage.DisplayName} : On écoute pas de musique bouffon");
                     }
                     updateTimer = true;
                 }
@@ -304,7 +304,7 @@ namespace ChatDll
                 {
                     if (!(await _spotify.SkipSong()))
                     {
-                        SendMessage($"{e.Command.ChatMessage.Username} On écoute pas de musique bouffon");
+                        SendMessage($"{e.Command.ChatMessage.DisplayName} : On écoute pas de musique bouffon");
                     }
                     updateTimer = true;
                 }
@@ -314,15 +314,15 @@ namespace ChatDll
                     if (ret == 1)
                     {
                         updateTimer = true;
-                        SendMessage($"{e.Command.ChatMessage.Username} La musique a été ajoutée à la playlist");
+                        SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été ajoutée à la playlist");
                     }
                     else if (ret == 2)
                     {
-                        SendMessage($"{e.Command.ChatMessage.Username} La musique est déjà dans la playlist");
+                        SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique est déjà dans la playlist");
                     }
                     else
                     {
-                        SendMessage($"{e.Command.ChatMessage.Username} La musique n'a pas pu être ajoutée à la playlist");
+                        SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être ajoutée à la playlist");
                     }
                 }
                 else if (string.Equals(e.Command.CommandText, "delsong", StringComparison.InvariantCultureIgnoreCase))
@@ -330,11 +330,11 @@ namespace ChatDll
                     if (await _spotify.RemoveSong())
                     {
                         updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
-                        SendMessage($"{e.Command.ChatMessage.Username} La musique a été supprimée de la playlist");
+                        SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été supprimée de la playlist");
                     }
                     else
                     {
-                        SendMessage($"{e.Command.ChatMessage.Username} La musique n'a pas pu être supprimée de la playlist");
+                        SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être supprimée de la playlist");
                     }
                 }
                 else if (string.Equals(e.Command.CommandText, "barrelroll", StringComparison.InvariantCultureIgnoreCase))
@@ -408,13 +408,13 @@ namespace ChatDll
                         }
                         else
                         {
-                            SendMessage($"{e.Command.ChatMessage.Username} Commande inconnue");
+                            SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
                         }
                     }
                 }
                 else
                 {
-                    SendMessage($"{e.Command.ChatMessage.Username} Commande inconnue");
+                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
                 }
 
                 if (updateTimer)
