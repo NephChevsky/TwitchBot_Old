@@ -67,8 +67,7 @@ namespace SpotifyDll
 			_client = new SpotifyClient(_accessToken);
 		}
 
-		// may be usefull later
-		private async Task RefreshToken() 
+		public async Task RefreshToken() 
 		{
 			try
 			{
@@ -83,11 +82,21 @@ namespace SpotifyDll
 			}
 		}
 
-		public async Task<FullTrack> GetCurrentSong()
+		private async Task<FullTrack> GetCurrentSong()
 		{
 			if (_client != null)
 			{
-				CurrentlyPlaying song = await _client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+				CurrentlyPlaying song;
+				try
+				{
+					song = await _client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+				}
+				catch (APIUnauthorizedException)
+				{
+					await RefreshToken();
+					song = await _client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+				}
+
 				if (song != null)
 				{
 					return (FullTrack)song.Item;
@@ -105,21 +114,33 @@ namespace SpotifyDll
 				{
 					ret = await _client.Player.SkipNext();
 				}
-				catch
+				catch (APIUnauthorizedException)
 				{
-					return false;
+					await RefreshToken();
+					ret = await _client.Player.SkipNext();
 				}
 			}
 			
 			return ret;
 		}
+
 		public async Task<bool> AddSong(string name)
 		{
 			bool ret = false;
 			if (_client != null)
 			{
 				SearchRequest searchQuery = new(SearchRequest.Types.Track, name);
-				SearchResponse tracks = await _client.Search.Item(searchQuery);
+				SearchResponse tracks;
+				try
+				{
+					tracks = await _client.Search.Item(searchQuery);
+				}
+				catch (APIUnauthorizedException)
+				{
+					await RefreshToken();
+					tracks = await _client.Search.Item(searchQuery);
+				}
+
 				if (tracks != null)
 				{
 					Paging<SimplePlaylist> playlists = await _client.Playlists.CurrentUsers();
@@ -147,7 +168,17 @@ namespace SpotifyDll
 				FullTrack song = await GetCurrentSong();
 				if (song != null)
 				{
-					Paging<SimplePlaylist> playlists = await _client.Playlists.CurrentUsers();
+					Paging<SimplePlaylist> playlists;
+					try
+					{
+						playlists = await _client.Playlists.CurrentUsers();
+					}
+					catch (APIUnauthorizedException)
+					{
+						await RefreshToken();
+						playlists = await _client.Playlists.CurrentUsers();
+					}
+
 					if (playlists != null)
 					{
 						SimplePlaylist playlist = playlists.Items.Where(x => x.Name == "Streaming").FirstOrDefault();

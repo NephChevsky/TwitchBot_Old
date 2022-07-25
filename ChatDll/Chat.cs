@@ -213,7 +213,7 @@ namespace ChatDll
                 }
                 else if (_settings.ChatFunction.AddCustomCommands && string.Equals(e.Command.CommandText, "addcmd", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if ((e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator) && e.Command.ArgumentsAsList.Count >= 2)
+                    if (e.Command.ArgumentsAsList.Count >= 2)
                     {
                         Command cmd = new();
                         cmd.Name = e.Command.ArgumentsAsList[0].Replace("!", "");
@@ -289,7 +289,17 @@ namespace ChatDll
                 }
                 else if (string.Equals(e.Command.CommandText, "song", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    FullTrack song = await _spotify.GetCurrentSong();
+                    FullTrack song;
+                    try
+                    {
+                        song = await _spotify.GetCurrentSong();
+                    }
+                    catch (APIUnauthorizedException)
+                    {
+                        await _spotify.RefreshToken();
+                        song = await _spotify.GetCurrentSong();
+					}
+                    
                     if (song != null)
                     {
                         SendMessage($"{e.Command.ChatMessage.Username} SingsNote {song.Artists[0].Name} - {song.Name} SingsNote");
