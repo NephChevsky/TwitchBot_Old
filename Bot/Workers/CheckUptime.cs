@@ -75,8 +75,8 @@ namespace Bot.Workers
                             db.Viewers.Add(dbViewer);
                             if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin)
                             {
-                                _logger.LogInformation($"Say hi to new viewer {dbViewer.Username}");
-                                _chat.SendMessage($"Salut {dbViewer.Username} ! Bienvenue sur le stream. Tu peux nous faire un petit coucou ou bien taper ton meilleur lurk. Tape !bot pour voir les commandes disponibles ;)");
+                                _logger.LogInformation($"Show commands when a new viewer is here");
+                                _chat.SendMessage($"Tape !bot pour voir les commandes disponibles ;)");
                             }
                         }
                         db.SaveChanges();

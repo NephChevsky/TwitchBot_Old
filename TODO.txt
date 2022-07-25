@@ -1,12 +1,13 @@
 ===============
 General
 ===============
-
+Monthly/daily uptime and message count
+implement retry and refresh on spotify
 
 ===============
 Commands
 ===============
-
+verifier que la chanson n'est pas déja dans la playlist quand on l'ajoute
 
 ===============
 Channel Rewards

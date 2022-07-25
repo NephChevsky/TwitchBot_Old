@@ -289,17 +289,7 @@ namespace ChatDll
                 }
                 else if (string.Equals(e.Command.CommandText, "song", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    FullTrack song;
-                    try
-                    {
-                        song = await _spotify.GetCurrentSong();
-                    }
-                    catch (APIUnauthorizedException)
-                    {
-                        await _spotify.RefreshToken();
-                        song = await _spotify.GetCurrentSong();
-					}
-                    
+                    FullTrack song = await _spotify.GetCurrentSong();
                     if (song != null)
                     {
                         SendMessage($"{e.Command.ChatMessage.Username} SingsNote {song.Artists[0].Name} - {song.Name} SingsNote");
