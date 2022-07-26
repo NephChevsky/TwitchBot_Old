@@ -128,12 +128,12 @@ namespace ChatDll
                 else if (_settings.ChatFunction.Timeout && (string.Equals(e.Command.CommandText, "timeout", StringComparison.InvariantCultureIgnoreCase)
                                                         || string.Equals(e.Command.CommandText, "to", StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    if (e.Command.ArgumentsAsList.Count > 0)
+                    if (e.Command.ArgumentsAsList.Count > 0 && !string.Equals(e.Command.ChatMessage.Username, e.Command.ArgumentsAsList[0], StringComparison.InvariantCultureIgnoreCase))
                     {
                         string username = e.Command.ArgumentsAsList[0].Replace("@", "");
                         List<Moderator> mods = await _api.GetModerators();
                         Moderator mod = mods.Where(x => string.Equals(username, x.UserName)).FirstOrDefault();
-                        if (mod == null && !string.Equals(e.Command.ChatMessage.Username, _settings.Channel, StringComparison.InvariantCultureIgnoreCase))
+                        if (mod == null)
                         {
                             if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
                             {
@@ -148,39 +148,36 @@ namespace ChatDll
                             }
                             else
                             {
-                                if (e.Command.ArgumentsAsList.Count == 0)
+                                int dice = Rng.Next(5);
+                                int timer = Rng.Next(300);
+                                if (dice == 0)
                                 {
-                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Idiot!");
-                                    _api.BanUser(username);
+                                    SendMessage($"Roll: {dice}/300. Dommage {e.Command.ChatMessage.DisplayName}!");
+                                    _api.BanUser(e.Command.ChatMessage.Username, timer);
+                                }
+                                else if (dice == 1)
+                                {
+                                    SendMessage($"Roll: {dice}/300. Désolé {e.Command.ArgumentsAsList[0]}!");
+                                    _api.BanUser(username, timer);
+                                }
+                                else if (dice == 2)
+                                {
+                                    SendMessage($"Roll: {dice}/300. Allez ça dégage {e.Command.ChatMessage.DisplayName} et {e.Command.ArgumentsAsList[0]}!");
+                                    _api.BanUser(e.Command.ChatMessage.Username, timer);
+                                    _api.BanUser(username, timer);
                                 }
                                 else
                                 {
-                                    int dice = Rng.Next(5);
-                                    int timer = Rng.Next(300);
-                                    if (dice == 0)
-                                    {
-                                        SendMessage($"Roll: {dice}/300. Dommage {e.Command.ChatMessage.DisplayName}!");
-                                        _api.BanUser(e.Command.ChatMessage.Username, timer);
-                                    }
-                                    else if (dice == 1)
-                                    {
-                                        SendMessage($"Roll: {dice}/300. Désolé {e.Command.ArgumentsAsList[0]}!");
-                                        _api.BanUser(username, timer);
-                                    }
-                                    else if (dice == 2)
-                                    {
-                                        SendMessage($"Roll: {dice}/300. Allez ça dégage {e.Command.ChatMessage.DisplayName} et {e.Command.ArgumentsAsString}!");
-                                        _api.BanUser(e.Command.ChatMessage.Username, timer);
-                                        _api.BanUser(username, timer);
-                                    }
-                                    else
-                                    {
-                                        SendMessage($"{e.Command.ChatMessage.DisplayName} : Non, pas envie aujourd'hui");
-                                    }
+                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Non, pas envie aujourd'hui");
                                 }
                                 updateTimer = true;
                             }
                         }
+                    }
+                    else
+                    {
+                        SendMessage($"{e.Command.ChatMessage.DisplayName} : Idiot!");
+                        _api.BanUser(e.Command.ChatMessage.Username);
                     }
                 }
                 else if (string.Equals(e.Command.CommandText, "settitle", StringComparison.InvariantCultureIgnoreCase))

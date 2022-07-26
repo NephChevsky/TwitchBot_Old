@@ -3,6 +3,7 @@ General
 ===============
 Monthly/daily uptime and message count
 Show DisplayName plutot que Username
+add timeout count
 
 ===============
 Commands
