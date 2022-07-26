@@ -4,10 +4,13 @@ General
 Monthly/daily uptime and message count
 Show DisplayName plutot que Username
 add timeout count
+chat overlay
+fix spotify token qui n'est pas renouvelé
 
 ===============
 Commands
 ===============
+command !fire pour vider le chargeur quand on joue a un fps
 
 ===============
 Channel Rewards
