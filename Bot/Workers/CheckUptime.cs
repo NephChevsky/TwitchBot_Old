@@ -60,7 +60,7 @@ namespace Bot.Workers
                                 if (_settings.CheckUptimeFunction.WelcomeOnReJoin && !dbViewer.IsBot && dbViewer.LastViewedDateTime < DateTime.Now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer))
                                 {
                                     _logger.LogInformation($"Say hi to known viewer {dbViewer.Username}");
-                                    _chat.SendMessage($"Salut {dbViewer.Username} ! Bon retour sur le stream !");
+                                    _chat.SendMessage($"Salut {dbViewer.DisplayName} ! Bon retour sur le stream !");
                                 }
                                 dbViewer.Seen++;
                             }
