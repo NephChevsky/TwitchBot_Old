@@ -21,84 +21,28 @@ using WindowsInput;
 
 namespace ChatDll
 {
-    public class Chat : IDisposable
+    public class ChatBot
     {
         private Settings _settings;
-        private readonly ILogger<Chat> _logger;
+        private readonly ILogger<ChatBot> _logger;
 
-        private TwitchClient _client;
+        public BasicChat _chat;
         private Api _api;
         private Spotify _spotify;
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
         private Guid InvalidGuid = Guid.Parse("12345678-1234-1234-1234-123456789000");
         private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
 
-        public Chat(ILogger<Chat> logger, IConfiguration configuration, Spotify spotify)
+        public ChatBot(ILogger<ChatBot> logger, IConfiguration configuration, BasicChat chat, Spotify spotify)
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
             _api = new(configuration, false);
             _spotify = spotify;
+            _chat = chat;
 
-            Task<RefreshResponse> refreshToken = Task.Run(async () =>
-            {
-                return await _api.RefreshToken(true);
-            });
-            refreshToken.Wait();
-            RefreshResponse token = refreshToken.Result;
-            Helpers.UpdateTokens("twitchchat", token.AccessToken, token.RefreshToken);
-            _settings.BotAccessToken = token.AccessToken;
-            _settings.BotRefreshToken = token.RefreshToken;
-            ConnectionCredentials credentials = new ConnectionCredentials(_settings.Bot, _settings.BotAccessToken);
-            var clientOptions = new ClientOptions
-            {
-                MessagesAllowedInPeriod = 750,
-                ThrottlingPeriod = TimeSpan.FromSeconds(30)
-            };
-            WebSocketClient customClient = new WebSocketClient(clientOptions);
-            _client = new TwitchClient(customClient);
-            _client.Initialize(credentials, _settings.Streamer);
-
-            _client.OnLog += Client_OnLog;
-            _client.OnJoinedChannel += Client_OnJoinedChannel;
-            _client.OnConnected += Client_OnConnected;
-            _client.OnChatCommandReceived += Client_OnChatCommandReceived;
-            _client.OnConnectionError += Client_OnConnectionError;
-            _client.OnMessageReceived += Client_OnMessageReceived;
-
-            if (!_client.Connect())
-            {
-                _logger.LogError("Couldn't connect IRC client");
-			}
-        }
-
-        public bool IsConnected
-        {
-            get
-            {
-                return _client.IsConnected;
-            }
-        }
-
-        private void Client_OnLog(object sender, OnLogArgs e)
-        {
-            _logger.LogInformation($"{e.DateTime.ToString()}: {e.BotUsername} - {e.Data}");
-        }
-
-        private void Client_OnConnected(object sender, OnConnectedArgs e)
-        {
-            _logger.LogInformation($"Connected to {_settings.Streamer}");
-        }
-
-        private void Client_OnJoinedChannel(object sender, OnJoinedChannelArgs e)
-        {
-            _logger.LogInformation($"Joined channel {_settings.Streamer}");
-            SendMessage("Coucou, tu veux voir ma build?");
-        }
-
-        private void Client_OnConnectionError(object sender, OnConnectionErrorArgs e)
-        {
-            _logger.LogInformation($"Couldn't connect: {e.Error.Message}");
+            _chat._client.OnChatCommandReceived += Client_OnChatCommandReceived;
+            _chat._client.OnMessageReceived += Client_OnMessageReceived;
         }
 
         private async void Client_OnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
@@ -113,7 +57,7 @@ namespace ChatDll
                 || string.Equals(e.Command.CommandText, "commande", StringComparison.InvariantCultureIgnoreCase)
                 || string.Equals(e.Command.CommandText, "commandes", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    SendMessage("Commandes disponibles: https://bit.ly/3J4wUdP");
+                    _chat.SendMessage("Commandes disponibles: https://bit.ly/3J4wUdP");
                     updateTimer = true;
                 }
                 else if (_settings.CheckUptimeFunction.ComputeUptime && string.Equals(e.Command.CommandText, "uptime", StringComparison.InvariantCultureIgnoreCase))
@@ -126,12 +70,12 @@ namespace ChatDll
                         {
                             int hours = (int)Math.Floor((decimal)viewer.Uptime / 3600);
                             int minutes = (int)Math.Floor((decimal)(viewer.Uptime % 3600) / 60);
-                            SendMessage($"@{viewer.DisplayName} a regardé le stream pendant {hours} heures et {minutes.ToString().PadLeft(2, '0')} minutes. Il est passé {viewer.Seen} fois sur le stream.");
+                            _chat.SendMessage($"@{viewer.DisplayName} a regardé le stream pendant {hours} heures et {minutes.ToString().PadLeft(2, '0')} minutes. Il est passé {viewer.Seen} fois sur le stream.");
                             updateTimer = true;
                         }
                         else
                         {
-                            SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ce con");
+                            _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ce con");
                         }
                     }
                 }
@@ -162,23 +106,23 @@ namespace ChatDll
                                 int timer = Rng.Next(300);
                                 if (dice == 0)
                                 {
-                                    SendMessage($"Roll: {dice}/300. Dommage {e.Command.ChatMessage.DisplayName}!");
+                                    _chat.SendMessage($"Roll: {dice}/300. Dommage {e.Command.ChatMessage.DisplayName}!");
                                     _api.BanUser(e.Command.ChatMessage.Username, timer);
                                 }
                                 else if (dice == 1)
                                 {
-                                    SendMessage($"Roll: {dice}/300. Désolé {e.Command.ArgumentsAsList[0]}!");
+                                    _chat.SendMessage($"Roll: {dice}/300. Désolé {e.Command.ArgumentsAsList[0]}!");
                                     _api.BanUser(username, timer);
                                 }
                                 else if (dice == 2)
                                 {
-                                    SendMessage($"Roll: {dice}/300. Allez ça dégage {e.Command.ChatMessage.DisplayName} et {e.Command.ArgumentsAsList[0]}!");
+                                    _chat.SendMessage($"Roll: {dice}/300. Allez ça dégage {e.Command.ChatMessage.DisplayName} et {e.Command.ArgumentsAsList[0]}!");
                                     _api.BanUser(e.Command.ChatMessage.Username, timer);
                                     _api.BanUser(username, timer);
                                 }
                                 else
                                 {
-                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Non, pas envie aujourd'hui");
+                                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Non, pas envie aujourd'hui");
                                 }
                                 updateTimer = true;
                             }
@@ -186,7 +130,7 @@ namespace ChatDll
                     }
                     else
                     {
-                        SendMessage($"{e.Command.ChatMessage.DisplayName} : Idiot!");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Idiot!");
                         _api.BanUser(e.Command.ChatMessage.Username);
                     }
                 }
@@ -200,7 +144,7 @@ namespace ChatDll
                             title += " !bot";
                         }
                         await _api.ModifyChannelInformation(title, null);
-                        SendMessage($"{e.Command.ChatMessage.DisplayName} : le titre du stream a été changé en: {title}");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : le titre du stream a été changé en: {title}");
                     }
                 }
                 else if (string.Equals(e.Command.CommandText, "setgame", StringComparison.InvariantCultureIgnoreCase))
@@ -210,11 +154,11 @@ namespace ChatDll
                         ModifyChannelInformationResponse response = await _api.ModifyChannelInformation(null, e.Command.ArgumentsAsString);
                         if (response != null)
                         {
-                            SendMessage($"{e.Command.ChatMessage.DisplayName} : le jeu du stream a été changé en: {response.Game}");
+                            _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : le jeu du stream a été changé en: {response.Game}");
                         }
                         else
                         {
-                            SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ton jeu de merde");
+                            _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ton jeu de merde");
                         }
                     }
                 }
@@ -238,16 +182,16 @@ namespace ChatDll
                                 catch (DbUpdateException ex)
                                 when ((ex.InnerException as SqlException)?.Number == 2601 || (ex.InnerException as SqlException)?.Number == 2627)
                                 {
-                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Une commande du même nom existe déja");
+                                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Une commande du même nom existe déja");
                                     return;
                                 }
-                                SendMessage($"{e.Command.ChatMessage.DisplayName} : Command {e.Command.ArgumentsAsList[0]} créée");
+                                _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Command {e.Command.ArgumentsAsList[0]} créée");
                                 updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
                             }
                         }
                         else
                         {
-                            SendMessage($"{e.Command.ChatMessage.DisplayName} : Utilisateur inconnu");
+                            _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Utilisateur inconnu");
                         }
                     }
                     return;
@@ -268,7 +212,7 @@ namespace ChatDll
                                 }
                                 else
                                 {
-                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Utilisateur inconnu");
+                                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Utilisateur inconnu");
                                     return;
                                 }
                             }
@@ -279,17 +223,17 @@ namespace ChatDll
                                 {
                                     db.Remove(dbCmd);
                                     db.SaveChanges();
-                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Command {e.Command.ArgumentsAsList[0]} supprimée");
+                                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Command {e.Command.ArgumentsAsList[0]} supprimée");
                                     updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
                                 }
                                 else
                                 {
-                                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Pas touche!");
+                                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Pas touche!");
                                 }
                             }
                             else
                             {
-                                SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
+                                _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
                             }
                         }
                     }
@@ -299,11 +243,11 @@ namespace ChatDll
                     FullTrack song = await _spotify.GetCurrentSong();
                     if (song != null)
                     {
-                        SendMessage($"{e.Command.ChatMessage.DisplayName} : SingsNote {song.Artists[0].Name} - {song.Name} SingsNote");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : SingsNote {song.Artists[0].Name} - {song.Name} SingsNote");
                     }
                     else
                     {
-                        SendMessage($"{e.Command.ChatMessage.DisplayName} : On écoute pas de musique bouffon");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : On écoute pas de musique bouffon");
                     }
                     updateTimer = true;
                 }
@@ -311,7 +255,7 @@ namespace ChatDll
                 {
                     if (!(await _spotify.SkipSong()))
                     {
-                        SendMessage($"{e.Command.ChatMessage.DisplayName} : On écoute pas de musique bouffon");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : On écoute pas de musique bouffon");
                     }
                     updateTimer = true;
                 }
@@ -321,15 +265,15 @@ namespace ChatDll
                     if (ret == 1)
                     {
                         updateTimer = true;
-                        SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été ajoutée à la playlist");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été ajoutée à la playlist");
                     }
                     else if (ret == 2)
                     {
-                        SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique est déjà dans la playlist");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique est déjà dans la playlist");
                     }
                     else
                     {
-                        SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être ajoutée à la playlist");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être ajoutée à la playlist");
                     }
                 }
                 else if (string.Equals(e.Command.CommandText, "delsong", StringComparison.InvariantCultureIgnoreCase))
@@ -337,18 +281,18 @@ namespace ChatDll
                     if (await _spotify.RemoveSong())
                     {
                         updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
-                        SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été supprimée de la playlist");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été supprimée de la playlist");
                     }
                     else
                     {
-                        SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être supprimée de la playlist");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être supprimée de la playlist");
                     }
                 }
                 else if (string.Equals(e.Command.CommandText, "barrelroll", StringComparison.InvariantCultureIgnoreCase))
                 {
                     SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\barrelroll.wav");
                     player.Play();
-                    SendMessage("DO A BARREL ROLL!");
+                    _chat.SendMessage("DO A BARREL ROLL!");
                     var simulator = new InputSimulator();
                     simulator.Mouse.LeftButtonDown();
                     simulator.Mouse.RightButtonDown();
@@ -363,7 +307,7 @@ namespace ChatDll
                 {
                     SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\rocketleague.wav");
                     player.Play();
-                    SendMessage("THIS IS ROCKET LEAGUE!");
+                    _chat.SendMessage("THIS IS ROCKET LEAGUE!");
                     var simulator = new InputSimulator();
                     simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
                     simulator.Keyboard.KeyPress(VirtualKeyCode.VK_1);
@@ -409,19 +353,19 @@ namespace ChatDll
                         {
                             dbCmd.Value++;
                             string message = dbCmd.Message.Replace("{0}", dbCmd.Value.ToString());
-                            SendMessage($"{message}");
+                            _chat.SendMessage($"{message}");
                             db.SaveChanges();
                             updateTimer = true;
                         }
                         else
                         {
-                            SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
+                            _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
                         }
                     }
                 }
                 else
                 {
-                    SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
+                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
                 }
 
                 if (updateTimer)
@@ -465,20 +409,6 @@ namespace ChatDll
                     return InvalidGuid;
                 }
 			}
-        }
-
-        public void SendMessage(string message)
-        {
-            _client.SendMessage(_settings.Streamer, message);
-        }
-
-        public void Dispose()
-        {
-            _logger.LogInformation($"Disposing of ChatDll");
-            if (_client.IsConnected)
-            {
-                SendMessage($"Allez Bisous, mon peuple m'attend!");
-            }
         }
     }
 }

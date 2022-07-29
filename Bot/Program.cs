@@ -22,7 +22,8 @@ namespace Bot
             })
             .ConfigureServices(services =>
             {
-                services.AddSingleton<Chat>();
+                services.AddSingleton<BasicChat>();
+                services.AddSingleton<ChatBot>();
                 services.AddSingleton<Spotify>();
                 services.AddHostedService<CheckUptime>();
             })

@@ -15,14 +15,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ModelsDll\ModelsDll.csproj" />
-	</ItemGroup>
-	<ItemGroup>
 		<ProjectReference Include="..\ApiDll\ApiDll.csproj" />
-	</ItemGroup>
-	<ItemGroup>
 		<ProjectReference Include="..\DbDll\DbDll.csproj" />
-	</ItemGroup>
-	<ItemGroup>
 		<ProjectReference Include="..\ChatDll\ChatDll.csproj" />
 	</ItemGroup>
 

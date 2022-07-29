@@ -18,11 +18,11 @@ namespace Bot.Workers
 
         private readonly ILogger<CheckUptime> _logger;
         private readonly Settings _settings;
-        private Chat _chat;
+        private BasicChat _chat;
         private Api _api;
         private List<ChatterFormatted> CurrentChatters = new List<ChatterFormatted>();
 
-        public CheckUptime(ILogger<CheckUptime> logger, IConfiguration configuration, Chat chat)
+        public CheckUptime(ILogger<CheckUptime> logger, IConfiguration configuration, BasicChat chat)
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
