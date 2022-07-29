@@ -344,6 +344,14 @@ namespace ChatDll
                     simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
                     updateTimer = true;
                 }
+                else if (string.Equals(e.Command.CommandText, "fire", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var simulator = new InputSimulator();
+                    simulator.Mouse.LeftButtonDown();
+                    Task.Delay(1000).Wait();
+                    simulator.Mouse.LeftButtonUp();
+                    updateTimer = true;
+                }
                 else if (_settings.ChatFunction.AddCustomCommands)
                 {
                     using (TwitchDbContext db = new(Guid.Empty))

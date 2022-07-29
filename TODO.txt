@@ -9,7 +9,7 @@ chat overlay
 ===============
 Commands
 ===============
-command !fire pour vider le chargeur quand on joue a un fps
+
 
 ===============
 Channel Rewards
