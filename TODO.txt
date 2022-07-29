@@ -6,6 +6,7 @@ Show DisplayName plutot que Username
 add timeout count
 chat overlay
 fix spotify token qui n'est pas renouvelé
+split chat dll into 2 class (basic and bot)
 
 ===============
 Commands

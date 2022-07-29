@@ -86,7 +86,7 @@ namespace WebApp.Services
             {
                 using (TwitchDbContext db = new(Guid.Empty))
                 {
-                    Viewer mostPresentViewer = db.Viewers.Where(x => x.IsBot == false && x.Username != _settings.Channel).OrderByDescending(x => x.Uptime).FirstOrDefault();
+                    Viewer mostPresentViewer = db.Viewers.Where(x => x.IsBot == false && x.Username != _settings.Streamer).OrderByDescending(x => x.Uptime).FirstOrDefault();
                     if (mostPresentViewer != null)
                     {
                         return mostPresentViewer.Username;
@@ -98,7 +98,7 @@ namespace WebApp.Services
             {
                 using (TwitchDbContext db = new(Guid.Empty))
                 {
-                    Viewer mostSpeakingViewer = db.Viewers.Where(x => x.IsBot == false && x.Username != _settings.Channel).OrderByDescending(x => x.MessageCount).FirstOrDefault();
+                    Viewer mostSpeakingViewer = db.Viewers.Where(x => x.IsBot == false && x.Username != _settings.Streamer).OrderByDescending(x => x.MessageCount).FirstOrDefault();
                     if (mostSpeakingViewer != null)
                     {
                         return mostSpeakingViewer.Username;

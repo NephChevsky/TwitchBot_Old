@@ -16,8 +16,13 @@ namespace ModelsDll
             dynamic config = LoadAppSettings();
             if (name == "twitchapi")
             {
-                config.Settings.AccessToken = accessToken;
-                config.Settings.RefreshToken = refreshToken;
+                config.Settings.StreamerAccessToken = accessToken;
+                config.Settings.StreamerRefreshToken = refreshToken;
+            }
+            if (name == "twitchchat")
+            {
+                config.Settings.BotAccessToken = accessToken;
+                config.Settings.BotRefreshToken = refreshToken;
             }
             else if (name == "spotifyapi")
             {

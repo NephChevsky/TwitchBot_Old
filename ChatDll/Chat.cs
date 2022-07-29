@@ -10,6 +10,7 @@ using ModelsDll.DTO;
 using SpotifyAPI.Web;
 using SpotifyDll;
 using System.Media;
+using TwitchLib.Api.Auth;
 using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -39,7 +40,16 @@ namespace ChatDll
             _api = new(configuration, false);
             _spotify = spotify;
 
-            ConnectionCredentials credentials = new ConnectionCredentials(_settings.Channel, _api.AccessToken);
+            Task<RefreshResponse> refreshToken = Task.Run(async () =>
+            {
+                return await _api.RefreshToken(true);
+            });
+            refreshToken.Wait();
+            RefreshResponse token = refreshToken.Result;
+            Helpers.UpdateTokens("twitchchat", token.AccessToken, token.RefreshToken);
+            _settings.BotAccessToken = token.AccessToken;
+            _settings.BotRefreshToken = token.RefreshToken;
+            ConnectionCredentials credentials = new ConnectionCredentials(_settings.Bot, _settings.BotAccessToken);
             var clientOptions = new ClientOptions
             {
                 MessagesAllowedInPeriod = 750,
@@ -47,7 +57,7 @@ namespace ChatDll
             };
             WebSocketClient customClient = new WebSocketClient(clientOptions);
             _client = new TwitchClient(customClient);
-            _client.Initialize(credentials, _settings.Channel);
+            _client.Initialize(credentials, _settings.Streamer);
 
             _client.OnLog += Client_OnLog;
             _client.OnJoinedChannel += Client_OnJoinedChannel;
@@ -77,12 +87,12 @@ namespace ChatDll
 
         private void Client_OnConnected(object sender, OnConnectedArgs e)
         {
-            _logger.LogInformation($"Connected to {_settings.Channel}");
+            _logger.LogInformation($"Connected to {_settings.Streamer}");
         }
 
         private void Client_OnJoinedChannel(object sender, OnJoinedChannelArgs e)
         {
-            _logger.LogInformation($"Joined channel {_settings.Channel}");
+            _logger.LogInformation($"Joined channel {_settings.Streamer}");
             SendMessage("Coucou, tu veux voir ma build?");
         }
 
@@ -459,7 +469,7 @@ namespace ChatDll
 
         public void SendMessage(string message)
         {
-            _client.SendMessage(_settings.Channel, message);
+            _client.SendMessage(_settings.Streamer, message);
         }
 
         public void Dispose()

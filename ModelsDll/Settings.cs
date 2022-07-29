@@ -2,12 +2,16 @@
 {
     public class Settings
     {
-        public string Channel { get; set; }
-        public string TwitchId { get; set; }
+        public string Streamer { get; set; }
+        public string Bot { get; set; }
+        public string StreamerTwitchId { get; set; }
+        public string BotTwitchId { get; set; }
         public string ClientId { get; set; }
         public string Secret { get; set; }
-        public string AccessToken { get; set; }
-        public string RefreshToken { get; set; }
+        public string StreamerAccessToken { get; set; }
+        public string StreamerRefreshToken { get; set; }
+        public string BotAccessToken { get; set; }
+        public string BotRefreshToken { get; set; }
         public string EventSubUrl { get; set; }
 
         public ChatFunction ChatFunction { get; set; }

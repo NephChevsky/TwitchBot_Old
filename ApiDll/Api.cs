@@ -18,7 +18,6 @@ using TwitchLib.Api.Helix.Models.Streams.GetStreams;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 using TwitchLib.Api.Helix.Models.Users.GetUsers;
 using TwitchLib.Api.Helix.Models.EventSub;
-using System.Dynamic;
 
 namespace ApiDll
 {
@@ -28,7 +27,6 @@ namespace ApiDll
         private ILogger<Api> _logger;
         private ILoggerFactory _loggerFactory;
         private TwitchAPI api;
-        public string AccessToken;
         public Api(IConfiguration configuration, bool useAppAccessToken)
         {
             _settings = configuration.GetSection("Settings").Get<Settings>();
@@ -54,18 +52,16 @@ namespace ApiDll
             }
             else
             {
-                api.Settings.AccessToken = _settings.AccessToken;
+                api.Settings.AccessToken = _settings.StreamerAccessToken;
                 Task<RefreshResponse> task = Task.Run(async () =>
                 {
-                    return await api.Auth.RefreshAuthTokenAsync(_settings.RefreshToken, _settings.Secret);
+                    return await RefreshToken();
                 });
                 task.Wait();
                 RefreshResponse token = task.Result;
                 Helpers.UpdateTokens("twitchapi", token.AccessToken, token.RefreshToken);
-                _settings.AccessToken = token.AccessToken;
-                _settings.RefreshToken = token.RefreshToken;
-                api.Settings.AccessToken = _settings.AccessToken;
-                AccessToken = _settings.AccessToken;
+                _settings.StreamerAccessToken = token.AccessToken;
+                _settings.StreamerRefreshToken = token.RefreshToken;
             }
             _logger.LogInformation("End of api's initialisation");
         }
@@ -76,7 +72,7 @@ namespace ApiDll
             switch (type)
             {
                 case "channel.raid":
-                    conditions.Add("to_broadcaster_user_id", _settings.TwitchId);
+                    conditions.Add("to_broadcaster_user_id", _settings.StreamerTwitchId);
                     break;
                 case "channel.follow":
                 case "channel.subscribe":
@@ -85,7 +81,7 @@ namespace ApiDll
                 case "channel.cheer":
                 case "stream.online":
                 case "stream.offline":
-                    conditions.Add("broadcaster_user_id", _settings.TwitchId);
+                    conditions.Add("broadcaster_user_id", _settings.StreamerTwitchId);
                     break;
             }
             CreateEventSubSubscriptionResponse response = await api.Helix.EventSub.CreateEventSubSubscriptionAsync(type, "1", conditions, "webhook", _settings.EventSubUrl, _settings.Secret);
@@ -106,6 +102,20 @@ namespace ApiDll
             return response.Subscriptions.ToList();
 		}
 
+        public async Task<RefreshResponse> RefreshToken(bool bot = false)
+        {
+            if (bot)
+            {
+                api.Settings.AccessToken = _settings.BotAccessToken;
+            }
+            RefreshResponse token = await api.Auth.RefreshAuthTokenAsync(bot ? _settings.BotRefreshToken : _settings.StreamerRefreshToken, _settings.Secret);
+            if (bot)
+            {
+                api.Settings.AccessToken = _settings.StreamerAccessToken;
+            }
+            return token;
+        }
+
         public async Task<ModifyChannelInformationResponse> ModifyChannelInformation(string title = null, string game=null)
         {
             ModifyChannelInformationRequest request = new();
@@ -125,31 +135,31 @@ namespace ApiDll
                 request.GameId = games.Games[0].Id;
                 response.Game = games.Games[0].Name;
             }
-            await api.Helix.Channels.ModifyChannelInformationAsync(_settings.TwitchId, request);
+            await api.Helix.Channels.ModifyChannelInformationAsync(_settings.StreamerTwitchId, request);
             return response;
         }
 
         public async Task<List<Moderator>> GetModerators()
         {
-            GetModeratorsResponse mods = await api.Helix.Moderation.GetModeratorsAsync(_settings.TwitchId);
+            GetModeratorsResponse mods = await api.Helix.Moderation.GetModeratorsAsync(_settings.StreamerTwitchId);
             return mods.Data.ToList();
         }
 
         public async Task<Follow> GetLastFollower()
         {
-            GetUsersFollowsResponse followers = await api.Helix.Users.GetUsersFollowsAsync(null, null, 100, null, _settings.TwitchId);
+            GetUsersFollowsResponse followers = await api.Helix.Users.GetUsersFollowsAsync(null, null, 100, null, _settings.StreamerTwitchId);
             return followers.Follows[0];
         }
 
         public async Task<List<CustomReward>> GetChannelRewards()
         {
-            GetCustomRewardsResponse rewards = await api.Helix.ChannelPoints.GetCustomRewardAsync(_settings.TwitchId, null, true);
+            GetCustomRewardsResponse rewards = await api.Helix.ChannelPoints.GetCustomRewardAsync(_settings.StreamerTwitchId, null, true);
             return rewards.Data.ToList();
         }
 
         public async Task<ChannelInformation> GetChannelInformation()
         {
-            GetChannelInformationResponse channelInformation = await api.Helix.Channels.GetChannelInformationAsync(_settings.TwitchId);
+            GetChannelInformationResponse channelInformation = await api.Helix.Channels.GetChannelInformationAsync(_settings.StreamerTwitchId);
             return channelInformation.Data[0];
         }
 
@@ -162,7 +172,7 @@ namespace ApiDll
                 banUserRequest.UserId = user.Users[0].Id;
                 banUserRequest.Duration = duration;
                 banUserRequest.Reason = "No reason";
-                await api.Helix.Moderation.BanUserAsync(_settings.TwitchId, _settings.TwitchId, banUserRequest);
+                await api.Helix.Moderation.BanUserAsync(_settings.StreamerTwitchId, _settings.StreamerTwitchId, banUserRequest);
             }
         }
 
@@ -181,19 +191,19 @@ namespace ApiDll
 
         public async Task<List<ChatterFormatted>> GetChatters()
         {
-            List<ChatterFormatted> chatters = await api.Undocumented.GetChattersAsync(_settings.Channel);
+            List<ChatterFormatted> chatters = await api.Undocumented.GetChattersAsync(_settings.Streamer);
             return chatters.ToList();
         }
 
         public async Task<List<Follow>> GetFollowers()
         {
-            GetUsersFollowsResponse followers = await api.Helix.Users.GetUsersFollowsAsync(null, null, 100, null, _settings.TwitchId);
+            GetUsersFollowsResponse followers = await api.Helix.Users.GetUsersFollowsAsync(null, null, 100, null, _settings.StreamerTwitchId);
             return followers.Follows.ToList();
         }
 
         public async Task<int> GetViewerCount()
         {
-            GetStreamsResponse stream = await api.Helix.Streams.GetStreamsAsync(null, null, 1, null, null, "all", new List<string>() { _settings.TwitchId });
+            GetStreamsResponse stream = await api.Helix.Streams.GetStreamsAsync(null, null, 1, null, null, "all", new List<string>() { _settings.StreamerTwitchId });
             if (stream.Streams.Length == 0)
                 return 0;
             else
