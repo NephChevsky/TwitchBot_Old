@@ -15,6 +15,7 @@ namespace SpotifyDll
 		private string _accessToken;
 		private string _refreshToken;
 		private static EmbedIOAuthServer _server;
+		private Timer RefreshTokenTimer;
 
 		public Spotify(ILogger<Spotify> logger, IConfiguration configuration)
 		{
@@ -45,6 +46,8 @@ namespace SpotifyDll
 					_logger.LogInformation("Unable to open URL for spotify connection, manually open: {0}", uri);
 				}
 			}
+
+			RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(55), TimeSpan.FromMinutes(55));
 		}
 
 		public async Task OnAuthorizationCodeReceived(object sender, AuthorizationCodeResponse code)
@@ -67,7 +70,7 @@ namespace SpotifyDll
 			_client = new SpotifyClient(_accessToken);
 		}
 
-		private async Task RefreshToken() 
+		private async void RefreshToken(object o) 
 		{
 			try
 			{
@@ -86,17 +89,7 @@ namespace SpotifyDll
 		{
 			if (_client != null)
 			{
-				CurrentlyPlaying song;
-				try
-				{
-					song = await _client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
-				}
-				catch (APIUnauthorizedException)
-				{
-					await RefreshToken();
-					song = await _client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
-				}
-
+				CurrentlyPlaying song = await _client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
 				if (song != null)
 				{
 					return (FullTrack)song.Item;
@@ -107,21 +100,11 @@ namespace SpotifyDll
 
 		public async Task<bool> SkipSong()
 		{
-			bool ret = false;
 			if (_client != null)
 			{
-				try
-				{
-					ret = await _client.Player.SkipNext();
-				}
-				catch (APIUnauthorizedException)
-				{
-					await RefreshToken();
-					ret = await _client.Player.SkipNext();
-				}
+				return await _client.Player.SkipNext();
 			}
-			
-			return ret;
+			return false;
 		}
 
 		public async Task<int> AddSong(string name)
@@ -130,16 +113,7 @@ namespace SpotifyDll
 			if (_client != null)
 			{
 				SearchRequest searchQuery = new(SearchRequest.Types.Track, name);
-				SearchResponse tracks;
-				try
-				{
-					tracks = await _client.Search.Item(searchQuery);
-				}
-				catch (APIUnauthorizedException)
-				{
-					await RefreshToken();
-					tracks = await _client.Search.Item(searchQuery);
-				}
+				SearchResponse tracks = await _client.Search.Item(searchQuery);
 
 				if (tracks != null)
 				{
@@ -189,17 +163,7 @@ namespace SpotifyDll
 				FullTrack song = await GetCurrentSong();
 				if (song != null)
 				{
-					Paging<SimplePlaylist> playlists;
-					try
-					{
-						playlists = await _client.Playlists.CurrentUsers();
-					}
-					catch (APIUnauthorizedException)
-					{
-						await RefreshToken();
-						playlists = await _client.Playlists.CurrentUsers();
-					}
-
+					Paging<SimplePlaylist> playlists = await _client.Playlists.CurrentUsers();
 					if (playlists != null)
 					{
 						SimplePlaylist playlist = playlists.Items.Where(x => x.Name == "Streaming").FirstOrDefault();

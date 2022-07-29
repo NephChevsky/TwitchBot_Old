@@ -24,11 +24,6 @@ namespace ModelsDll
                 config.Settings.BotAccessToken = accessToken;
                 config.Settings.BotRefreshToken = refreshToken;
             }
-            else if (name == "spotifyapi")
-            {
-                config.Settings.SpotifyFunction.AccessToken = accessToken;
-                config.Settings.SpotifyFunction.RefreshToken = refreshToken;
-            }
             SaveAppSettings(config);
         }
 
