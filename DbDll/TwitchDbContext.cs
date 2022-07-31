@@ -24,6 +24,7 @@ namespace DbDll
         public DbSet<Viewer> Viewers => Set<Viewer>();
         public DbSet<Command> Commands => Set<Command>();
         public DbSet<ChatMessage> Messages => Set<ChatMessage>();
+        public DbSet<Uptime> Uptimes => Set<Uptime>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -104,9 +105,19 @@ namespace DbDll
                 entity.Property(e => e.Message)
                     .IsRequired();
 
-                AddGenericFields<Command>(entity);
+                AddGenericFields<ChatMessage>(entity);
             });
             modelBuilder.Entity<ChatMessage>().HasIndex(t => new { t.Id }).IsUnique(true);
+
+            modelBuilder.Entity<Uptime>(entity =>
+            {
+                entity.Property(e => e.Sum)
+                    .HasDefaultValue(0)
+                    .IsRequired();
+
+                AddGenericFields<Uptime>(entity);
+            });
+            modelBuilder.Entity<Uptime>().HasIndex(t => new { t.Id }).IsUnique(true);
 
             Expression<Func<ISoftDeleteable, bool>> filterSoftDeleteable = bm => !bm.Deleted;
             Expression<Func<IOwnable, bool>> filterOwnable = bm => Owner == Guid.Empty || bm.Owner == Owner;

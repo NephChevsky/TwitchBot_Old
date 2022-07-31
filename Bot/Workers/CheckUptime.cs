@@ -48,6 +48,7 @@ namespace Bot.Workers
 
                 List<ChatterFormatted> chatters = await _api.GetChatters();
                 bool genericWelcome = false;
+                DateTime now = DateTime.Now;
                 chatters.ForEach(async x =>
                 {
                     using (TwitchDbContext db = new(Guid.Empty))
@@ -69,9 +70,25 @@ namespace Bot.Workers
                             }
                             else
                             {
-                                dbViewer.Uptime += (long)(DateTime.Now - dbViewer.LastViewedDateTime).TotalSeconds;
+                                int uptime = (int)(now - dbViewer.LastViewedDateTime).TotalSeconds;
+                                dbViewer.Uptime += uptime;
+                                using (TwitchDbContext db1 = new(dbViewer.Id))
+                                {
+                                    Uptime dbUptime = db1.Uptimes.Where(y => y.CreationDateTime >= now.AddDays(-1)).FirstOrDefault();
+                                    if (dbUptime != null)
+                                    {
+                                        dbUptime.Sum += uptime;
+									}
+                                    else
+                                    {
+                                        dbUptime = new();
+                                        dbUptime.Sum = uptime;
+                                        db1.Uptimes.Add(dbUptime);
+									}
+                                    db1.SaveChanges();
+                                }
                             }
-                            dbViewer.LastViewedDateTime = DateTime.Now;
+                            dbViewer.LastViewedDateTime = now;
                         }
                         else
                         {
