@@ -23,8 +23,8 @@ namespace Bot
             .ConfigureServices(services =>
             {
                 services.AddSingleton<BasicChat>();
-                services.AddSingleton<ChatBot>();
                 services.AddSingleton<Spotify>();
+                services.AddHostedService<ChatBot>();
                 services.AddHostedService<CheckUptime>();
             })
             .Build();

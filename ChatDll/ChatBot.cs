@@ -3,6 +3,7 @@ using DbDll;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelsDll;
 using ModelsDll.Db;
@@ -10,18 +11,13 @@ using ModelsDll.DTO;
 using SpotifyAPI.Web;
 using SpotifyDll;
 using System.Media;
-using TwitchLib.Api.Auth;
 using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
-using TwitchLib.Client;
 using TwitchLib.Client.Events;
-using TwitchLib.Client.Models;
-using TwitchLib.Communication.Clients;
-using TwitchLib.Communication.Models;
 using WindowsInput;
 
 namespace ChatDll
 {
-    public class ChatBot
+    public class ChatBot : IHostedService
     {
         private Settings _settings;
         private readonly ILogger<ChatBot> _logger;
@@ -32,6 +28,7 @@ namespace ChatDll
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
         private Guid InvalidGuid = Guid.Parse("12345678-1234-1234-1234-123456789000");
         private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
+        private DateTime SessionBeginning;
 
         public ChatBot(ILogger<ChatBot> logger, IConfiguration configuration, BasicChat chat, Spotify spotify)
         {
@@ -40,9 +37,20 @@ namespace ChatDll
             _api = new(configuration, false);
             _spotify = spotify;
             _chat = chat;
+        }
 
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
             _chat._client.OnChatCommandReceived += Client_OnChatCommandReceived;
             _chat._client.OnMessageReceived += Client_OnMessageReceived;
+
+            SessionBeginning = DateTime.Now;
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
 
         private async void Client_OnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
@@ -411,6 +419,12 @@ namespace ChatDll
                 if (dbViewer != null)
                 {
                     dbViewer.MessageCount++;
+                    using (TwitchDbContext db1 = new(dbViewer.Id))
+                    {
+                        ModelsDll.Db.ChatMessage message = new(dbViewer.Id, e.ChatMessage.Message);
+                        db1.Messages.Add(message);
+                        db1.SaveChanges();
+                    }
                     db.SaveChanges();
                 }
 			}
@@ -431,5 +445,5 @@ namespace ChatDll
                 }
 			}
         }
-    }
+	}
 }

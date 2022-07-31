@@ -23,6 +23,7 @@ namespace DbDll
 
         public DbSet<Viewer> Viewers => Set<Viewer>();
         public DbSet<Command> Commands => Set<Command>();
+        public DbSet<ChatMessage> Messages => Set<ChatMessage>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -97,6 +98,15 @@ namespace DbDll
             });
             modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Id }).IsUnique(true);
             modelBuilder.Entity<Command>().HasIndex(t => new { t.Name }).HasFilter($"{nameof(Command.Deleted)} = 0").IsUnique(true);
+
+            modelBuilder.Entity<ChatMessage>(entity =>
+            {
+                entity.Property(e => e.Message)
+                    .IsRequired();
+
+                AddGenericFields<Command>(entity);
+            });
+            modelBuilder.Entity<ChatMessage>().HasIndex(t => new { t.Id }).IsUnique(true);
 
             Expression<Func<ISoftDeleteable, bool>> filterSoftDeleteable = bm => !bm.Deleted;
             Expression<Func<IOwnable, bool>> filterOwnable = bm => Owner == Guid.Empty || bm.Owner == Owner;
