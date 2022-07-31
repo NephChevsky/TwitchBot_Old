@@ -82,6 +82,33 @@ namespace WebApp.Services
             {
                 return (await _api.GetViewerCount()).ToString();
             }
+            else if (name == "most_present_viewer_daily" || name == "most_present_viewer_monthly")
+            {
+                using (TwitchDbContext db = new(Guid.Empty))
+                {
+                    DateTime limit = DateTime.MinValue;
+                    if (name == "most_present_viewer_daily")
+                    {
+                        limit = DateTime.Now.AddDays(-1);
+                    }
+                    else if (name == "most_present_viewer_monthly")
+                    {
+                        limit = DateTime.Now.AddMonths(-1);
+                    }
+                    var uptime = db.Uptimes.Where(x => x.CreationDateTime > limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).OrderByDescending(g => g.Sum).ToList();
+                    Viewer dbViewer;
+                    do
+                    {
+                        dbViewer = db.Viewers.Where(x => x.Id == uptime[0].Owner).FirstOrDefault();
+                        uptime.RemoveAt(0);
+                    } while (uptime.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
+                    if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
+                    {
+                        return dbViewer.DisplayName;
+                    }
+                    return "";
+                }
+            }
             else if (name == "most_present_viewer_total")
             {
                 using (TwitchDbContext db = new(Guid.Empty))
@@ -113,8 +140,8 @@ namespace WebApp.Services
                     {
                         dbViewer = db.Viewers.Where(x => x.Id == messagesCount[0].Owner).FirstOrDefault();
                         messagesCount.RemoveAt(0);
-                    } while (dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
-                    if (dbViewer != null)
+                    } while (messagesCount.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
+                    if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
                     {
                         return dbViewer.DisplayName;
                     }
@@ -163,8 +190,14 @@ namespace WebApp.Services
                 case "viewer_count":
                     value = "Nombre de viewers";
                     break;
+                case "most_present_viewer_daily":
+                    value = "Le plus présent (jour)";
+                    break;
                 case "most_speaking_viewer_daily":
                     value = "Le plus bavard (jour)";
+                    break;
+                case "most_present_viewer_monthly":
+                    value = "Le plus présent (mois)";
                     break;
                 case "most_speaking_viewer_monthly":
                     value = "Le plus bavard (mois)";

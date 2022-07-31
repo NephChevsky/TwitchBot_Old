@@ -1,7 +1,6 @@
 ===============
 General
 ===============
-Monthly/daily uptime and message count
 add timeout count
 chat overlay
 
