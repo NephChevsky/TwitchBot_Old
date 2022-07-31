@@ -120,7 +120,7 @@ namespace SpotifyDll
 					Paging<SimplePlaylist> playlists = await _client.Playlists.CurrentUsers();
 					if (playlists != null)
 					{
-						SimplePlaylist playlist = playlists.Items.Where(x => x.Name == "Streaming").FirstOrDefault();
+						SimplePlaylist playlist = playlists.Items.Where(x => x.Name == _settings.SpotifyFunction.Playlist).FirstOrDefault();
 						if (playlist != null)
 						{
 							int offset = 0;
@@ -166,7 +166,7 @@ namespace SpotifyDll
 					Paging<SimplePlaylist> playlists = await _client.Playlists.CurrentUsers();
 					if (playlists != null)
 					{
-						SimplePlaylist playlist = playlists.Items.Where(x => x.Name == "Streaming").FirstOrDefault();
+						SimplePlaylist playlist = playlists.Items.Where(x => x.Name == _settings.SpotifyFunction.Playlist).FirstOrDefault();
 						PlaylistRemoveItemsRequest removeQuery = new();
 						PlaylistRemoveItemsRequest.Item item = new PlaylistRemoveItemsRequest.Item();
 						item.Uri = song.Uri;

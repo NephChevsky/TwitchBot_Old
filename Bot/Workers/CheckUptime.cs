@@ -47,7 +47,7 @@ namespace Bot.Workers
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
                 List<ChatterFormatted> chatters = await _api.GetChatters();
-
+                bool genericWelcome = false;
                 chatters.ForEach(async x =>
                 {
                     using (TwitchDbContext db = new(Guid.Empty))
@@ -57,12 +57,15 @@ namespace Bot.Workers
                         {
                             if (!CurrentChatters.Select(y => y.Username).ToList().Contains(x.Username, StringComparer.OrdinalIgnoreCase))
                             {
-                                if (_settings.CheckUptimeFunction.WelcomeOnReJoin && !dbViewer.IsBot && dbViewer.LastViewedDateTime < DateTime.Now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer))
+                                if (!dbViewer.IsBot && dbViewer.LastViewedDateTime < DateTime.Now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer))
                                 {
-                                    _logger.LogInformation($"Say hi to known viewer {dbViewer.Username}");
-                                    _chat.SendMessage($"Salut {dbViewer.DisplayName} ! Bon retour sur le stream !");
+                                    dbViewer.Seen++;
+                                    if (_settings.CheckUptimeFunction.WelcomeOnReJoin)
+                                    {
+                                        _logger.LogInformation($"Say hi to known viewer {dbViewer.Username}");
+                                        _chat.SendMessage($"Salut {dbViewer.DisplayName} ! Bon retour sur le stream !");
+                                    }
                                 }
-                                dbViewer.Seen++;
                             }
                             else
                             {
@@ -78,12 +81,20 @@ namespace Bot.Workers
                             if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin)
                             {
                                 _logger.LogInformation($"Show commands when a new viewer is here");
-                                _chat.SendMessage($"Je développe un bot Twitch pour créer des intéractions entre le chat, mon stream et mon gameplay. Teste le en tapant !bot pour voir les commandes disponibles ;)");
+                                _chat.SendMessage($"Bienvenue sur le stream {dbViewer.DisplayName}. Tu peux venir rigoler avec nous où bien taper ton meilleur lurk ;)");
                             }
+                            if (_settings.CheckUptimeFunction.GenericWelcome)
+                            {
+                                genericWelcome = true;
+							}
                         }
                         db.SaveChanges();
                     }
                 });
+                if (_settings.CheckUptimeFunction.GenericWelcome && genericWelcome)
+                {
+                    _chat.SendMessage($"Je développe un bot Twitch pour créer des intéractions entre le chat, mon stream et mon gameplay. Teste le en tapant !bot pour voir les commandes disponibles ;)");
+                }
                 CurrentChatters = chatters;
 
                 await Task.Delay(TimeSpan.FromSeconds(_settings.CheckUptimeFunction.Timer), stoppingToken);

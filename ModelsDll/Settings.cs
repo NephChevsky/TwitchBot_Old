@@ -26,6 +26,7 @@
         public bool ComputeUptime { get; set; }
         public bool WelcomeOnFirstJoin { get; set; }
         public bool WelcomeOnReJoin { get; set; }
+        public bool GenericWelcome { get; set; }
         public int WelcomeOnJoinTimer { get; set; }
     }
 
