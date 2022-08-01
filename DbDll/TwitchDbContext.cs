@@ -25,6 +25,7 @@ namespace DbDll
         public DbSet<Command> Commands => Set<Command>();
         public DbSet<ChatMessage> Messages => Set<ChatMessage>();
         public DbSet<Uptime> Uptimes => Set<Uptime>();
+        public DbSet<ChannelReward> ChannelRewards => Set<ChannelReward>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -118,6 +119,68 @@ namespace DbDll
                 AddGenericFields<Uptime>(entity);
             });
             modelBuilder.Entity<Uptime>().HasIndex(t => new { t.Id }).IsUnique(true);
+
+            modelBuilder.Entity<ChannelReward>(entity =>
+            {
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(512);
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(512);
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(512);
+
+                entity.Property(e => e.UserText)
+                    .HasDefaultValue(false);
+                
+                entity.Property(e => e.BeginCost)
+                    .IsRequired()
+                    .HasDefaultValue(100);
+
+                entity.Property(e => e.CurrentCost)
+                    .IsRequired()
+                    .HasDefaultValue(100);
+
+                entity.Property(e => e.CostIncreaseAmount)
+                    .IsRequired()
+                    .HasDefaultValue(100);
+
+                entity.Property(e => e.CostDecreaseTimer)
+                    .IsRequired()
+                    .HasDefaultValue(600);
+
+                entity.Property(e => e.SkipRewardQueue)
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.RedemptionCooldownTime)
+                    .IsRequired()
+                    .HasDefaultValue(60);
+
+                entity.Property(e => e.RedemptionPerStream)
+                    .IsRequired()
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.RedemptionPerUserPerStream)
+                    .IsRequired()
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.TriggerType)
+                    .IsRequired();
+
+                entity.Property(e => e.TriggerValue)
+                    .IsRequired();
+
+                entity.Property(e => e.LastUsedDateTime)
+                    .IsRequired()
+                    .HasDefaultValue(DateTime.Now);
+
+                AddGenericFields<ChannelReward>(entity);
+            });
+            modelBuilder.Entity<ChannelReward>().HasIndex(t => new { t.Id }).IsUnique(true);
 
             Expression<Func<ISoftDeleteable, bool>> filterSoftDeleteable = bm => !bm.Deleted;
             Expression<Func<IOwnable, bool>> filterOwnable = bm => Owner == Guid.Empty || bm.Owner == Owner;
