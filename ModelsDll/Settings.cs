@@ -18,6 +18,8 @@
         public CheckUptimeFunction CheckUptimeFunction { get; set; }
         public UpdateButtonsFunction UpdateButtonsFunction { get; set; }
         public SpotifyFunction SpotifyFunction { get; set; }
+
+        public List<string> TwitchBotList { get; set; }
     }
 
     public class CheckUptimeFunction

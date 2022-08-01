@@ -94,6 +94,10 @@ namespace Bot.Workers
                         {
                             User user = await _api.GetUser(x.Username);
                             dbViewer = new Viewer(user.Login, user.DisplayName, user.Id);
+                            if (_settings.TwitchBotList.Contains(user.Login))
+                            {
+                                dbViewer.IsBot = true;
+							}
                             db.Viewers.Add(dbViewer);
                             if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin)
                             {
