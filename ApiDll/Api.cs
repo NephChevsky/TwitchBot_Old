@@ -74,13 +74,7 @@ namespace ApiDll
                 case "channel.raid":
                     conditions.Add("to_broadcaster_user_id", _settings.StreamerTwitchId);
                     break;
-                case "channel.follow":
-                case "channel.subscribe":
-                case "channel.subscription.gift":
-                case "channel.subscription.message":
-                case "channel.cheer":
-                case "stream.online":
-                case "stream.offline":
+                default:
                     conditions.Add("broadcaster_user_id", _settings.StreamerTwitchId);
                     break;
             }

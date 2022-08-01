@@ -38,9 +38,10 @@ namespace WebApp
 			app.UseRouting();
 			app.UseTwitchLibEventSubWebhooks();
 
-			app.MapControllerRoute(
-				name: "default",
-				pattern: "{controller}/{action=Index}/{id?}");
+			app.UseEndpoints(config =>
+			{
+				config.MapControllers();
+			});
 			
 			app.MapHub<SignalService>("/hub");
 

@@ -37,6 +37,7 @@ namespace WebApp.Services
                 Subscriptions.Add(await _api.CreateEventSubSubscription("channel.subscription.message"));
                 Subscriptions.Add(await _api.CreateEventSubSubscription("channel.cheer"));
                 Subscriptions.Add(await _api.CreateEventSubSubscription("channel.raid"));
+                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.hype_train.begin"));
 
                 return true;
             });
@@ -53,6 +54,7 @@ namespace WebApp.Services
             _eventSubWebhooks.OnChannelSubscriptionMessage += OnChannelSubscriptionMessage;
             _eventSubWebhooks.OnChannelCheer += OnChannelCheer;
             _eventSubWebhooks.OnChannelRaid += OnChannelRaid;
+            _eventSubWebhooks.OnChannelHypeTrainBegin += OnChannelHypeTrainBegin;
             _logger.LogInformation($"Service started");
             return Task.CompletedTask;
         }
@@ -68,6 +70,7 @@ namespace WebApp.Services
             _eventSubWebhooks.OnChannelSubscriptionMessage += OnChannelSubscriptionMessage;
             _eventSubWebhooks.OnChannelCheer += OnChannelCheer;
             _eventSubWebhooks.OnChannelRaid -= OnChannelRaid;
+            _eventSubWebhooks.OnChannelHypeTrainBegin -= OnChannelHypeTrainBegin;
             _logger.LogInformation($"Service stopped");
             return Task.CompletedTask;
         }
@@ -159,6 +162,18 @@ namespace WebApp.Services
                 alert.Add("type", "channel.raid");
                 alert.Add("username", e.Notification.Event.FromBroadcasterUserName);
                 alert.Add("viewers", e.Notification.Event.Viewers);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Notification.Subscription.Id);
+            }
+        }
+
+        private void OnChannelHypeTrainBegin(object sender, ChannelHypeTrainBeginArgs e)
+        {
+            if (!HandledEvents.Contains(e.Notification.Subscription.Id))
+            {
+                _logger.LogInformation($"Hype train started");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "channel.hype_train.begin");
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
                 HandledEvents.Add(e.Notification.Subscription.Id);
             }
