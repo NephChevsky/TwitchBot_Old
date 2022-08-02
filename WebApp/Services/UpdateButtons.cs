@@ -180,13 +180,13 @@ namespace WebApp.Services
                 }
                 return "";
             }
-            else if (name == "sub_count" || name == "sub_goal")
+            else if (name == "subscriber_count" || name == "subscriber_goal")
             {
                 List<Subscription> subscribers = await _api.GetSubscribers();
                 if (subscribers != null)
                 {
                     string value = subscribers.Count.ToString();
-                    if (name == "sub_goal")
+                    if (name == "subscriber_goal")
                     {
                         value += " / " + _settings.UpdateButtonsFunction.SubscriptionGoal;
 					}
@@ -194,6 +194,15 @@ namespace WebApp.Services
 				}
                 return "";
 			}
+            else if (name == "last_subscriber")
+            {
+                List<Subscription> subscribers = await _api.GetSubscribers();
+                if (subscribers != null)
+                {
+                    return subscribers[subscribers.Count - 2].UserName;
+				}
+                return "";
+            }
             return "";
         }
 
@@ -235,11 +244,14 @@ namespace WebApp.Services
                 case "current_song":
                     value = "Musique";
                     break;
-                case "sub_goal":
-                    value = "Subs goal";
+                case "subscriber_goal":
+                    value = "Sub goal";
                     break;
-                case "sub_count":
+                case "subscriber_count":
                     value = "Nombre de subs";
+                    break;
+                case "last_subscriber":
+                    value = "Dernier sub";
                     break;
             }
             return value;
