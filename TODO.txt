@@ -3,10 +3,10 @@ General
 ===============
 add timeout count
 chat overlay
-best subgifter (daily, monthly, total) (no api, need to keep an historic)
-longest subscriber (no api, need to keep an historic)
-last cheer (no api, need to keep an historic)
-best cheer donator (daily, monthly, total) (no api, need to keep an historic)
+best subgifter (daily, monthly, total) (no api, need to keep an historic in webapp)
+longest subscriber (no api, need to keep an historic in webapp)
+last cheer (no api, need to keep an historic in webapp)
+best cheer donator (daily, monthly, total) (no api, need to keep an historic in webapp)
 
 ===============
 Commands
