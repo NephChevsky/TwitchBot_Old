@@ -5,6 +5,7 @@ using ModelsDll;
 using ModelsDll.Db;
 using SpotifyAPI.Web;
 using SpotifyDll;
+using TwitchLib.Api.Helix.Models.Subscriptions;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 
 namespace WebApp.Services
@@ -70,9 +71,15 @@ namespace WebApp.Services
 
         public async Task<string> GetButtonValue(string name)
         {
-            if (name == "follower_goal")
+            if (name == "follower_goal" || name == "follower_count")
             {
-                return (await _api.GetFollowers()).Count.ToString() + " / " + _settings.UpdateButtonsFunction.FollowerGoal;
+                List<Follow> followers = await _api.GetFollowers();
+                string value = followers.Count.ToString();
+                if (name == "follower_goal")
+                {
+                    value += " / " + _settings.UpdateButtonsFunction.FollowerGoal;
+                }
+                return value;
             }
             else if (name == "follower_count")
             {
@@ -173,6 +180,20 @@ namespace WebApp.Services
                 }
                 return "";
             }
+            else if (name == "sub_count" || name == "sub_goal")
+            {
+                List<Subscription> subscribers = await _api.GetSubscribers();
+                if (subscribers != null)
+                {
+                    string value = subscribers.Count.ToString();
+                    if (name == "sub_goal")
+                    {
+                        value += " / " + _settings.UpdateButtonsFunction.SubscriptionGoal;
+					}
+                    return value;
+				}
+                return "";
+			}
             return "";
         }
 
@@ -213,6 +234,12 @@ namespace WebApp.Services
                     break;
                 case "current_song":
                     value = "Musique";
+                    break;
+                case "sub_goal":
+                    value = "Subs goal";
+                    break;
+                case "sub_count":
+                    value = "Nombre de subs";
                     break;
             }
             return value;

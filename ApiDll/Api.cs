@@ -21,6 +21,7 @@ using TwitchLib.Api.Helix.Models.EventSub;
 using TwitchLib.Api.Helix.Models.ChannelPoints.CreateCustomReward;
 using ModelsDll.Db;
 using TwitchLib.Api.Helix.Models.ChannelPoints.UpdateCustomReward;
+using TwitchLib.Api.Helix.Models.Subscriptions;
 
 namespace ApiDll
 {
@@ -236,6 +237,12 @@ namespace ApiDll
         {
             GetUsersFollowsResponse followers = await api.Helix.Users.GetUsersFollowsAsync(null, null, 100, null, _settings.StreamerTwitchId);
             return followers.Follows.ToList();
+        }
+
+        public async Task<List<Subscription>> GetSubscribers()
+        {
+            GetBroadcasterSubscriptionsResponse subscribers = await api.Helix.Subscriptions.GetBroadcasterSubscriptionsAsync(_settings.StreamerTwitchId, 100);
+            return subscribers.Data.ToList();
         }
 
         public async Task<int> GetViewerCount()

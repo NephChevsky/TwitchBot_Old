@@ -38,6 +38,7 @@
     {
         public int Timer { get; set; }
         public int FollowerGoal { get; set; }
+        public int SubscriptionGoal { get; set; }
         public List<string> AvailableButtons { get; set; }
     }
 
