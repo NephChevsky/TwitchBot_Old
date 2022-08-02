@@ -180,29 +180,33 @@ namespace WebApp.Services
                 }
                 return "";
             }
-            else if (name == "subscriber_count" || name == "subscriber_goal")
+            else if (name == "subscriber_count" || name == "subscriber_goal" || name == "last_subscriber" || name == "last_subscription_gifter")
             {
                 List<Subscription> subscribers = await _api.GetSubscribers();
                 if (subscribers != null)
                 {
-                    string value = subscribers.Count.ToString();
-                    if (name == "subscriber_goal")
+                    if (name == "subscriber_count" || name == "subscriber_goal")
                     {
-                        value += " / " + _settings.UpdateButtonsFunction.SubscriptionGoal;
-					}
-                    return value;
+                        string value = subscribers.Count.ToString();
+                        if (name == "subscriber_goal")
+                        {
+                            value += " / " + _settings.UpdateButtonsFunction.SubscriptionGoal;
+                        }
+                        return value;
+                    }
+                    else if (name == "last_subscriber")
+                    {
+                        return subscribers[subscribers.Count - 2].UserName;
+                    }
+                    else if (name == "last_subscription_gifter")
+                    {
+                        subscribers = subscribers.Where(x => x.IsGift == true).ToList();
+                        return subscribers[subscribers.Count - 1].GifterName;
+                    }
+                    return "";
 				}
                 return "";
 			}
-            else if (name == "last_subscriber")
-            {
-                List<Subscription> subscribers = await _api.GetSubscribers();
-                if (subscribers != null)
-                {
-                    return subscribers[subscribers.Count - 2].UserName;
-				}
-                return "";
-            }
             return "";
         }
 
@@ -252,6 +256,9 @@ namespace WebApp.Services
                     break;
                 case "last_subscriber":
                     value = "Dernier sub";
+                    break;
+                case "last_subscription_gifter":
+                    value = "Dernier sub gifter";
                     break;
             }
             return value;

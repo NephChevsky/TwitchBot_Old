@@ -3,7 +3,6 @@ General
 ===============
 add timeout count
 chat overlay
-last sub gift
 best subgifter (daily, monthly, total)
 longest subscriber
 last cheer
