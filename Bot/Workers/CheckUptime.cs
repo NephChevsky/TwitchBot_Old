@@ -92,9 +92,9 @@ namespace Bot.Workers
                         }
                         else
                         {
-                            User user = await _api.GetUser(x.Username);
-                            if (!_settings.TwitchBotList.Contains(user.Login))
+                            if (!_settings.TwitchBotList.Contains(x.Username.ToLower()))
                             {
+                                User user = await _api.GetUser(x.Username.ToLower());
                                 dbViewer = new Viewer(user.Login, user.DisplayName, user.Id);
                                 db.Viewers.Add(dbViewer);
                                 if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin)
