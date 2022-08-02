@@ -18,7 +18,9 @@
         public CheckUptimeFunction CheckUptimeFunction { get; set; }
         public UpdateButtonsFunction UpdateButtonsFunction { get; set; }
         public SpotifyFunction SpotifyFunction { get; set; }
+        public CheckChannelRewardsFunction CheckChannelRewardsFunction { get; set; }
 
+        public Tags Tags { get; set; }
         public List<string> TwitchBotList { get; set; }
     }
 
@@ -53,4 +55,14 @@
         public string ClientSecret { get; set; }
         public string Playlist { get; set; }
     }
+
+    public class CheckChannelRewardsFunction
+    {
+        public int Timer { get; set; }
+	}
+
+    public class Tags
+    {
+        public List<string> Fps { get; set; }
+	}
 }

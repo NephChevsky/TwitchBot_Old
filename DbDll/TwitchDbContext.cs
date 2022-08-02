@@ -130,9 +130,10 @@ namespace DbDll
                     .IsRequired()
                     .HasMaxLength(512);
 
-                entity.Property(e => e.Description)
+                entity.Property(e => e.BackgroundColor)
                     .IsRequired()
-                    .HasMaxLength(512);
+                    .HasMaxLength(7)
+                    .HasDefaultValue("#ffffff");
 
                 entity.Property(e => e.UserText)
                     .HasDefaultValue(false);

@@ -38,6 +38,7 @@ namespace WebApp.Services
                 Subscriptions.Add(await _api.CreateEventSubSubscription("channel.cheer"));
                 Subscriptions.Add(await _api.CreateEventSubSubscription("channel.raid"));
                 Subscriptions.Add(await _api.CreateEventSubSubscription("channel.hype_train.begin"));
+                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.channel_points_custom_reward_redemption.add"));
 
                 return true;
             });
@@ -55,6 +56,7 @@ namespace WebApp.Services
             _eventSubWebhooks.OnChannelCheer += OnChannelCheer;
             _eventSubWebhooks.OnChannelRaid += OnChannelRaid;
             _eventSubWebhooks.OnChannelHypeTrainBegin += OnChannelHypeTrainBegin;
+            _eventSubWebhooks.OnChannelPointsCustomRewardRedemptionAdd += OnChannelPointsCustomRewardRedemptionAdd;
             _logger.LogInformation($"Service started");
             return Task.CompletedTask;
         }
@@ -71,6 +73,7 @@ namespace WebApp.Services
             _eventSubWebhooks.OnChannelCheer += OnChannelCheer;
             _eventSubWebhooks.OnChannelRaid -= OnChannelRaid;
             _eventSubWebhooks.OnChannelHypeTrainBegin -= OnChannelHypeTrainBegin;
+            _eventSubWebhooks.OnChannelPointsCustomRewardRedemptionAdd -= OnChannelPointsCustomRewardRedemptionAdd;
             _logger.LogInformation($"Service stopped");
             return Task.CompletedTask;
         }
@@ -176,6 +179,24 @@ namespace WebApp.Services
                 alert.Add("type", "channel.hype_train.begin");
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
                 HandledEvents.Add(e.Notification.Subscription.Id);
+            }
+        }
+
+        private void OnChannelPointsCustomRewardRedemptionAdd(object sender, ChannelPointsCustomRewardRedemptionArgs e)
+        {
+            if (!HandledEvents.Contains(e.Notification.Event.Id))
+            {
+                _logger.LogInformation($"{e.Notification.Event.UserLogin} redeemed channel point reward {e.Notification.Event.Reward.Title}");
+                Dictionary<string, object> reward = new Dictionary<string, object>();
+                reward.Add("type", e.Notification.Event.Reward.Title);
+                reward.Add("username", e.Notification.Event.UserName);
+                reward.Add("id", e.Notification.Event.Reward.Id);
+                if (!string.IsNullOrEmpty(e.Notification.Event.UserInput))
+                {
+                    reward.Add("user-input", e.Notification.Event.UserInput);
+                }
+                _hub.Clients.All.SendAsync("TriggerReward", reward);
+                HandledEvents.Add(e.Notification.Event.Id);
             }
         }
 

@@ -3,6 +3,13 @@ General
 ===============
 add timeout count
 chat overlay
+sub count
+last subscriber
+last sub gift
+best subgifter (daily, monthly, total)
+longest subscriber
+last cheer
+best cheer donator (daily, monthly, total)
 
 ===============
 Commands
@@ -12,7 +19,6 @@ Commands
 ===============
 Channel Rewards
 ===============
-Pour toute les commandes rocket league => faire payer pour activer
-Next song => faire payer pour activer
-Ajouter une musique à la playlist Streaming => faire payer pour activer
-VIP
+VIP => à implementer
+Augmenter/Baisser les prix des reward automatiquement
+Consommer les reward redemptions automatiquement

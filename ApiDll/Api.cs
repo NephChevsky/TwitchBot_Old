@@ -18,6 +18,9 @@ using TwitchLib.Api.Helix.Models.Streams.GetStreams;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 using TwitchLib.Api.Helix.Models.Users.GetUsers;
 using TwitchLib.Api.Helix.Models.EventSub;
+using TwitchLib.Api.Helix.Models.ChannelPoints.CreateCustomReward;
+using ModelsDll.Db;
+using TwitchLib.Api.Helix.Models.ChannelPoints.UpdateCustomReward;
 
 namespace ApiDll
 {
@@ -150,6 +153,46 @@ namespace ApiDll
             GetCustomRewardsResponse rewards = await api.Helix.ChannelPoints.GetCustomRewardAsync(_settings.StreamerTwitchId, null, true);
             return rewards.Data.ToList();
         }
+
+        public async Task<bool> CreateChannelReward(ChannelReward channelReward)
+        {
+            CreateCustomRewardsRequest request = new();
+            request.Title = channelReward.Name;
+            request.Prompt = channelReward.Description;
+            request.BackgroundColor = channelReward.BackgroundColor;
+            request.IsUserInputRequired = channelReward.UserText;
+            request.Cost = channelReward.CurrentCost;
+            request.ShouldRedemptionsSkipRequestQueue = channelReward.SkipRewardQueue;
+            request.IsGlobalCooldownEnabled = channelReward.RedemptionCooldownTime != 0;
+            request.GlobalCooldownSeconds = channelReward.RedemptionCooldownTime;
+            request.IsMaxPerStreamEnabled = channelReward.RedemptionPerStream != 0;
+            request.MaxPerStream = channelReward.RedemptionPerStream;
+            request.IsMaxPerUserPerStreamEnabled = channelReward.RedemptionPerUserPerStream != 0;
+            request.MaxPerUserPerStream = channelReward.RedemptionPerUserPerStream;
+            request.IsEnabled = true;
+            CreateCustomRewardsResponse response = await api.Helix.ChannelPoints.CreateCustomRewardsAsync(_settings.StreamerTwitchId, request);
+            return response.Data.Count() != 0;
+		}
+
+        public async Task<bool> UpdateChannelReward(string rewardId, ChannelReward channelReward, bool isEnabled)
+        {
+            UpdateCustomRewardRequest request = new();
+            request.Title = channelReward.Name;
+            request.Prompt = channelReward.Description;
+            request.BackgroundColor = channelReward.BackgroundColor;
+            request.IsUserInputRequired = channelReward.UserText;
+            request.Cost = channelReward.CurrentCost;
+            request.ShouldRedemptionsSkipRequestQueue = channelReward.SkipRewardQueue;
+            request.IsGlobalCooldownEnabled = channelReward.RedemptionCooldownTime != 0;
+            request.GlobalCooldownSeconds = channelReward.RedemptionCooldownTime;
+            request.IsMaxPerStreamEnabled = channelReward.RedemptionPerStream != 0;
+            request.MaxPerStream = channelReward.RedemptionPerStream;
+            request.IsMaxPerUserPerStreamEnabled = channelReward.RedemptionPerUserPerStream != 0;
+            request.MaxPerUserPerStream = channelReward.RedemptionPerUserPerStream;
+            request.IsEnabled = isEnabled;
+            UpdateCustomRewardResponse response = await api.Helix.ChannelPoints.UpdateCustomRewardAsync(_settings.StreamerTwitchId, rewardId, request);
+            return response.Data.Count() != 0;
+		}
 
         public async Task<ChannelInformation> GetChannelInformation()
         {

@@ -1,5 +1,6 @@
 ﻿using ApiDll;
 using DbDll;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +30,7 @@ namespace ChatDll
         private Guid InvalidGuid = Guid.Parse("12345678-1234-1234-1234-123456789000");
         private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
         private DateTime SessionBeginning;
+        private HubConnection _connection;
 
         public ChatBot(ILogger<ChatBot> logger, IConfiguration configuration, BasicChat chat, Spotify spotify)
         {
@@ -37,12 +39,16 @@ namespace ChatDll
             _api = new(configuration, false);
             _spotify = spotify;
             _chat = chat;
+            _connection = new HubConnectionBuilder().WithUrl("https://bot-neph.azurewebsites.net/hub").WithAutomaticReconnect().Build();
+            _connection.On<Dictionary<string, string>>("TriggerReward", (reward) => OnTriggerReward(null, reward));
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _chat._client.OnChatCommandReceived += Client_OnChatCommandReceived;
             _chat._client.OnMessageReceived += Client_OnMessageReceived;
+            Task hub = _connection.StartAsync();
+            hub.Wait();
 
             SessionBeginning = DateTime.Now;
             return Task.CompletedTask;
@@ -58,12 +64,7 @@ namespace ChatDll
             if (!AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) || (AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) && AntiSpamTimer[e.Command.CommandText.ToLower()].AddSeconds(60) < DateTime.Now))
             {
                 bool updateTimer = false;
-                if (string.Equals(e.Command.CommandText, "bot", StringComparison.InvariantCultureIgnoreCase)
-                || string.Equals(e.Command.CommandText, "cmd", StringComparison.InvariantCultureIgnoreCase)
-                || string.Equals(e.Command.CommandText, "command", StringComparison.InvariantCultureIgnoreCase)
-                || string.Equals(e.Command.CommandText, "commands", StringComparison.InvariantCultureIgnoreCase)
-                || string.Equals(e.Command.CommandText, "commande", StringComparison.InvariantCultureIgnoreCase)
-                || string.Equals(e.Command.CommandText, "commandes", StringComparison.InvariantCultureIgnoreCase))
+                if (string.Equals(e.Command.CommandText, "bot", StringComparison.InvariantCultureIgnoreCase))
                 {
                     _chat.SendMessage("Commandes disponibles: https://bit.ly/3J4wUdP");
                     updateTimer = true;
@@ -155,108 +156,49 @@ namespace ChatDll
                         _api.BanUser(e.Command.ChatMessage.Username);
                     }
                 }
-                else if (string.Equals(e.Command.CommandText, "settitle", StringComparison.InvariantCultureIgnoreCase))
+                else if (string.Equals(e.Command.CommandText, "settitle", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
                 {
-                    if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
+                    string title = e.Command.ArgumentsAsString;
+                    if (_settings.ChatFunction.AddBotSuffixInTitle && !title.Contains("!bot", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        string title = e.Command.ArgumentsAsString;
-                        if (_settings.ChatFunction.AddBotSuffixInTitle && !title.Contains("!bot", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            title += " !bot";
-                        }
-                        await _api.ModifyChannelInformation(title, null);
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : le titre du stream a été changé en: {title}");
+                        title += " !bot";
+                    }
+                    await _api.ModifyChannelInformation(title, null);
+                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : le titre du stream a été changé en: {title}");
+                }
+                else if (string.Equals(e.Command.CommandText, "setgame", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+                {
+                    ModifyChannelInformationResponse response = await _api.ModifyChannelInformation(null, e.Command.ArgumentsAsString);
+                    if (response != null)
+                    {
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : le jeu du stream a été changé en: {response.Game}");
+                    }
+                    else
+                    {
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ton jeu de merde");
                     }
                 }
-                else if (string.Equals(e.Command.CommandText, "setgame", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
-                    {
-                        ModifyChannelInformationResponse response = await _api.ModifyChannelInformation(null, e.Command.ArgumentsAsString);
-                        if (response != null)
-                        {
-                            _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : le jeu du stream a été changé en: {response.Game}");
-                        }
-                        else
-                        {
-                            _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ton jeu de merde");
-                        }
-                    }
-                }
-                else if (_settings.ChatFunction.AddCustomCommands && string.Equals(e.Command.CommandText, "addcmd", StringComparison.InvariantCultureIgnoreCase))
+                else if (_settings.ChatFunction.AddCustomCommands && string.Equals(e.Command.CommandText, "addcmd", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
                 {
                     if (e.Command.ArgumentsAsList.Count >= 2)
                     {
-                        Command cmd = new();
-                        cmd.Name = e.Command.ArgumentsAsList[0].Replace("!", "");
-                        cmd.Message = e.Command.ArgumentsAsString.Substring(e.Command.ArgumentsAsList[0].Length + 1);
-                        Guid guid = GetUserGuid(e.Command.ChatMessage.Username);
-                        if (guid != InvalidGuid)
-                        {
-                            using (TwitchDbContext db = new(guid))
-                            {
-                                db.Commands.Add(cmd);
-                                try
-                                {
-                                    db.SaveChanges();
-                                }
-                                catch (DbUpdateException ex)
-                                when ((ex.InnerException as SqlException)?.Number == 2601 || (ex.InnerException as SqlException)?.Number == 2627)
-                                {
-                                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Une commande du même nom existe déja");
-                                    return;
-                                }
-                                _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Command {e.Command.ArgumentsAsList[0]} créée");
-                                updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
-                            }
-                        }
-                        else
-                        {
-                            _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Utilisateur inconnu");
-                        }
+                        AddCommand(e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ArgumentsAsString.Substring(e.Command.ArgumentsAsList[0].Length + 1), true, e.Command.ChatMessage.DisplayName);
+                    }
+                    else
+                    {
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : t'es bourré?");
                     }
                     return;
                 }
-                else if (_settings.ChatFunction.AddCustomCommands && string.Equals(e.Command.CommandText, "delcmd", StringComparison.InvariantCultureIgnoreCase))
+                else if (_settings.ChatFunction.AddCustomCommands && string.Equals(e.Command.CommandText, "delcmd", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
                 {
                     if (e.Command.ArgumentsAsList.Count == 1)
                     {
-                        using (TwitchDbContext db = new(Guid.Empty))
-                        {
-                            Guid guid = Guid.Empty;
-                            if (!e.Command.ChatMessage.IsBroadcaster && !e.Command.ChatMessage.IsModerator)
-                            {
-                                Viewer dbViewer = db.Viewers.Where(x => string.Equals(x.Username, e.Command.ChatMessage.Username, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
-                                if (dbViewer != null)
-                                {
-                                    guid = dbViewer.Id;
-                                }
-                                else
-                                {
-                                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Utilisateur inconnu");
-                                    return;
-                                }
-                            }
-                            Command dbCmd = db.Commands.Where(x => x.Name == e.Command.ArgumentsAsList[0]).FirstOrDefault();
-                            if (dbCmd != null)
-                            {
-                                if (guid == Guid.Empty || guid == dbCmd.Owner)
-                                {
-                                    db.Remove(dbCmd);
-                                    db.SaveChanges();
-                                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Command {e.Command.ArgumentsAsList[0]} supprimée");
-                                    updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
-                                }
-                                else
-                                {
-                                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Pas touche!");
-                                }
-                            }
-                            else
-                            {
-                                _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
-                            }
-                        }
+                        DeleteCommand(e.Command.ArgumentsAsList[0].Replace("!", ""), true, e.Command.ChatMessage.DisplayName);
+                    }
+                    else
+                    {
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : t'es bourré?");
                     }
                 }
                 else if (string.Equals(e.Command.CommandText, "song", StringComparison.InvariantCultureIgnoreCase))
@@ -272,106 +214,17 @@ namespace ChatDll
                     }
                     updateTimer = true;
                 }
-                else if (string.Equals(e.Command.CommandText, "nextsong", StringComparison.InvariantCultureIgnoreCase))
+                else if (string.Equals(e.Command.CommandText, "nextsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
                 {
-                    if (!(await _spotify.SkipSong()))
-                    {
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : On écoute pas de musique bouffon");
-                    }
-                    updateTimer = true;
+                    await SkipSong(e.Command.ChatMessage.DisplayName);
                 }
-                else if (string.Equals(e.Command.CommandText, "addsong", StringComparison.InvariantCultureIgnoreCase))
+                else if (string.Equals(e.Command.CommandText, "addsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
                 {
-                    int ret = await _spotify.AddSong(e.Command.ArgumentsAsString);
-                    if (ret == 1)
-                    {
-                        updateTimer = true;
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été ajoutée à la playlist");
-                    }
-                    else if (ret == 2)
-                    {
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique est déjà dans la playlist");
-                    }
-                    else
-                    {
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être ajoutée à la playlist");
-                    }
+                    await AddSong(e.Command.ArgumentsAsString, e.Command.ChatMessage.DisplayName);
                 }
-                else if (string.Equals(e.Command.CommandText, "delsong", StringComparison.InvariantCultureIgnoreCase))
+                else if (string.Equals(e.Command.CommandText, "delsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
                 {
-                    if (await _spotify.RemoveSong())
-                    {
-                        updateTimer = !(e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator);
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été supprimée de la playlist");
-                    }
-                    else
-                    {
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être supprimée de la playlist");
-                    }
-                }
-                else if (string.Equals(e.Command.CommandText, "barrelroll", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\barrelroll.wav");
-                    player.Play();
-                    _chat.SendMessage("DO A BARREL ROLL!");
-                    var simulator = new InputSimulator();
-                    simulator.Mouse.LeftButtonDown();
-                    simulator.Mouse.RightButtonDown();
-                    simulator.Keyboard.KeyDown(VirtualKeyCode.VK_A);
-                    Task.Delay(1100).Wait();
-                    simulator.Keyboard.KeyUp(VirtualKeyCode.VK_A);
-                    simulator.Mouse.RightButtonUp();
-                    simulator.Mouse.LeftButtonUp();
-                    updateTimer = true;
-                }
-                else if (string.Equals(e.Command.CommandText, "rocketleague", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\rocketleague.wav");
-                    player.Play();
-                    _chat.SendMessage("THIS IS ROCKET LEAGUE!");
-                    var simulator = new InputSimulator();
-                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
-                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_1);
-                    simulator.Mouse.LeftButtonDown();
-                    simulator.Mouse.RightButtonDown();
-                    simulator.Keyboard.KeyDown(VirtualKeyCode.VK_S);
-                    Task.Delay(250).Wait();
-                    simulator.Keyboard.KeyUp(VirtualKeyCode.VK_S);
-                    simulator.Mouse.RightButtonUp();
-                    simulator.Mouse.RightButtonDown();
-                    Task.Delay(1300).Wait();
-                    simulator.Mouse.RightButtonUp();
-                    simulator.Mouse.LeftButtonUp();
-                    updateTimer = true;
-                }
-                else if (string.Equals(e.Command.CommandText, "whatasave", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var simulator = new InputSimulator();
-                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_2);
-                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
-                    updateTimer = true;
-                }
-                else if (string.Equals(e.Command.CommandText, "wow", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var simulator = new InputSimulator();
-                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
-                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
-                    updateTimer = true;
-                }
-                else if (string.Equals(e.Command.CommandText, "faking", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var simulator = new InputSimulator();
-                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
-                    simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
-                    updateTimer = true;
-                }
-                else if (string.Equals(e.Command.CommandText, "fire", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var simulator = new InputSimulator();
-                    simulator.Mouse.LeftButtonDown();
-                    Task.Delay(1000).Wait();
-                    simulator.Mouse.LeftButtonUp();
-                    updateTimer = true;
+                    await RemoveSong(e.Command.ChatMessage.DisplayName);
                 }
                 else if (_settings.ChatFunction.AddCustomCommands)
                 {
@@ -429,6 +282,199 @@ namespace ChatDll
                 }
 			}
 		}
+
+        private async Task OnTriggerReward(object sender, Dictionary<string, string> e)
+        {
+            if (string.Equals(e["type"], "Do a barrel roll!", StringComparison.InvariantCultureIgnoreCase))
+            {
+                SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\barrelroll.wav");
+                player.Play();
+                _chat.SendMessage("DO A BARREL ROLL!");
+                var simulator = new InputSimulator();
+                simulator.Mouse.LeftButtonDown();
+                simulator.Mouse.RightButtonDown();
+                simulator.Keyboard.KeyDown(VirtualKeyCode.VK_A);
+                Task.Delay(1100).Wait();
+                simulator.Keyboard.KeyUp(VirtualKeyCode.VK_A);
+                simulator.Mouse.RightButtonUp();
+                simulator.Mouse.LeftButtonUp();
+            }
+            else if (string.Equals(e["type"], "This is Rocket League!", StringComparison.InvariantCultureIgnoreCase))
+            {
+                SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\rocketleague.wav");
+                player.Play();
+                _chat.SendMessage("THIS IS ROCKET LEAGUE!");
+                var simulator = new InputSimulator();
+                simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
+                simulator.Keyboard.KeyPress(VirtualKeyCode.VK_1);
+                simulator.Mouse.LeftButtonDown();
+                simulator.Mouse.RightButtonDown();
+                simulator.Keyboard.KeyDown(VirtualKeyCode.VK_S);
+                Task.Delay(250).Wait();
+                simulator.Keyboard.KeyUp(VirtualKeyCode.VK_S);
+                simulator.Mouse.RightButtonUp();
+                simulator.Mouse.RightButtonDown();
+                Task.Delay(1300).Wait();
+                simulator.Mouse.RightButtonUp();
+                simulator.Mouse.LeftButtonUp();
+            }
+            else if (string.Equals(e["type"], "What a save!", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var simulator = new InputSimulator();
+                simulator.Keyboard.KeyPress(VirtualKeyCode.VK_2);
+                simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
+            }
+            else if (string.Equals(e["type"], "Wow!", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var simulator = new InputSimulator();
+                simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
+                simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
+            }
+            else if (string.Equals(e["type"], "Faking.", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var simulator = new InputSimulator();
+                simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
+                simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
+            }
+            else if (string.Equals(e["type"], "Vider mon chargeur", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var simulator = new InputSimulator();
+                simulator.Mouse.LeftButtonDown();
+                Task.Delay(1000).Wait();
+                simulator.Mouse.LeftButtonUp();
+            }
+            else if (string.Equals(e["type"], "Passer à la musique suivante", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (!(await _spotify.SkipSong()))
+                {
+                    _chat.SendMessage($"{e["username"]} : On écoute pas de musique bouffon");
+                }
+            }
+            else if (string.Equals(e["type"], "Ajouter une musique", StringComparison.InvariantCultureIgnoreCase))
+            {
+                await AddSong(e["user-input"], e["username"]);
+            }
+            else if (string.Equals(e["type"], "Supprimer une musique", StringComparison.InvariantCultureIgnoreCase))
+            {
+                await RemoveSong(e["username"]);
+            }
+            else if (string.Equals(e["type"], "Ajouter une commande", StringComparison.InvariantCultureIgnoreCase))
+            {
+                int offset = e["user-input"].IndexOf(" ");
+                if (offset > -1)
+                {
+                    string commandName = e["user-input"].Substring(0, offset).Replace("!", "");
+                    string commandMessage = e["user-input"].Substring(offset + 1);
+                    AddCommand(commandName, commandMessage, false, e["username"]);
+                }
+            }
+            else if (string.Equals(e["type"], "Supprimer une commande", StringComparison.InvariantCultureIgnoreCase))
+            {
+                DeleteCommand(e["user-input"], false, e["username"]);
+            }
+        }
+
+        public void AddCommand(string commandName, string commandMessage, bool isMod, string displayName)
+        {
+            Command cmd = new();
+            cmd.Name = commandName;
+            cmd.Message = commandMessage;
+            Guid guid = GetUserGuid(displayName.ToLower());
+            if (guid != InvalidGuid)
+            {
+                using (TwitchDbContext db = new(guid))
+                {
+                    db.Commands.Add(cmd);
+                    try
+                    {
+                        db.SaveChanges();
+                    }
+                    catch (DbUpdateException ex)
+                    when ((ex.InnerException as SqlException)?.Number == 2601 || (ex.InnerException as SqlException)?.Number == 2627)
+                    {
+                        _chat.SendMessage($"{displayName} : Une commande du même nom existe déja");
+                        return;
+                    }
+                    _chat.SendMessage($"{displayName} : Command {commandName} créée");
+                }
+            }
+            else
+            {
+                _chat.SendMessage($"{displayName} : Utilisateur inconnu");
+            }
+        }
+
+        public void DeleteCommand(string commandName, bool isMod, string displayName)
+        {
+            Guid guid = GetUserGuid(displayName.ToLower());
+            if (guid != InvalidGuid)
+            {
+                using (TwitchDbContext db = new(guid))
+                {
+                    Command dbCmd = db.Commands.Where(x => x.Name == commandName).FirstOrDefault();
+                    if (dbCmd != null)
+                    {
+                        if (guid == Guid.Empty || guid == dbCmd.Owner)
+                        {
+                            db.Remove(dbCmd);
+                            db.SaveChanges();
+                            _chat.SendMessage($"{displayName} : Command {commandName} supprimée");
+                        }
+                        else
+                        {
+                            _chat.SendMessage($"{displayName} : Pas touche!");
+                        }
+                    }
+                    else
+                    {
+                        _chat.SendMessage($"{displayName} : Commande inconnue");
+                    }
+                }
+            }
+            else
+            {
+                _chat.SendMessage($"{displayName} : Utilisateur inconnu");
+            }
+        }
+        public async Task SkipSong(string displayName)
+        {
+            if (!(await _spotify.SkipSong()))
+            {
+                _chat.SendMessage($"{displayName} : On écoute pas de musique bouffon");
+            }
+        }
+
+        public async Task<int> AddSong(string song, string displayName)
+        {
+            int ret = await _spotify.AddSong(song);
+            if (ret == 1)
+            {
+                _chat.SendMessage($"{displayName} : La musique a été ajoutée à la playlist");
+            }
+            else if (ret == 2)
+            {
+                _chat.SendMessage($"{displayName} : La musique est déjà dans la playlist");
+            }
+            else
+            {
+                _chat.SendMessage($"{displayName} : La musique n'a pas pu être ajoutée à la playlist");
+            }
+            return ret;
+        }
+
+        public async Task<bool> RemoveSong(string displayName)
+        {
+            bool ret = await _spotify.RemoveSong();
+            if (ret)
+            {
+                _chat.SendMessage($"{displayName} : La musique a été supprimée de la playlist");
+            }
+            else
+            {
+                _chat.SendMessage($"{displayName} : La musique n'a pas pu être supprimée de la playlist");
+            }
+            return ret;
+        }
 
         public Guid GetUserGuid(string name)
         {

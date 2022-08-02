@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<Target Name="CopyAppSettings" AfterTargets="AfterBuild">
-		<Copy SourceFiles="../WebApp/appsettings.json" DestinationFolder="$(OutDir)" />
+		<Copy SourceFiles="../WebApp/appsettings.json" DestinationFolder="$(OutDir)" Condition="$([System.IO.File]::GetLastWriteTime('..\WebApp\appsettings.json').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(OutDir)\appsettings.json').Ticks)" />
 	</Target>
 
 </Project>
