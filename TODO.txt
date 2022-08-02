@@ -3,15 +3,15 @@ General
 ===============
 add timeout count
 chat overlay
-best subgifter (daily, monthly, total)
-longest subscriber
-last cheer
-best cheer donator (daily, monthly, total)
+best subgifter (daily, monthly, total) (no api, need to keep an historic)
+longest subscriber (no api, need to keep an historic)
+last cheer (no api, need to keep an historic)
+best cheer donator (daily, monthly, total) (no api, need to keep an historic)
 
 ===============
 Commands
 ===============
-ignorer les channel reward dans le traitement des commandes personnalisé (le bot croit que c'est un appel de commande)
+
 
 ===============
 Channel Rewards

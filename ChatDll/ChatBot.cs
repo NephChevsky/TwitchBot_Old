@@ -226,7 +226,7 @@ namespace ChatDll
                 {
                     await RemoveSong(e.Command.ChatMessage.DisplayName);
                 }
-                else if (_settings.ChatFunction.AddCustomCommands)
+                else if (_settings.ChatFunction.AddCustomCommands && string.IsNullOrEmpty(e.Command.ChatMessage.CustomRewardId))
                 {
                     using (TwitchDbContext db = new(Guid.Empty))
                     {
@@ -245,7 +245,7 @@ namespace ChatDll
                         }
                     }
                 }
-                else
+                else if (string.IsNullOrEmpty(e.Command.ChatMessage.CustomRewardId))
                 {
                     _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
                 }
@@ -370,7 +370,7 @@ namespace ChatDll
             }
             else if (string.Equals(e["type"], "Supprimer une commande", StringComparison.InvariantCultureIgnoreCase))
             {
-                DeleteCommand(e["user-input"], false, e["username"]);
+                DeleteCommand(e["user-input"].Replace("!", ""), false, e["username"]);
             }
         }
 
