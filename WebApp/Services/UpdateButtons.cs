@@ -187,7 +187,7 @@ namespace WebApp.Services
                 {
                     if (name == "subscriber_count" || name == "subscriber_goal")
                     {
-                        string value = subscribers.Count.ToString();
+                        string value = (subscribers.Count - 1).ToString();
                         if (name == "subscriber_goal")
                         {
                             value += " / " + _settings.UpdateButtonsFunction.SubscriptionGoal;
