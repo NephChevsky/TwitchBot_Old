@@ -24,7 +24,6 @@ namespace WebApp.Controllers
 		{
 			CommandsListResponse response = new();
 			response.ComputeUpTime = _settings.CheckUptimeFunction.ComputeUptime;
-			response.Timeout = _settings.ChatFunction.Timeout;
 			response.AddCustomCommands = _settings.ChatFunction.AddCustomCommands;
 			response.CustomCommands = new List<KeyValuePair<string, string>>();
 			using (TwitchDbContext db = new(Guid.Empty))

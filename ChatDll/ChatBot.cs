@@ -88,66 +88,25 @@ namespace ChatDll
                         }
                     }
                 }
-                else if (_settings.ChatFunction.Timeout && (string.Equals(e.Command.CommandText, "timeout", StringComparison.InvariantCultureIgnoreCase)
-                                                        || string.Equals(e.Command.CommandText, "to", StringComparison.InvariantCultureIgnoreCase)))
+                else if ((string.Equals(e.Command.CommandText, "timeout", StringComparison.InvariantCultureIgnoreCase) || string.Equals(e.Command.CommandText, "to", StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    if (e.Command.ArgumentsAsList.Count > 0 && !string.Equals(e.Command.ChatMessage.Username, e.Command.ArgumentsAsList[0], StringComparison.InvariantCultureIgnoreCase))
+                    if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
                     {
-                        string username = e.Command.ArgumentsAsList[0].Replace("@", "");
-                        List<Moderator> mods = await _api.GetModerators();
-                        Moderator mod = mods.Where(x => string.Equals(username, x.UserName)).FirstOrDefault();
-                        if (mod == null)
+                        if (e.Command.ArgumentsAsList.Count > 0)
                         {
-                            Viewer firstViewer, secondViewer;
-                            using (TwitchDbContext db = new(Guid.Empty))
+                            string username = e.Command.ArgumentsAsList[0].Replace("@", "");
+                            if (e.Command.ArgumentsAsList.Count > 1)
                             {
-                                firstViewer = db.Viewers.Where(x => x.Username == e.Command.ChatMessage.Username).FirstOrDefault();
-                                secondViewer = db.Viewers.Where(x => x.Username == e.Command.ArgumentsAsList[0]).FirstOrDefault();
-                            }
-                            if (firstViewer != null && secondViewer != null)
-                            {
-                                if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
-                                {
-                                    if (e.Command.ArgumentsAsList.Count > 1)
-                                    {
-                                        _api.BanUser(username, int.Parse(e.Command.ArgumentsAsList[1]));
-                                    }
-                                    else
-                                    {
-                                        _api.BanUser(username);
-                                    }
-                                }
-                                else
-                                {
-                                    int dice = Rng.Next(5);
-                                    int timer = Rng.Next(300);
-                                    if (dice == 0)
-                                    {
-                                        _chat.SendMessage($"Roll: {dice}/300. Dommage {e.Command.ChatMessage.DisplayName}!");
-                                        _api.BanUser(e.Command.ChatMessage.Username, timer);
-                                    }
-                                    else if (dice == 1)
-                                    {
-                                        _chat.SendMessage($"Roll: {dice}/300. Désolé {secondViewer.DisplayName}!");
-                                        _api.BanUser(username, timer);
-                                    }
-                                    else if (dice == 2)
-                                    {
-                                        _chat.SendMessage($"Roll: {dice}/300. Allez ça dégage {e.Command.ChatMessage.DisplayName} et {secondViewer.DisplayName}!");
-                                        _api.BanUser(e.Command.ChatMessage.Username, timer);
-                                        _api.BanUser(username, timer);
-                                    }
-                                    else
-                                    {
-                                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Non, pas envie aujourd'hui");
-                                    }
-                                    updateTimer = true;
-                                }
+                                _api.BanUser(username, int.Parse(e.Command.ArgumentsAsList[1]));
                             }
                             else
                             {
-                                _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Utilisateur inconnu");
+                                _api.BanUser(username);
                             }
+                        }
+                        else if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
+                        {
+                            _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : T'es bourré?");
                         }
                     }
                     else
@@ -186,7 +145,7 @@ namespace ChatDll
                     }
                     else
                     {
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : t'es bourré?");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : T'es bourré?");
                     }
                     return;
                 }
@@ -198,7 +157,7 @@ namespace ChatDll
                     }
                     else
                     {
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : t'es bourré?");
+                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : T'es bourré?");
                     }
                 }
                 else if (string.Equals(e.Command.CommandText, "song", StringComparison.InvariantCultureIgnoreCase))
@@ -371,6 +330,54 @@ namespace ChatDll
             else if (string.Equals(e["type"], "Supprimer une commande", StringComparison.InvariantCultureIgnoreCase))
             {
                 DeleteCommand(e["user-input"].Replace("!", ""), false, e["username"]);
+            }
+            else if (string.Equals(e["type"], "Timeout un viewer", StringComparison.InvariantCultureIgnoreCase))
+            {
+                List<Moderator> mods = await _api.GetModerators();
+                Moderator mod = mods.Where(x => string.Equals(e["user-input"], x.UserName)).FirstOrDefault();
+                if (mod == null)
+                {
+                    Viewer firstViewer, secondViewer;
+                    using (TwitchDbContext db = new(Guid.Empty))
+                    {
+                        firstViewer = db.Viewers.Where(x => x.Username == e["username"]).FirstOrDefault();
+                        secondViewer = db.Viewers.Where(x => x.Username == e["user-input"]).FirstOrDefault();
+                    }
+                    if (firstViewer != null && secondViewer != null)
+                    {
+                        int dice = Rng.Next(5);
+                        int timer = Rng.Next(300);
+                        if (dice == 0)
+                        {
+                            _chat.SendMessage($"Roll: {timer}/300. Dommage {firstViewer.DisplayName}!");
+                            _api.BanUser(firstViewer.Username, timer);
+                        }
+                        else if (dice == 1)
+                        {
+                            _chat.SendMessage($"Roll: {timer}/300. Désolé {secondViewer.DisplayName}!");
+                            _api.BanUser(secondViewer.Username, timer);
+                        }
+                        else if (dice == 2)
+                        {
+                            _chat.SendMessage($"Roll: {timer}/300. Allez ça dégage {e["username"]} et {secondViewer.DisplayName}!");
+                            _api.BanUser(secondViewer.Username, timer);
+                            _api.BanUser(firstViewer.Username, timer);
+                        }
+                        else
+                        {
+                            _chat.SendMessage($"{firstViewer.DisplayName} : Non, pas envie aujourd'hui");
+                        }
+                    }
+                    else
+                    {
+                        _chat.SendMessage($"{firstViewer.DisplayName} : Utilisateur inconnu");
+                    }
+                }
+                else
+                {
+                    _chat.SendMessage($"{e["username"]} : T'as cru t'allais timeout un modo?");
+                    _api.BanUser(e["username"]);
+                }
             }
         }
 

@@ -44,7 +44,6 @@
 
     public class ChatFunction
     {
-        public bool Timeout { get; set; }
         public bool AddBotSuffixInTitle { get; set; }
         public bool AddCustomCommands { get; set; }
         public bool AntiSpam { get; set; }
