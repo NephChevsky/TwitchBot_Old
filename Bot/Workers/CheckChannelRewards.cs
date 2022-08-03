@@ -79,6 +79,10 @@ namespace Bot.Workers
                             {
                                 await _api.UpdateChannelReward(customReward.Id, channelReward, false);
                             }
+                            else if (customReward.Cost != channelReward.CurrentCost)
+                            {
+                                await _api.UpdateChannelReward(customReward.Id, channelReward, customReward.IsEnabled);
+                            }
                         }
                         else if (channelReward.TriggerType == "game_tag")
                         {
@@ -98,6 +102,10 @@ namespace Bot.Workers
                                 {
                                     await _api.UpdateChannelReward(customReward.Id, channelReward, false);
                                 }
+                                else if (customReward.Cost != channelReward.CurrentCost)
+                                {
+                                    await _api.UpdateChannelReward(customReward.Id, channelReward, customReward.IsEnabled);
+                                }
                             });
                         }
                         else if (channelReward.TriggerType == "spotify" && channelReward.TriggerValue == "playing")
@@ -112,7 +120,11 @@ namespace Bot.Workers
                             {
                                 await _api.UpdateChannelReward(customReward.Id, channelReward, false);
                             }
-						}
+                            else if (customReward.Cost != channelReward.CurrentCost)
+                            {
+                                await _api.UpdateChannelReward(customReward.Id, channelReward, customReward.IsEnabled);
+                            }
+                        }
                     });
                 }
 
