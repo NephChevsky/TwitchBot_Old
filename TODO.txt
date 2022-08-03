@@ -18,6 +18,6 @@ Commands
 ===============
 Channel Rewards
 ===============
-VIP => à implementer
+VIP => à implementer quand la TwitchLib API aura les interfaces
 Augmenter/Baisser les prix des reward automatiquement
 Consommer les reward redemptions automatiquement
