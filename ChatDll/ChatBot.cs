@@ -204,10 +204,6 @@ namespace ChatDll
                         }
                     }
                 }
-                else if (string.IsNullOrEmpty(e.Command.ChatMessage.CustomRewardId))
-                {
-                    _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
-                }
 
                 if (updateTimer)
                 {
