@@ -90,7 +90,7 @@ namespace Bot.Workers
                             }
                             dbViewer.LastViewedDateTime = now;
                         }
-                        else
+                        else if (dbViewer == null)
                         {
                             if (!_settings.TwitchBotList.Contains(x.Username.ToLower()))
                             {
