@@ -333,6 +333,7 @@ namespace ChatDll
             }
             else if (string.Equals(e["type"], "Timeout un viewer", StringComparison.InvariantCultureIgnoreCase))
             {
+                e["user-input"] = e["user-input"].Replace("@", "");
                 List<Moderator> mods = await _api.GetModerators();
                 Moderator mod = mods.Where(x => string.Equals(e["user-input"], x.UserName)).FirstOrDefault();
                 if (mod == null)
