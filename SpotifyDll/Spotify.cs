@@ -54,13 +54,13 @@ namespace SpotifyDll
 		{
 			var oauth = new OAuthClient();
 			Uri uri;
-			if (!Directory.GetCurrentDirectory().Contains("wwwroot"))
+			if (Directory.GetCurrentDirectory().Contains("wwwroot"))
 			{
-				uri = new Uri("http://localhost:5001/callback");
+				uri = new Uri("https://bot-neph.azurewebsites.net/callback");
 			}
 			else
 			{
-				uri = new Uri("https://bot-neph.azurewebsites.net/callback");
+				uri = new Uri("http://localhost:5001/callback");
 			}
 			var tokenRequest = new AuthorizationCodeTokenRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, code.Code, uri);
 			var tokenResponse = await oauth.RequestToken(tokenRequest);
@@ -76,7 +76,8 @@ namespace SpotifyDll
 			{
 				var tokenResponse = await new OAuthClient().RequestToken(new AuthorizationCodeRefreshRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, _refreshToken));
 				_accessToken = tokenResponse.AccessToken;
-				_refreshToken = tokenResponse.RefreshToken;
+				if (tokenResponse.RefreshToken != null)
+					_refreshToken = tokenResponse.RefreshToken;
 				_client = new SpotifyClient(_accessToken);
 			}
 			catch
