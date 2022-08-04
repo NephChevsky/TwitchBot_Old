@@ -346,23 +346,23 @@ namespace ChatDll
                         int timer = Rng.Next(300);
                         if (dice == 0)
                         {
-                            _chat.SendMessage($"Roll: {timer}/300. Dommage {firstViewer.DisplayName}!");
+                            _chat.SendMessage($"Roll: {timer}/300. Dommage {firstViewer.DisplayName}! LUL");
                             _api.BanUser(firstViewer.Username, timer);
                         }
-                        else if (dice == 1)
+                        else if (dice == 1 || dice == 2)
                         {
-                            _chat.SendMessage($"Roll: {timer}/300. Désolé {secondViewer.DisplayName}!");
+                            _chat.SendMessage($"Roll: {timer}/300. Désolé {secondViewer.DisplayName}! LUL");
                             _api.BanUser(secondViewer.Username, timer);
                         }
-                        else if (dice == 2)
+                        else if (dice == 3)
                         {
-                            _chat.SendMessage($"Roll: {timer}/300. Allez ça dégage {e["username"]} et {secondViewer.DisplayName}!");
+                            _chat.SendMessage($"Roll: {timer}/300. Allez ça dégage {e["username"]} et {secondViewer.DisplayName}! LUL");
                             _api.BanUser(secondViewer.Username, timer);
                             _api.BanUser(firstViewer.Username, timer);
                         }
                         else
                         {
-                            _chat.SendMessage($"{firstViewer.DisplayName} : Non, pas envie aujourd'hui");
+                            _chat.SendMessage($"{firstViewer.DisplayName} : Non, pas envie aujourd'hui Kappa");
                         }
                     }
                     else
