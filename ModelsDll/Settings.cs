@@ -21,7 +21,6 @@
         public CheckChannelRewardsFunction CheckChannelRewardsFunction { get; set; }
 
         public Tags Tags { get; set; }
-        public List<string> TwitchBotList { get; set; }
     }
 
     public class CheckUptimeFunction
