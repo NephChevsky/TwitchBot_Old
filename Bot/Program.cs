@@ -23,6 +23,7 @@ namespace Bot
                 configBuilder.SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", false)
                     .AddJsonFile(path, false)
+                    .AddJsonFile("bots.json", false)
                     .Build();
             })
             .ConfigureServices(services =>

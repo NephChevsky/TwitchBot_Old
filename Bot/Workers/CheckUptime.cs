@@ -21,11 +21,13 @@ namespace Bot.Workers
         private BasicChat _chat;
         private Api _api;
         private List<ChatterFormatted> CurrentChatters = new List<ChatterFormatted>();
+        private List<string> _bots;
 
         public CheckUptime(ILogger<CheckUptime> logger, IConfiguration configuration, BasicChat chat)
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
+            _bots = configuration.GetSection("TwitchBotList").Get<List<string>>();
             _chat = chat;
             _api = new(configuration, false);
         }
@@ -92,7 +94,7 @@ namespace Bot.Workers
                         }
                         else if (dbViewer == null)
                         {
-                            if (!_settings.TwitchBotList.Contains(x.Username.ToLower()))
+                            if (!_bots.Contains(x.Username.ToLower()))
                             {
                                 User user = await _api.GetUser(x.Username.ToLower());
                                 dbViewer = new Viewer(user.Login, user.DisplayName, user.Id);
