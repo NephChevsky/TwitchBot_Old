@@ -30,7 +30,6 @@ namespace ChatDll
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
         private Guid InvalidGuid = Guid.Parse("12345678-1234-1234-1234-123456789000");
         private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
-        private DateTime SessionBeginning;
         private HubConnection _connection;
 
         public ChatBot(ILogger<ChatBot> logger, IConfiguration configuration, BasicChat chat, Spotify spotify)
@@ -51,7 +50,6 @@ namespace ChatDll
             Task hub = _connection.StartAsync();
             hub.Wait();
 
-            SessionBeginning = DateTime.Now;
             return Task.CompletedTask;
         }
 
