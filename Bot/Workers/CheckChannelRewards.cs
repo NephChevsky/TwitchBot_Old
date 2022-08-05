@@ -63,6 +63,17 @@ namespace Bot.Workers
                         {
                             updateReward = true;
                         }
+                        if (reward.LastUsedDateTime < DateTime.Now.AddSeconds(-reward.CostDecreaseTimer))
+                        {
+                            int newCost = reward.CurrentCost - reward.CostIncreaseAmount;
+                            if (newCost < reward.BeginCost)
+                            {
+                                newCost = reward.BeginCost;
+							}
+                            reward.CurrentCost = newCost;
+                            reward.LastUsedDateTime = DateTime.Now;
+                            updateReward = true;
+                        }
                         if (reward.TriggerType == "game")
                         {
                             if ((string.Equals(channelInfos.GameName, reward.TriggerValue, StringComparison.InvariantCultureIgnoreCase) && !customReward.IsEnabled))
