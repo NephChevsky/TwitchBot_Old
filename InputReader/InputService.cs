@@ -5,7 +5,9 @@ using Microsoft.Extensions.Logging;
 using ModelsDll;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Client.Events;
@@ -22,6 +24,11 @@ namespace InputReader
         public Dictionary<string, VirtualKeyCode> KeyMapping;
         public bool IsRunning = false;
         public InputSimulator Simulator = new InputSimulator();
+        public string Application;
+        public Process Process;
+
+        [DllImport("user32.dll")]
+        static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
 
         public InputService(ILogger<InputService> logger, IConfiguration configuration, BasicChat chat)
         {
@@ -29,6 +36,7 @@ namespace InputReader
             _settings = configuration.GetSection("Settings").Get<Settings>();
             _chat = chat;
             KeyMapping = configuration.GetSection("KeyMapping").Get<Dictionary<string, VirtualKeyCode>>();
+            Application = configuration.GetValue<string>("Application");
             HotKeyManager.RegisterHotKey(Keys.A, KeyModifiers.Alt);
             HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_TogglePause);
         }
@@ -36,6 +44,15 @@ namespace InputReader
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _chat._client.OnMessageReceived += Client_OnMessageReceived;
+            if (!string.IsNullOrEmpty(Application))
+            {
+                Process[] processes = Process.GetProcessesByName(Application);
+                Process = processes[0];
+                if (Process == null)
+                {
+                    throw new Exception("Couldn't find process " + Application);
+				}
+            }
             return Task.CompletedTask;
         }
 
@@ -51,10 +68,9 @@ namespace InputReader
                 var input = e.ChatMessage.Message.ToLower();
                 if (KeyMapping.ContainsKey(input))
                 {
-                    Simulator.Keyboard.KeyDown(KeyMapping[input]);
-                    Task.Delay(16).Wait();
-                    Simulator.Keyboard.KeyUp(KeyMapping[input]);
-                    _chat.SendMessage("ok");
+                    bool ret = PostMessage(Process.MainWindowHandle, 0x0100, (int) KeyMapping[input], 0);
+                    Task.Delay(50).Wait();
+                    PostMessage(Process.MainWindowHandle, 0x0101, (int)KeyMapping[input], 0);
                 }
 			}
         }
