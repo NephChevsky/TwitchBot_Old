@@ -11,9 +11,9 @@ namespace ModelsDll
 {
 	public static class Helpers
 	{
-        public static void UpdateTokens(string name, string accessToken, string refreshToken)
+        public static void UpdateTokens(string name, string configpath, string accessToken, string refreshToken)
         {
-            dynamic config = LoadAppSettings();
+            dynamic config = LoadAppSettings(configpath);
             if (name == "twitchapi")
             {
                 config.Settings.StreamerAccessToken = accessToken;
@@ -24,27 +24,25 @@ namespace ModelsDll
                 config.Settings.BotAccessToken = accessToken;
                 config.Settings.BotRefreshToken = refreshToken;
             }
-            SaveAppSettings(config);
+            SaveAppSettings(configpath, config);
         }
 
-        public static dynamic LoadAppSettings()
+        public static dynamic LoadAppSettings(string configpath)
         {
-            var appSettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
-            var json = File.ReadAllText(appSettingsPath);
+            var json = File.ReadAllText(configpath);
             var jsonSettings = new JsonSerializerSettings();
             jsonSettings.Converters.Add(new ExpandoObjectConverter());
             jsonSettings.Converters.Add(new StringEnumConverter());
             return JsonConvert.DeserializeObject<ExpandoObject>(json, jsonSettings);
         }
 
-        public static void SaveAppSettings(dynamic config)
+        public static void SaveAppSettings(string configpath, dynamic config)
         {
-            var appSettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
             var jsonSettings = new JsonSerializerSettings();
             jsonSettings.Converters.Add(new ExpandoObjectConverter());
             jsonSettings.Converters.Add(new StringEnumConverter());
             var newJson = JsonConvert.SerializeObject(config, Formatting.Indented, jsonSettings);
-            File.WriteAllText(appSettingsPath, newJson);
+            File.WriteAllText(configpath, newJson);
         }
     }
 }

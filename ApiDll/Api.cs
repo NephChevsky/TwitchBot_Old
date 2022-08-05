@@ -28,12 +28,19 @@ namespace ApiDll
     public class Api : IDisposable
     {
         private Settings _settings;
+        private string _configPath;
         private ILogger<Api> _logger;
         private ILoggerFactory _loggerFactory;
         private TwitchAPI api;
         public Api(IConfiguration configuration, bool useAppAccessToken)
         {
+            _configPath = configuration.GetValue<string>("ConfigPath");
             _settings = configuration.GetSection("Settings").Get<Settings>();
+            if (_settings == null)
+            {
+                string path = Path.IsPathRooted(_configPath) ? _configPath : Path.Combine(Directory.GetCurrentDirectory(), _configPath);
+                throw new Exception($"Couldn't load settings: {path}");
+			}
             _loggerFactory = LoggerFactory.Create(lf => { lf.AddAzureWebAppDiagnostics(); });
             _logger = _loggerFactory.CreateLogger<Api>();
             Init(useAppAccessToken);
@@ -63,7 +70,7 @@ namespace ApiDll
                 });
                 task.Wait();
                 RefreshResponse token = task.Result;
-                Helpers.UpdateTokens("twitchapi", token.AccessToken, token.RefreshToken);
+                Helpers.UpdateTokens("twitchapi", _configPath, token.AccessToken, token.RefreshToken);
                 _settings.StreamerAccessToken = token.AccessToken;
                 _settings.StreamerRefreshToken = token.RefreshToken;
             }

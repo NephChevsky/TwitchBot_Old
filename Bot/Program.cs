@@ -13,12 +13,17 @@ namespace Bot
 		static void Main(string[] args)
 		{
             IHost host = Host.CreateDefaultBuilder(args)
-            .ConfigureAppConfiguration((hostingContext, configuration) =>
+            .ConfigureAppConfiguration((hostingContext, configBuilder) =>
             {
-                configuration
-                        .SetBasePath(Directory.GetCurrentDirectory())
-                        .AddJsonFile("appsettings.json")
-                        .Build();
+                IConfigurationRoot config = configBuilder
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", false)
+                    .Build();
+                string path = config.GetValue<string>("ConfigPath");
+                configBuilder.SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", false)
+                    .AddJsonFile(path, false)
+                    .Build();
             })
             .ConfigureServices(services =>
             {

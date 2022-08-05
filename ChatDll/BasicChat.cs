@@ -19,6 +19,7 @@ namespace ChatDll
 	public class BasicChat
 	{
 		private Settings _settings;
+		private string _configPath;
 		private readonly ILogger<BasicChat> _logger;
 		public TwitchClient _client;
 		private Api _api;
@@ -27,6 +28,7 @@ namespace ChatDll
 		{
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
+			_configPath = configuration.GetValue<string>("ConfigPath");
 			_api = new(configuration, false);
 
 			Task<RefreshResponse> refreshToken = Task.Run(async () =>
@@ -35,7 +37,7 @@ namespace ChatDll
 			});
 			refreshToken.Wait();
 			RefreshResponse token = refreshToken.Result;
-			Helpers.UpdateTokens("twitchchat", token.AccessToken, token.RefreshToken);
+			Helpers.UpdateTokens("twitchchat", _configPath, token.AccessToken, token.RefreshToken);
 			_settings.BotAccessToken = token.AccessToken;
 			_settings.BotRefreshToken = token.RefreshToken;
 			ConnectionCredentials credentials = new ConnectionCredentials(_settings.Bot, _settings.BotAccessToken);

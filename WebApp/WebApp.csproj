@@ -55,4 +55,10 @@
 		<ProjectReference Include="..\SpotifyDll\SpotifyDll.csproj" />
 		<ProjectReference Include="..\DbDll\DbDll.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="../config.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 </Project>

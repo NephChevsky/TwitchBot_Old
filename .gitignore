@@ -1,5 +1,4 @@
-*/appsettings.json
-*/appsettings.*.json
+config.json
 */.vs
 */bin
 */obj

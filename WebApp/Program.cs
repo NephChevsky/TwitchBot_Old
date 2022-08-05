@@ -9,19 +9,19 @@ namespace WebApp
 	{
 		public static void Main(string[] args)
 		{
-			IConfigurationRoot configuration = new ConfigurationBuilder()
-					.SetBasePath(Directory.GetCurrentDirectory())
-					.AddJsonFile("appsettings.json")
-					.Build();
-
 			WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+			builder.Configuration.SetBasePath(Directory.GetCurrentDirectory())
+					.AddJsonFile("appsettings.json", false)
+					.AddJsonFile("config.json", false)
+					.Build();
 
 			builder.Services.AddControllers();
 			builder.Services.AddSignalR();
 			builder.Services.AddTwitchLibEventSubWebhooks(config =>
 			{
 				config.CallbackPath = "/webhooks";
-				config.Secret = configuration.GetSection("Settings").Get<Settings>().Secret;
+				config.Secret = builder.Configuration.GetSection("Settings").Get<Settings>().Secret;
 			});
 
 			builder.Services.AddSingleton<Spotify>();
