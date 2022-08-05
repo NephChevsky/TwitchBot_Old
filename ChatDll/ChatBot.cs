@@ -12,6 +12,7 @@ using ModelsDll.DTO;
 using SpotifyAPI.Web;
 using SpotifyDll;
 using System.Media;
+using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
 using TwitchLib.Client.Events;
 using WindowsInput;
@@ -399,6 +400,7 @@ namespace ChatDll
 
             if (success)
             {
+                await _api.UpdateRedemptionStatus(e["reward-id"], e["event-id"], CustomRewardRedemptionStatus.FULFILLED);
                 using (TwitchDbContext db = new(Guid.Empty))
                 {
                     ChannelReward dbReward = db.ChannelRewards.Where(x => x.Name == e["type"]).FirstOrDefault();
@@ -411,6 +413,10 @@ namespace ChatDll
                     }
                 }
 			}
+            else
+            {
+                await _api.UpdateRedemptionStatus(e["reward-id"], e["event-id"], CustomRewardRedemptionStatus.CANCELED);
+            }
         }
 
         public bool AddCommand(string commandName, string commandMessage, bool isMod, string displayName)

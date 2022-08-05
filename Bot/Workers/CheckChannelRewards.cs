@@ -63,14 +63,9 @@ namespace Bot.Workers
                         {
                             updateReward = true;
                         }
-                        if (reward.LastUsedDateTime < DateTime.Now.AddSeconds(-reward.CostDecreaseTimer))
+                        if (reward.CurrentCost >= reward.BeginCost + reward.CostIncreaseAmount && reward.LastUsedDateTime < DateTime.Now.AddSeconds(-reward.CostDecreaseTimer))
                         {
-                            int newCost = reward.CurrentCost - reward.CostIncreaseAmount;
-                            if (newCost < reward.BeginCost)
-                            {
-                                newCost = reward.BeginCost;
-							}
-                            reward.CurrentCost = newCost;
+                            reward.CurrentCost = reward.CurrentCost - reward.CostIncreaseAmount;
                             reward.LastUsedDateTime = DateTime.Now;
                             updateReward = true;
                         }

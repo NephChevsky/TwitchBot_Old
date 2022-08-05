@@ -22,6 +22,8 @@ using TwitchLib.Api.Helix.Models.ChannelPoints.CreateCustomReward;
 using ModelsDll.Db;
 using TwitchLib.Api.Helix.Models.ChannelPoints.UpdateCustomReward;
 using TwitchLib.Api.Helix.Models.Subscriptions;
+using TwitchLib.Api.Helix.Models.ChannelPoints.UpdateCustomRewardRedemptionStatus;
+using TwitchLib.Api.Core.Enums;
 
 namespace ApiDll
 {
@@ -260,6 +262,13 @@ namespace ApiDll
             else
                 return stream.Streams[0].ViewerCount;
         }
+
+        public async Task UpdateRedemptionStatus(string rewardId, string eventId, CustomRewardRedemptionStatus status)
+        {
+            UpdateCustomRewardRedemptionStatusRequest request = new();
+            request.Status = status;
+            await api.Helix.ChannelPoints.UpdateRedemptionStatusAsync(_settings.StreamerTwitchId, rewardId, new List<string>() { eventId }, request);
+		}
 
         public void Dispose()
         {
