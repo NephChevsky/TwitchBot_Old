@@ -116,6 +116,13 @@ namespace ChatDll
                         _api.BanUser(e.Command.ChatMessage.Username);
                     }
                 }
+                else if (string.Equals(e.Command.CommandText, "so", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+                {
+                    _chat.SendMessage($"Saviez vous que @{e.Command.ArgumentsAsList[0]} stream? Ca claque des culs alors allez lui lacher votre meilleur follow sur only f... Pardon, c'est sur Twitch: https://www.twitch.tv/{e.Command.ArgumentsAsList[0]} <3 <3 <3");
+                    _chat.SendMessage($"https://www.twitch.tv/{e.Command.ArgumentsAsList[0]}");
+                    _chat.SendMessage($"https://www.twitch.tv/{e.Command.ArgumentsAsList[0]}");
+                    _chat.SendMessage($"https://www.twitch.tv/{e.Command.ArgumentsAsList[0]}");
+                }
                 else if (string.Equals(e.Command.CommandText, "settitle", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
                 {
                     string title = e.Command.ArgumentsAsString;
