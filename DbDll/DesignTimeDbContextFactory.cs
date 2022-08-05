@@ -8,13 +8,14 @@ namespace DbDll
     {
         public TwitchDbContext CreateDbContext(string[] args)
         {
-            string dir = Directory.GetCurrentDirectory();
-            if (!dir.Contains("wwwroot"))
-                dir = Path.Combine(Directory.GetParent(dir).FullName, "WebApp");
-
             IConfigurationRoot configuration = new ConfigurationBuilder()
-                    .SetBasePath(dir)
-                    .AddJsonFile("appsettings.json")
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", false)
+                    .Build();
+            string path = configuration.GetValue<string>("ConfigPath");
+            configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile(path, false)
                     .Build();
 
             var connectionString = configuration.GetConnectionString("AzureDb");
