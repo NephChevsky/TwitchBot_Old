@@ -49,83 +49,72 @@ namespace Bot.Workers
                 {
                     List<ChannelReward> channelRewards = db.ChannelRewards.ToList();
                     List<CustomReward> customRewards = await _api.GetChannelRewards();
-                    bool createdRewards = false; 
-                    channelRewards.ForEach(async channelReward =>
+                    ChannelInformation channelInfos = await _api.GetChannelInformation();
+                    foreach (ChannelReward reward in channelRewards)
                     {
-                        CustomReward customReward = customRewards.Where(x => x.Title == channelReward.Name).FirstOrDefault();
+                        bool updateReward = false;
+                        CustomReward customReward = customRewards.Where(x => x.Title == reward.Name).FirstOrDefault();
                         if (customReward == null)
                         {
-                            await _api.CreateChannelReward(channelReward);
-                            createdRewards = true;
+                            customReward = await _api.CreateChannelReward(reward);
+                            reward.TwitchId = Guid.Parse(customReward.Id);
                         }
-                    });
-
-                    if (createdRewards)
-                    {
-                        customRewards = await _api.GetChannelRewards();
-                    }
-                    
-                    channelRewards.ForEach(async channelReward =>
-                    {
-                        if (channelReward.TriggerType == "game")
+                        if (customReward.Cost != reward.CurrentCost)
                         {
-                            CustomReward customReward = customRewards.Where(x => x.Title == channelReward.Name).FirstOrDefault();
-                            ChannelInformation channelInfos = await _api.GetChannelInformation();
-                            if (string.Equals(channelInfos.GameName, channelReward.TriggerValue,StringComparison.InvariantCultureIgnoreCase) && !customReward.IsEnabled)
+                            updateReward = true;
+                        }
+                        if (reward.TriggerType == "game")
+                        {
+                            if ((string.Equals(channelInfos.GameName, reward.TriggerValue, StringComparison.InvariantCultureIgnoreCase) && !customReward.IsEnabled))
                             {
-                                await _api.UpdateChannelReward(customReward.Id, channelReward, true);
-							}
-                            else if (!string.Equals(channelInfos.GameName, channelReward.TriggerValue, StringComparison.InvariantCultureIgnoreCase) && customReward.IsEnabled)
-                            {
-                                await _api.UpdateChannelReward(customReward.Id, channelReward, false);
+                                reward.IsEnabled = true;
+                                updateReward = true;
                             }
-                            else if (customReward.Cost != channelReward.CurrentCost)
+                            else if (!string.Equals(channelInfos.GameName, reward.TriggerValue, StringComparison.InvariantCultureIgnoreCase) && customReward.IsEnabled)
                             {
-                                await _api.UpdateChannelReward(customReward.Id, channelReward, customReward.IsEnabled);
+                                reward.IsEnabled = false;
+                                updateReward = true;
                             }
                         }
-                        else if (channelReward.TriggerType == "game_tag")
+                        else if (reward.TriggerType == "game_tag")
                         {
-                            CustomReward customReward = customRewards.Where(x => x.Title == channelReward.Name).FirstOrDefault();
-                            ChannelInformation channelInfos = await _api.GetChannelInformation();
                             List<string> taggedGames = new List<string>();
-                            if (channelReward.TriggerValue == "fps")
+                            if (reward.TriggerValue == "fps")
                             {
                                 taggedGames.AddRange(_settings.Tags.Fps);
-							}
-                            taggedGames.ForEach(async x => {
-                                if (channelInfos.GameName.ToLower().Contains(x.ToLower()) && !customReward.IsEnabled)
-                                {
-                                    await _api.UpdateChannelReward(customReward.Id, channelReward, true);
-                                }
-                                else if (!channelInfos.GameName.ToLower().Contains(x.ToLower()) && customReward.IsEnabled)
-                                {
-                                    await _api.UpdateChannelReward(customReward.Id, channelReward, false);
-                                }
-                                else if (customReward.Cost != channelReward.CurrentCost)
-                                {
-                                    await _api.UpdateChannelReward(customReward.Id, channelReward, customReward.IsEnabled);
-                                }
-                            });
+                            }
+                            bool isPlayingGame = taggedGames.Any(x => channelInfos.GameName.ToLower().Contains(x.ToLower()));
+                            if (isPlayingGame && !customReward.IsEnabled)
+                            {
+                                reward.IsEnabled = true;
+                                updateReward = true;
+                            }
+                            else if (!isPlayingGame && customReward.IsEnabled)
+                            {
+                                reward.IsEnabled = false;
+                                updateReward = true;
+                            }
                         }
-                        else if (channelReward.TriggerType == "spotify" && channelReward.TriggerValue == "playing")
+                        else if (reward.TriggerType == "spotify" && reward.TriggerValue == "playing")
                         {
-                            CustomReward customReward = customRewards.Where(x => x.Title == channelReward.Name).FirstOrDefault();
                             FullTrack track = await _spotify.GetCurrentSong();
                             if (track != null && !customReward.IsEnabled)
                             {
-                                await _api.UpdateChannelReward(customReward.Id, channelReward, true);
+                                reward.IsEnabled = true;
+                                updateReward = true;
                             }
                             else if (track == null && customReward.IsEnabled)
                             {
-                                await _api.UpdateChannelReward(customReward.Id, channelReward, false);
-                            }
-                            else if (customReward.Cost != channelReward.CurrentCost)
-                            {
-                                await _api.UpdateChannelReward(customReward.Id, channelReward, customReward.IsEnabled);
+                                reward.IsEnabled = false;
+                                updateReward = true;
                             }
                         }
-                    });
+                        if (updateReward)
+                        {
+                            await _api.UpdateChannelReward(reward);
+						}
+                    }
+                    db.SaveChanges();
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(_settings.CheckChannelRewardsFunction.Timer), stoppingToken);

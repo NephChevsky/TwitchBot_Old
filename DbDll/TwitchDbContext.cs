@@ -31,15 +31,15 @@ namespace DbDll
         {
             base.OnConfiguring(optionsBuilder);
 
+            string path = "config.json";
+            if (!File.Exists(path))
+            {
+                path = Path.Combine(@"D:\Dev\Twitch", path);
+            }
             IConfigurationRoot configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", false)
-                    .Build();
-            string path = configuration.GetValue<string>("ConfigPath");
-            configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile(path, false)
-                    .Build();
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile(path, false)
+                .Build();
 
             var connectionString = configuration.GetConnectionString("AzureDb");
             optionsBuilder.UseSqlServer(connectionString);
@@ -134,6 +134,10 @@ namespace DbDll
                 entity.Property(e => e.Description)
                     .IsRequired()
                     .HasMaxLength(512);
+
+                entity.Property(e => e.IsEnabled)
+                    .IsRequired()
+                    .HasDefaultValue(false);
 
                 entity.Property(e => e.BackgroundColor)
                     .IsRequired()

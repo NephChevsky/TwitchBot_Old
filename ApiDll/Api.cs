@@ -182,11 +182,12 @@ namespace ApiDll
             return response.Data[0];
 		}
 
-        public async Task<bool> UpdateChannelReward(string rewardId, ChannelReward channelReward, bool isEnabled)
+        public async Task<bool> UpdateChannelReward(ChannelReward channelReward)
         {
             UpdateCustomRewardRequest request = new();
             request.Title = channelReward.Name;
             request.Prompt = channelReward.Description;
+            request.IsEnabled = channelReward.IsEnabled;
             request.BackgroundColor = channelReward.BackgroundColor;
             request.IsUserInputRequired = channelReward.UserText;
             request.Cost = channelReward.CurrentCost;
@@ -197,8 +198,7 @@ namespace ApiDll
             request.MaxPerStream = channelReward.RedemptionPerStream;
             request.IsMaxPerUserPerStreamEnabled = channelReward.RedemptionPerUserPerStream != 0;
             request.MaxPerUserPerStream = channelReward.RedemptionPerUserPerStream;
-            request.IsEnabled = isEnabled;
-            UpdateCustomRewardResponse response = await api.Helix.ChannelPoints.UpdateCustomRewardAsync(_settings.StreamerTwitchId, rewardId, request);
+            UpdateCustomRewardResponse response = await api.Helix.ChannelPoints.UpdateCustomRewardAsync(_settings.StreamerTwitchId, channelReward.TwitchId.ToString(), request);
             return response.Data.Count() != 0;
 		}
 

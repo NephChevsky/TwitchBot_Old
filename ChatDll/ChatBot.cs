@@ -240,6 +240,7 @@ namespace ChatDll
 
         private async Task OnTriggerReward(object sender, Dictionary<string, string> e)
         {
+            bool success = false;
             if (string.Equals(e["type"], "Do a barrel roll!", StringComparison.InvariantCultureIgnoreCase))
             {
                 SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\barrelroll.wav");
@@ -253,6 +254,7 @@ namespace ChatDll
                 simulator.Keyboard.KeyUp(VirtualKeyCode.VK_A);
                 simulator.Mouse.RightButtonUp();
                 simulator.Mouse.LeftButtonUp();
+                success = true;
             }
             else if (string.Equals(e["type"], "This is Rocket League!", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -272,24 +274,28 @@ namespace ChatDll
                 Task.Delay(1300).Wait();
                 simulator.Mouse.RightButtonUp();
                 simulator.Mouse.LeftButtonUp();
+                success = true;
             }
             else if (string.Equals(e["type"], "What a save!", StringComparison.InvariantCultureIgnoreCase))
             {
                 var simulator = new InputSimulator();
                 simulator.Keyboard.KeyPress(VirtualKeyCode.VK_2);
                 simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
+                success = true;
             }
             else if (string.Equals(e["type"], "Wow!", StringComparison.InvariantCultureIgnoreCase))
             {
                 var simulator = new InputSimulator();
                 simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
                 simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
+                success = true;
             }
             else if (string.Equals(e["type"], "Faking.", StringComparison.InvariantCultureIgnoreCase))
             {
                 var simulator = new InputSimulator();
                 simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
                 simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
+                success = true;
             }
             else if (string.Equals(e["type"], "Vider mon chargeur", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -297,21 +303,27 @@ namespace ChatDll
                 simulator.Mouse.LeftButtonDown();
                 Task.Delay(1000).Wait();
                 simulator.Mouse.LeftButtonUp();
+                success = true;
             }
             else if (string.Equals(e["type"], "Passer à la musique suivante", StringComparison.InvariantCultureIgnoreCase))
             {
-                if (!(await _spotify.SkipSong()))
+                if (await _spotify.SkipSong())
+                {
+                    success = true;
+                }
+                else
                 {
                     _chat.SendMessage($"{e["username"]} : On écoute pas de musique bouffon");
                 }
+                
             }
             else if (string.Equals(e["type"], "Ajouter une musique", StringComparison.InvariantCultureIgnoreCase))
             {
-                await AddSong(e["user-input"], e["username"]);
+                success = await AddSong(e["user-input"], e["username"]) == 1;
             }
             else if (string.Equals(e["type"], "Supprimer une musique", StringComparison.InvariantCultureIgnoreCase))
             {
-                await RemoveSong(e["username"]);
+                success = await RemoveSong(e["username"]);
             }
             else if (string.Equals(e["type"], "Ajouter une commande", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -320,12 +332,12 @@ namespace ChatDll
                 {
                     string commandName = e["user-input"].Substring(0, offset).Replace("!", "");
                     string commandMessage = e["user-input"].Substring(offset + 1);
-                    AddCommand(commandName, commandMessage, false, e["username"]);
+                    success = AddCommand(commandName, commandMessage, false, e["username"]);
                 }
             }
             else if (string.Equals(e["type"], "Supprimer une commande", StringComparison.InvariantCultureIgnoreCase))
             {
-                DeleteCommand(e["user-input"].Replace("!", ""), false, e["username"]);
+                success = DeleteCommand(e["user-input"].Replace("!", ""), false, e["username"]);
             }
             else if (string.Equals(e["type"], "Timeout un viewer", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -364,21 +376,44 @@ namespace ChatDll
                         {
                             _chat.SendMessage($"{firstViewer.DisplayName} : Non, pas envie aujourd'hui Kappa");
                         }
+                        success = true;
                     }
                     else
                     {
                         _chat.SendMessage($"{firstViewer.DisplayName} : Utilisateur inconnu");
+                        success = false;
                     }
                 }
                 else
                 {
                     _chat.SendMessage($"{e["username"]} : T'as cru t'allais timeout un modo?");
                     _api.BanUser(e["username"]);
+                    success = true;
                 }
             }
+            else if ((string.Equals(e["type"], "VIP", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                //TODO: wait for implementation of VIP management in TwitchLib.Api then demote/promote the user
+                success = true;
+			}
+
+            if (success)
+            {
+                using (TwitchDbContext db = new(Guid.Empty))
+                {
+                    ChannelReward dbReward = db.ChannelRewards.Where(x => x.Name == e["type"]).FirstOrDefault();
+                    if (dbReward != null)
+                    {
+                        dbReward.CurrentCost += dbReward.CostIncreaseAmount;
+                        dbReward.LastUsedDateTime = DateTime.Now;
+                        await _api.UpdateChannelReward(dbReward);
+                        db.SaveChanges();
+                    }
+                }
+			}
         }
 
-        public void AddCommand(string commandName, string commandMessage, bool isMod, string displayName)
+        public bool AddCommand(string commandName, string commandMessage, bool isMod, string displayName)
         {
             Command cmd = new();
             cmd.Name = commandName;
@@ -397,18 +432,20 @@ namespace ChatDll
                     when ((ex.InnerException as SqlException)?.Number == 2601 || (ex.InnerException as SqlException)?.Number == 2627)
                     {
                         _chat.SendMessage($"{displayName} : Une commande du même nom existe déja");
-                        return;
+                        return false;
                     }
                     _chat.SendMessage($"{displayName} : Command {commandName} créée");
+                    return true;
                 }
             }
             else
             {
                 _chat.SendMessage($"{displayName} : Utilisateur inconnu");
+                return false;
             }
         }
 
-        public void DeleteCommand(string commandName, bool isMod, string displayName)
+        public bool DeleteCommand(string commandName, bool isMod, string displayName)
         {
             Guid guid = GetUserGuid(displayName.ToLower());
             if (guid != InvalidGuid)
@@ -423,21 +460,25 @@ namespace ChatDll
                             db.Remove(dbCmd);
                             db.SaveChanges();
                             _chat.SendMessage($"{displayName} : Command {commandName} supprimée");
+                            return true;
                         }
                         else
                         {
                             _chat.SendMessage($"{displayName} : Pas touche!");
+                            return false;
                         }
                     }
                     else
                     {
                         _chat.SendMessage($"{displayName} : Commande inconnue");
+                        return false;
                     }
                 }
             }
             else
             {
                 _chat.SendMessage($"{displayName} : Utilisateur inconnu");
+                return false;
             }
         }
         public async Task SkipSong(string displayName)
