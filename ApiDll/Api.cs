@@ -149,13 +149,13 @@ namespace ApiDll
             return followers.Follows[0];
         }
 
-        public async Task<List<CustomReward>> GetChannelRewards()
+        public async Task<List<CustomReward>> GetChannelRewards(List<string> ids = null)
         {
-            GetCustomRewardsResponse rewards = await api.Helix.ChannelPoints.GetCustomRewardAsync(_settings.StreamerTwitchId, null, true);
+            GetCustomRewardsResponse rewards = await api.Helix.ChannelPoints.GetCustomRewardAsync(_settings.StreamerTwitchId, ids, true);
             return rewards.Data.ToList();
         }
 
-        public async Task<bool> CreateChannelReward(ChannelReward channelReward)
+        public async Task<CustomReward> CreateChannelReward(ChannelReward channelReward)
         {
             CreateCustomRewardsRequest request = new();
             request.Title = channelReward.Name;
@@ -172,7 +172,7 @@ namespace ApiDll
             request.MaxPerUserPerStream = channelReward.RedemptionPerUserPerStream;
             request.IsEnabled = true;
             CreateCustomRewardsResponse response = await api.Helix.ChannelPoints.CreateCustomRewardsAsync(_settings.StreamerTwitchId, request);
-            return response.Data.Count() != 0;
+            return response.Data[0];
 		}
 
         public async Task<bool> UpdateChannelReward(string rewardId, ChannelReward channelReward, bool isEnabled)
