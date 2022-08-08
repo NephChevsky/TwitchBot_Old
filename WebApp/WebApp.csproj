@@ -53,6 +53,7 @@
 		<ProjectReference Include="..\ModelsDll\ModelsDll.csproj" />
 		<ProjectReference Include="..\ApiDll\ApiDll.csproj" />
 		<ProjectReference Include="..\SpotifyDll\SpotifyDll.csproj" />
+		<ProjectReference Include="..\DiscordDll\DiscordDll.csproj" />
 		<ProjectReference Include="..\DbDll\DbDll.csproj" />
 	</ItemGroup>
 

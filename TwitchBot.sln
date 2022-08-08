@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bot", "Bot\Bot.csproj", "{3
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpotifyDll", "SpotifyDll\SpotifyDll.csproj", "{25BE6AFC-19C5-4F97-8774-2D1B89F644FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InputReader", "InputReader\InputReader.csproj", "{9C579549-7324-4AEA-AC8A-620CBDC48BA6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InputReader", "InputReader\InputReader.csproj", "{9C579549-7324-4AEA-AC8A-620CBDC48BA6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscordDll", "DiscordDll\DiscordDll.csproj", "{664372F6-5EB1-4901-B2F4-D23BD90B1921}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,14 @@ Global
 		{9C579549-7324-4AEA-AC8A-620CBDC48BA6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9C579549-7324-4AEA-AC8A-620CBDC48BA6}.Release|x64.ActiveCfg = Release|Any CPU
 		{9C579549-7324-4AEA-AC8A-620CBDC48BA6}.Release|x64.Build.0 = Release|Any CPU
+		{664372F6-5EB1-4901-B2F4-D23BD90B1921}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{664372F6-5EB1-4901-B2F4-D23BD90B1921}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{664372F6-5EB1-4901-B2F4-D23BD90B1921}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{664372F6-5EB1-4901-B2F4-D23BD90B1921}.Debug|x64.Build.0 = Debug|Any CPU
+		{664372F6-5EB1-4901-B2F4-D23BD90B1921}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{664372F6-5EB1-4901-B2F4-D23BD90B1921}.Release|Any CPU.Build.0 = Release|Any CPU
+		{664372F6-5EB1-4901-B2F4-D23BD90B1921}.Release|x64.ActiveCfg = Release|Any CPU
+		{664372F6-5EB1-4901-B2F4-D23BD90B1921}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

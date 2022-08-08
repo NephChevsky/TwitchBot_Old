@@ -36,7 +36,7 @@ export class AlertsComponent implements OnInit {
 
   async triggerAlert(alert: any) {
     switch (alert.type) {
-      case "channel_follow":
+      case "channel.follow":
         this.username = alert.username;
         this.message = "a follow la chaine!";
         this.value = -1;

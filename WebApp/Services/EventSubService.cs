@@ -5,6 +5,7 @@ using TwitchLib.Api.Helix.Models.EventSub;
 using TwitchLib.EventSub.Webhooks.Core;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs.Channel;
+using TwitchLib.EventSub.Webhooks.Core.EventArgs.Stream;
 
 namespace WebApp.Services
 {
@@ -15,16 +16,18 @@ namespace WebApp.Services
         readonly IHubContext<SignalService> _hub;
         private Settings _settings;
         private Api _api;
+        private DiscordDll.Discord _discord;
         private List<EventSubSubscription> Subscriptions;
         private List<string> HandledEvents = new List<string>();
 
-        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub)
+        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord)
         {
             _logger = logger;
             _eventSubWebhooks = eventSubWebhooks;
             _hub = hub;
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            _api = new(configuration, true);
+            _api = new(configuration, false);
+            _discord = discord;
 
             Subscriptions = new();
             Task<bool> subscriptionsTask = Task.Run(async () =>
@@ -39,6 +42,8 @@ namespace WebApp.Services
                 Subscriptions.Add(await _api.CreateEventSubSubscription("channel.raid"));
                 Subscriptions.Add(await _api.CreateEventSubSubscription("channel.hype_train.begin"));
                 Subscriptions.Add(await _api.CreateEventSubSubscription("channel.channel_points_custom_reward_redemption.add"));
+                Subscriptions.Add(await _api.CreateEventSubSubscription("stream.online"));
+                Subscriptions.Add(await _api.CreateEventSubSubscription("stream.offline"));
 
                 return true;
             });
@@ -57,6 +62,8 @@ namespace WebApp.Services
             _eventSubWebhooks.OnChannelRaid += OnChannelRaid;
             _eventSubWebhooks.OnChannelHypeTrainBegin += OnChannelHypeTrainBegin;
             _eventSubWebhooks.OnChannelPointsCustomRewardRedemptionAdd += OnChannelPointsCustomRewardRedemptionAdd;
+            _eventSubWebhooks.OnStreamOnline += OnStreamOnline;
+            _eventSubWebhooks.OnStreamOffline += OnStreamOffline;
             _logger.LogInformation($"Service started");
             return Task.CompletedTask;
         }
@@ -74,6 +81,8 @@ namespace WebApp.Services
             _eventSubWebhooks.OnChannelRaid -= OnChannelRaid;
             _eventSubWebhooks.OnChannelHypeTrainBegin -= OnChannelHypeTrainBegin;
             _eventSubWebhooks.OnChannelPointsCustomRewardRedemptionAdd -= OnChannelPointsCustomRewardRedemptionAdd;
+            _eventSubWebhooks.OnStreamOnline -= OnStreamOnline;
+            _eventSubWebhooks.OnStreamOffline -= OnStreamOffline;
             _logger.LogInformation($"Service stopped");
             return Task.CompletedTask;
         }
@@ -84,7 +93,7 @@ namespace WebApp.Services
             {
                 _logger.LogInformation($"{e.Notification.Event.UserName} followed {e.Notification.Event.BroadcasterUserName}");
                 Dictionary<string, object> alert = new Dictionary<string, object>();
-                alert.Add("type", "channel_follow");
+                alert.Add("type", "channel.follow");
                 alert.Add("username", e.Notification.Event.UserName);
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
                 HandledEvents.Add(e.Notification.Subscription.Id);
@@ -199,6 +208,24 @@ namespace WebApp.Services
                 _hub.Clients.All.SendAsync("TriggerReward", reward);
                 HandledEvents.Add(e.Notification.Event.Id);
             }
+        }
+
+        private void OnStreamOnline(object sender, StreamOnlineArgs e)
+        {
+            if (!HandledEvents.Contains(e.Notification.Event.Id))
+            {
+                _discord.SendMessage(_settings.DiscordFunction.NewsChannelId, "@Neph a lancé un live. Viens foutre le bordel avec nous sur https://www.twitch.tv/nephchevsky !").Wait();
+            }
+            HandledEvents.Add(e.Notification.Event.Id);
+        }
+
+        private void OnStreamOffline(object sender, StreamOfflineArgs e)
+        {
+            if (!HandledEvents.Contains(e.Notification.Subscription.Id))
+            {
+                _discord.DeleteMessage(_settings.DiscordFunction.NewsChannelId, "NephBot", "@Neph a lancé un live. Viens foutre le bordel avec nous sur https://www.twitch.tv/nephchevsky !").Wait();
+            }
+            HandledEvents.Add(e.Notification.Subscription.Id);
         }
 
         private void OnError(object sender, OnErrorArgs e)

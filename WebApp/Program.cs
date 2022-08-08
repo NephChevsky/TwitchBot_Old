@@ -25,6 +25,7 @@ namespace WebApp
 			});
 
 			builder.Services.AddSingleton<Spotify>();
+			builder.Services.AddSingleton<DiscordDll.Discord>();
 			builder.Services.AddHostedService<EventSubService>();
 			builder.Services.AddHostedService<UpdateButtons>();
 

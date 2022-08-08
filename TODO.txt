@@ -9,11 +9,17 @@ last cheer (no api, need to keep an historic in webapp)
 best cheer donator (daily, monthly, total) (no api, need to keep an historic in webapp)
 make sure alerts are displayed until the end before processing the next one
 clean up uptimes and chat messages history after a month
+Refresh twitch api token after 4h
+Verifier que le user n'éxiste pas sous un autre nom quand on compute l'uptime
 
 ===============
 Commands
 ===============
 
+===============
+Discord
+===============
+Poster automatiquement un message dans le channel annonces quand un live démarre
 
 ===============
 Channel Rewards
