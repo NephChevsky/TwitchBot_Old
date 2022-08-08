@@ -103,15 +103,18 @@ namespace WebApp.Services
                         limit = DateTime.Now.AddMonths(-1);
                     }
                     var uptime = db.Uptimes.Where(x => x.CreationDateTime > limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).OrderByDescending(g => g.Sum).ToList();
-                    Viewer dbViewer;
-                    do
+                    if (uptime.Count != 0)
                     {
-                        dbViewer = db.Viewers.Where(x => x.Id == uptime[0].Owner).FirstOrDefault();
-                        uptime.RemoveAt(0);
-                    } while (uptime.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
-                    if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
-                    {
-                        return dbViewer.DisplayName;
+                        Viewer dbViewer;
+                        do
+                        {
+                            dbViewer = db.Viewers.Where(x => x.Id == uptime[0].Owner).FirstOrDefault();
+                            uptime.RemoveAt(0);
+                        } while (uptime.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
+                        if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
+                        {
+                            return dbViewer.DisplayName;
+                        }
                     }
                     return "";
                 }
@@ -141,16 +144,19 @@ namespace WebApp.Services
                     {
                         limit = DateTime.Now.AddMonths(-1);
                     }
-                    var messagesCount = db.Messages.Where(x => x.CreationDateTime > limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count()}).OrderByDescending(g => g.Count).ToList();
-                    Viewer dbViewer;
-                    do
+                    var messages = db.Messages.Where(x => x.CreationDateTime > limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count()}).OrderByDescending(g => g.Count).ToList();
+                    if (messages.Count != 0)
                     {
-                        dbViewer = db.Viewers.Where(x => x.Id == messagesCount[0].Owner).FirstOrDefault();
-                        messagesCount.RemoveAt(0);
-                    } while (messagesCount.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
-                    if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
-                    {
-                        return dbViewer.DisplayName;
+                        Viewer dbViewer;
+                        do
+                        {
+                            dbViewer = db.Viewers.Where(x => x.Id == messages[0].Owner).FirstOrDefault();
+                            messages.RemoveAt(0);
+                        } while (messages.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
+                        if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
+                        {
+                            return dbViewer.DisplayName;
+                        }
                     }
                     return "";
                 }
