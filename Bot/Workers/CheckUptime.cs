@@ -51,11 +51,41 @@ namespace Bot.Workers
                 List<ChatterFormatted> chatters = await _api.GetChatters();
                 bool genericWelcome = false;
                 DateTime now = DateTime.Now;
-                chatters.ForEach(async x =>
+                foreach (ChatterFormatted x in chatters)
                 {
                     using (TwitchDbContext db = new(Guid.Empty))
                     {
+                        User user;
                         Viewer dbViewer = db.Viewers.Where(obj => obj.Username == x.Username).FirstOrDefault();
+                        if (dbViewer == null)
+                        {
+                            user = await _api.GetUser(x.Username.ToLower());
+                            dbViewer = db.Viewers.Where(obj => obj.TwitchId == user.Id).FirstOrDefault();
+                            if (dbViewer != null)
+                            {
+                                dbViewer.Username = user.Login;
+                                dbViewer.DisplayName = user.DisplayName;
+							}
+                            else
+                            {
+                                if (!_bots.Contains(x.Username.ToLower()))
+                                {
+                                    dbViewer = new Viewer(user.Login, user.DisplayName, user.Id);
+                                    db.Viewers.Add(dbViewer);
+                                    if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin)
+                                    {
+                                        _logger.LogInformation($"Show commands when a new viewer is here");
+                                        _chat.SendMessage($"Bienvenue sur le stream {dbViewer.DisplayName}. Tu peux venir rigoler avec nous où bien taper ton meilleur lurk ;)");
+                                    }
+                                    if (_settings.CheckUptimeFunction.GenericWelcome)
+                                    {
+                                        genericWelcome = true;
+                                    }
+                                    db.SaveChanges();
+                                }
+                                continue;
+                            }
+                        }
                         if (dbViewer != null && !dbViewer.IsBot)
                         {
                             if (!CurrentChatters.Select(y => y.Username).ToList().Contains(x.Username, StringComparer.OrdinalIgnoreCase))
@@ -91,28 +121,10 @@ namespace Bot.Workers
                                 }
                             }
                             dbViewer.LastViewedDateTime = now;
+                            db.SaveChanges();
                         }
-                        else if (dbViewer == null)
-                        {
-                            if (!_bots.Contains(x.Username.ToLower()))
-                            {
-                                User user = await _api.GetUser(x.Username.ToLower());
-                                dbViewer = new Viewer(user.Login, user.DisplayName, user.Id);
-                                db.Viewers.Add(dbViewer);
-                                if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin)
-                                {
-                                    _logger.LogInformation($"Show commands when a new viewer is here");
-                                    _chat.SendMessage($"Bienvenue sur le stream {dbViewer.DisplayName}. Tu peux venir rigoler avec nous où bien taper ton meilleur lurk ;)");
-                                }
-                                if (_settings.CheckUptimeFunction.GenericWelcome)
-                                {
-                                    genericWelcome = true;
-                                }
-                            }
-                        }
-                        db.SaveChanges();
                     }
-                });
+                }
                 if (_settings.CheckUptimeFunction.GenericWelcome && genericWelcome)
                 {
                     _chat.SendMessage($"Je développe un bot Twitch pour créer des intéractions entre le chat, mon stream et mon gameplay. Teste le en tapant !bot pour voir les commandes disponibles ;)");
