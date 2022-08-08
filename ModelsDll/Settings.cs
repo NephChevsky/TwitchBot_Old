@@ -20,6 +20,8 @@
         public SpotifyFunction SpotifyFunction { get; set; }
         public CheckChannelRewardsFunction CheckChannelRewardsFunction { get; set; }
 
+        public DiscordFunction DiscordFunction { get; set; }
+
         public Tags Tags { get; set; }
     }
 
@@ -58,6 +60,14 @@
     public class CheckChannelRewardsFunction
     {
         public int Timer { get; set; }
+	}
+
+    public class DiscordFunction
+    {
+        public string ClientId { get; set; }
+        public string ClientSecret { get; set; }
+        public string AccessToken { get; set; }
+        public ulong NewsChannelId { get; set; }
 	}
 
     public class Tags
