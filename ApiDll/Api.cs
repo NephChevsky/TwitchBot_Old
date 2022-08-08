@@ -35,6 +35,7 @@ namespace ApiDll
         private ILoggerFactory _loggerFactory;
         private TwitchAPI api;
         private string ApiType;
+        private Timer RefreshTokenTimer;
 
         public Api(IConfiguration configuration, string apiType)
         {
@@ -48,12 +49,7 @@ namespace ApiDll
             _loggerFactory = LoggerFactory.Create(lf => { lf.AddAzureWebAppDiagnostics(); });
             _logger = _loggerFactory.CreateLogger<Api>();
             ApiType = apiType;
-            Init();
-        }
 
-        public void Init()
-        {
-            _logger.LogInformation("Starting api's initialisation");
             api = new TwitchAPI();
             api.Settings.ClientId = _settings.ClientId;
             api.Settings.Secret = _settings.Secret;
@@ -69,12 +65,13 @@ namespace ApiDll
             else
             {
                 api.Settings.AccessToken = ApiType == "twitchapi" ? _settings.StreamerAccessToken : _settings.BotAccessToken;
-                RefreshToken().Wait();
+                Task.Run(() => RefreshToken()).Wait();
             }
-            _logger.LogInformation("End of api's initialisation");
+
+            RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(4 * 60 - 5), TimeSpan.FromMinutes(4 * 60 - 5));
         }
 
-        public async Task RefreshToken()
+        public async void RefreshToken(object state = null)
         {
             RefreshResponse token = await api.Auth.RefreshAuthTokenAsync(ApiType == "twitchapi" ? _settings.StreamerRefreshToken : _settings.BotRefreshToken, _settings.Secret);
             Helpers.UpdateTokens(ApiType, _configPath, token.AccessToken, token.RefreshToken);

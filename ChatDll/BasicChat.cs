@@ -30,7 +30,7 @@ namespace ChatDll
 			_configPath = configuration.GetValue<string>("ConfigPath");
 			
 			Api api = new(configuration, "twitchchat");
-			api.RefreshToken().Wait();
+			Task.Run(() => api.RefreshToken()).Wait();
 			ConnectionCredentials credentials = new ConnectionCredentials(_settings.Bot, _settings.BotAccessToken);
 			var clientOptions = new ClientOptions
 			{
