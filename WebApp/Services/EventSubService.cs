@@ -26,7 +26,7 @@ namespace WebApp.Services
             _eventSubWebhooks = eventSubWebhooks;
             _hub = hub;
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            _api = new(configuration, false);
+            _api = new(configuration, "twitchapp");
             _discord = discord;
 
             Subscriptions = new();

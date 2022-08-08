@@ -36,7 +36,7 @@ namespace ChatDll
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            _api = new(configuration, false);
+            _api = new(configuration, "twitchapi");
             _spotify = spotify;
             _chat = chat;
             _connection = new HubConnectionBuilder().WithUrl("https://bot-neph.azurewebsites.net/hub").WithAutomaticReconnect().Build();

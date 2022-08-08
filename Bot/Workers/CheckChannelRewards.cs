@@ -30,7 +30,7 @@ namespace Bot.Workers
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            _api = new(configuration, false);
+            _api = new(configuration, "twitchapi");
             _spotify = spotify;
         }
 

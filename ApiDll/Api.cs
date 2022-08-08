@@ -34,7 +34,9 @@ namespace ApiDll
         private ILogger<Api> _logger;
         private ILoggerFactory _loggerFactory;
         private TwitchAPI api;
-        public Api(IConfiguration configuration, bool useAppAccessToken)
+        private string ApiType;
+
+        public Api(IConfiguration configuration, string apiType)
         {
             _configPath = configuration.GetValue<string>("ConfigPath");
             _settings = configuration.GetSection("Settings").Get<Settings>();
@@ -45,16 +47,17 @@ namespace ApiDll
 			}
             _loggerFactory = LoggerFactory.Create(lf => { lf.AddAzureWebAppDiagnostics(); });
             _logger = _loggerFactory.CreateLogger<Api>();
-            Init(useAppAccessToken);
+            ApiType = apiType;
+            Init();
         }
 
-        public void Init(bool useAppAccessToken)
+        public void Init()
         {
             _logger.LogInformation("Starting api's initialisation");
             api = new TwitchAPI();
             api.Settings.ClientId = _settings.ClientId;
             api.Settings.Secret = _settings.Secret;
-            if (useAppAccessToken)
+            if (ApiType == "twitchapp")
             {
                 Task<string> credentialsTask = Task.Run(async () =>
                 {
@@ -65,18 +68,26 @@ namespace ApiDll
             }
             else
             {
-                api.Settings.AccessToken = _settings.StreamerAccessToken;
-                Task<RefreshResponse> task = Task.Run(async () =>
-                {
-                    return await RefreshToken();
-                });
-                task.Wait();
-                RefreshResponse token = task.Result;
-                Helpers.UpdateTokens("twitchapi", _configPath, token.AccessToken, token.RefreshToken);
+                api.Settings.AccessToken = ApiType == "twitchapi" ? _settings.StreamerAccessToken : _settings.BotAccessToken;
+                RefreshToken().Wait();
+            }
+            _logger.LogInformation("End of api's initialisation");
+        }
+
+        public async Task RefreshToken()
+        {
+            RefreshResponse token = await api.Auth.RefreshAuthTokenAsync(ApiType == "twitchapi" ? _settings.StreamerRefreshToken : _settings.BotRefreshToken, _settings.Secret);
+            Helpers.UpdateTokens(ApiType, _configPath, token.AccessToken, token.RefreshToken);
+            if (ApiType == "twitchapi")
+            {
                 _settings.StreamerAccessToken = token.AccessToken;
                 _settings.StreamerRefreshToken = token.RefreshToken;
             }
-            _logger.LogInformation("End of api's initialisation");
+            else
+            {
+                _settings.BotAccessToken = token.AccessToken;
+                _settings.BotRefreshToken = token.RefreshToken;
+            }
         }
 
         public async Task<EventSubSubscription> CreateEventSubSubscription(string type)
@@ -108,20 +119,6 @@ namespace ApiDll
             GetEventSubSubscriptionsResponse response = await api.Helix.EventSub.GetEventSubSubscriptionsAsync();
             return response.Subscriptions.ToList();
 		}
-
-        public async Task<RefreshResponse> RefreshToken(bool bot = false)
-        {
-            if (bot)
-            {
-                api.Settings.AccessToken = _settings.BotAccessToken;
-            }
-            RefreshResponse token = await api.Auth.RefreshAuthTokenAsync(bot ? _settings.BotRefreshToken : _settings.StreamerRefreshToken, _settings.Secret);
-            if (bot)
-            {
-                api.Settings.AccessToken = _settings.StreamerAccessToken;
-            }
-            return token;
-        }
 
         public async Task<ModifyChannelInformationResponse> ModifyChannelInformation(string title = null, string game=null)
         {

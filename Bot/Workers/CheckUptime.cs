@@ -29,7 +29,7 @@ namespace Bot.Workers
             _settings = configuration.GetSection("Settings").Get<Settings>();
             _bots = configuration.GetSection("TwitchBotList").Get<List<string>>();
             _chat = chat;
-            _api = new(configuration, false);
+            _api = new(configuration, "twitchapi");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

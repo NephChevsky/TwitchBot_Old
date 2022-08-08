@@ -24,7 +24,7 @@ namespace WebApp.Services
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            _api = new Api(configuration, false);
+            _api = new Api(configuration, "twitchapi");
             _spotify = spotify;
             _hub = hub;
         }

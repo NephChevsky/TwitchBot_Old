@@ -22,24 +22,15 @@ namespace ChatDll
 		private string _configPath;
 		private readonly ILogger<BasicChat> _logger;
 		public TwitchClient _client;
-		private Api _api;
 
 		public BasicChat(ILogger<BasicChat> logger, IConfiguration configuration)
 		{
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
 			_configPath = configuration.GetValue<string>("ConfigPath");
-			_api = new(configuration, false);
-
-			Task<RefreshResponse> refreshToken = Task.Run(async () =>
-			{
-				return await _api.RefreshToken(true);
-			});
-			refreshToken.Wait();
-			RefreshResponse token = refreshToken.Result;
-			Helpers.UpdateTokens("twitchchat", _configPath, token.AccessToken, token.RefreshToken);
-			_settings.BotAccessToken = token.AccessToken;
-			_settings.BotRefreshToken = token.RefreshToken;
+			
+			Api api = new(configuration, "twitchchat");
+			api.RefreshToken().Wait();
 			ConnectionCredentials credentials = new ConnectionCredentials(_settings.Bot, _settings.BotAccessToken);
 			var clientOptions = new ClientOptions
 			{
