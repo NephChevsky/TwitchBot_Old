@@ -24,8 +24,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ModelsDll\ModelsDll.csproj" />
-		<ProjectReference Include="..\DbDll\DbDll.csproj" />
 		<ProjectReference Include="..\ApiDll\ApiDll.csproj" />
-		<ProjectReference Include="..\SpotifyDll\SpotifyDll.csproj" />
 	</ItemGroup>
 </Project>
