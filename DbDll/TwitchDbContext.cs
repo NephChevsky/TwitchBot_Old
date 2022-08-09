@@ -76,10 +76,6 @@ namespace DbDll
                     .IsRequired()
                     .HasDefaultValue(0);
 
-                entity.Property(e => e.CheersCount)
-                    .IsRequired()
-                    .HasDefaultValue(0);
-
                 entity.Property(e => e.MessageCount)
                     .IsRequired()
                     .HasDefaultValue(0);
