@@ -13,18 +13,27 @@ namespace ModelsDll
 	{
         public static void UpdateTokens(string name, string configpath, string accessToken, string refreshToken)
         {
-            dynamic config = LoadAppSettings(configpath);
-            if (name == "twitchapi")
+            Mutex mut = new Mutex(false, "appSettings");
+            mut.WaitOne();
+            try
             {
-                config.Settings.StreamerAccessToken = accessToken;
-                config.Settings.StreamerRefreshToken = refreshToken;
+                dynamic config = LoadAppSettings(configpath);
+                if (name == "twitchapi")
+                {
+                    config.Settings.StreamerAccessToken = accessToken;
+                    config.Settings.StreamerRefreshToken = refreshToken;
+                }
+                if (name == "twitchchat")
+                {
+                    config.Settings.BotAccessToken = accessToken;
+                    config.Settings.BotRefreshToken = refreshToken;
+                }
+                SaveAppSettings(configpath, config);
             }
-            if (name == "twitchchat")
+            finally
             {
-                config.Settings.BotAccessToken = accessToken;
-                config.Settings.BotRefreshToken = refreshToken;
-            }
-            SaveAppSettings(configpath, config);
+                mut.ReleaseMutex();
+			}
         }
 
         public static dynamic LoadAppSettings(string configpath)
