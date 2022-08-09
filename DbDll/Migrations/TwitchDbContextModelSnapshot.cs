@@ -122,7 +122,7 @@ namespace DbDll.Migrations
                     b.HasIndex("Id")
                         .IsUnique();
 
-                    b.ToTable("ChannelRewards");
+                    b.ToTable("ChannelRewards", (string)null);
                 });
 
             modelBuilder.Entity("ModelsDll.Db.ChatMessage", b =>
@@ -149,7 +149,7 @@ namespace DbDll.Migrations
                     b.HasIndex("Id")
                         .IsUnique();
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("ModelsDll.Db.Cheer", b =>
@@ -175,7 +175,7 @@ namespace DbDll.Migrations
                     b.HasIndex("Id")
                         .IsUnique();
 
-                    b.ToTable("Cheers");
+                    b.ToTable("Cheers", (string)null);
                 });
 
             modelBuilder.Entity("ModelsDll.Db.Command", b =>
@@ -219,7 +219,7 @@ namespace DbDll.Migrations
                         .IsUnique()
                         .HasFilter("Deleted = 0");
 
-                    b.ToTable("Commands");
+                    b.ToTable("Commands", (string)null);
                 });
 
             modelBuilder.Entity("ModelsDll.Db.Uptime", b =>
@@ -247,7 +247,7 @@ namespace DbDll.Migrations
                     b.HasIndex("Id")
                         .IsUnique();
 
-                    b.ToTable("Uptimes");
+                    b.ToTable("Uptimes", (string)null);
                 });
 
             modelBuilder.Entity("ModelsDll.Db.Viewer", b =>
@@ -319,7 +319,7 @@ namespace DbDll.Migrations
                         .IsUnique()
                         .HasFilter("Deleted = 0");
 
-                    b.ToTable("Viewers");
+                    b.ToTable("Viewers", (string)null);
                 });
 #pragma warning restore 612, 618
         }
