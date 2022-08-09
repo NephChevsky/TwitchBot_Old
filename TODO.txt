@@ -22,4 +22,4 @@ Poster automatiquement un message dans le channel annonces quand un live démarr
 ===============
 Channel Rewards
 ===============
-VIP => à implementer quand la TwitchLib API aura les interfaces
+

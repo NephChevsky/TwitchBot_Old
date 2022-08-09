@@ -48,6 +48,7 @@
         public bool AddBotSuffixInTitle { get; set; }
         public bool AddCustomCommands { get; set; }
         public bool AntiSpam { get; set; }
+        public int MaxVIPs { get; set; }
     }
 
     public class SpotifyFunction

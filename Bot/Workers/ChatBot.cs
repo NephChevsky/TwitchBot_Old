@@ -399,7 +399,7 @@ namespace ChatDll
             }
             else if ((string.Equals(e["type"], "VIP", StringComparison.InvariantCultureIgnoreCase)))
             {
-                //TODO: wait for implementation of VIP management in TwitchLib.Api then demote/promote the user
+                await _api.AddVIP(e["user-id"]);
                 success = true;
 			}
 

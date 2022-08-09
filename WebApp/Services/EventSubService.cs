@@ -199,6 +199,7 @@ namespace WebApp.Services
                 Dictionary<string, object> reward = new Dictionary<string, object>();
                 reward.Add("type", e.Notification.Event.Reward.Title);
                 reward.Add("username", e.Notification.Event.UserName);
+                reward.Add("user-id", e.Notification.Event.UserId);
                 reward.Add("reward-id", e.Notification.Event.Reward.Id);
                 reward.Add("event-id", e.Notification.Event.Id);
                 if (!string.IsNullOrEmpty(e.Notification.Event.UserInput))

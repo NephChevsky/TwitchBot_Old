@@ -24,6 +24,7 @@ using TwitchLib.Api.Helix.Models.ChannelPoints.UpdateCustomReward;
 using TwitchLib.Api.Helix.Models.Subscriptions;
 using TwitchLib.Api.Helix.Models.ChannelPoints.UpdateCustomRewardRedemptionStatus;
 using TwitchLib.Api.Core.Enums;
+using TwitchLib.Api.Helix.Models.Channels.GetChannelVIPs;
 
 namespace ApiDll
 {
@@ -262,6 +263,16 @@ namespace ApiDll
             UpdateCustomRewardRedemptionStatusRequest request = new();
             request.Status = status;
             await api.Helix.ChannelPoints.UpdateRedemptionStatusAsync(_settings.StreamerTwitchId, rewardId, new List<string>() { eventId }, request);
+		}
+
+        public async Task AddVIP(string userId)
+        {
+            GetChannelVIPsResponse vips = await api.Helix.Channels.GetVIPsAsync(_settings.StreamerTwitchId);
+            if (vips.Data.Count() >= _settings.ChatFunction.MaxVIPs)
+            {
+                await api.Helix.Channels.RemoveChannelVIPAsync(_settings.StreamerTwitchId, vips.Data[0].UserId);
+			}
+            await api.Helix.Channels.AddChannelVIPAsync(_settings.StreamerTwitchId, userId);
 		}
 
         public void Dispose()
