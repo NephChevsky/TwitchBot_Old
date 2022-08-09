@@ -186,66 +186,6 @@ namespace WebApp.Services
                 }
                 return "";
             }
-            else if (name == "most_cheers_daily" || name == "most_cheers_monthly")
-            {
-                using (TwitchDbContext db = new(Guid.Empty))
-                {
-                    DateTime limit = DateTime.MinValue;
-                    if (name == "most_cheers_daily")
-                    {
-                        limit = DateTime.Now.AddDays(-1);
-                    }
-                    else if (name == "most_cheers_monthly")
-                    {
-                        limit = DateTime.Now.AddMonths(-1);
-                    }
-                    var cheers = db.Cheers.Where(x => x.CreationDateTime > limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Amount) }).OrderByDescending(g => g.Sum).ToList();
-                    if (cheers.Count != 0)
-                    {
-                        int total = 0;
-                        Viewer dbViewer;
-                        do
-                        {
-                            dbViewer = db.Viewers.Where(x => x.Id == cheers[0].Owner).FirstOrDefault();
-                            total = cheers[0].Sum;
-                            cheers.RemoveAt(0);
-                        } while (cheers.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
-                        if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
-                        {
-                            return dbViewer.DisplayName + " (" + total + ")";
-                        }
-                    }
-                    return "";
-                }
-            }
-            else if (name == "most_cheers_total")
-            {
-                using (TwitchDbContext db = new(Guid.Empty))
-                {
-                    Viewer dbViewer = db.Viewers.Where(x => x.IsBot == false && x.Username != _settings.Streamer).OrderByDescending(x => x.CheersCount).FirstOrDefault();
-                    if (dbViewer != null)
-                    {
-                        return dbViewer.DisplayName + " (" + dbViewer.CheersCount + ")";
-                    }
-                    return "";
-                }
-            }
-            else if (name == "last_cheers")
-            {
-                using (TwitchDbContext db = new(Guid.Empty))
-                {
-                    Cheer last = db.Cheers.OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
-                    if (last != null)
-                    {
-                        Viewer dbViewer = db.Viewers.Where(x => x.Id == last.Owner).FirstOrDefault();
-                        if (dbViewer != null)
-                        {
-                            return dbViewer.DisplayName + " (" + last.Amount + ")";
-                        }
-                    }
-                    return "";
-                }
-            }
             else if (name == "subscriber_count" || name == "subscriber_goal" || name == "last_subscriber" || name == "last_subscription_gifter")
             {
                 List<Subscription> subscribers = await _api.GetSubscribers();
@@ -313,18 +253,6 @@ namespace WebApp.Services
                     break;
                 case "current_song":
                     value = "Musique";
-                    break;
-                case "most_cheers_daily":
-                    value = "Meilleur bits gifter (jour)";
-                    break;
-                case "most_cheers_monthly":
-                    value = "Meilleur bits gifter (mois)";
-                    break;
-                case "most_cheers_total":
-                    value = "Meilleur bits gifter (total)";
-                    break;
-                case "last_cheers":
-                    value = "Dernier bits gifter";
                     break;
                 case "subscriber_goal":
                     value = "Sub goal";

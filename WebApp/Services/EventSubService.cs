@@ -163,16 +163,6 @@ namespace WebApp.Services
                 alert.Add("bits", e.Notification.Event.Bits);
                 alert.Add("message", e.Notification.Event.Message);
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
-                using (TwitchDbContext db = new(Guid.Empty))
-                {
-                    Viewer viewer = db.Viewers.Where(x => x.TwitchId == e.Notification.Event.UserId).FirstOrDefault();
-                    Cheer cheer = new Cheer();
-                    cheer.Owner = viewer.Id;
-                    cheer.Amount = e.Notification.Event.Bits;
-                    viewer.CheersCount += e.Notification.Event.Bits;
-                    db.Cheers.Add(cheer);
-                    db.SaveChanges();
-                }
                 HandledEvents.Add(e.Notification.Subscription.Id);
             }
         }

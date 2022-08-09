@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DbDll.Migrations
 {
     [DbContext(typeof(TwitchDbContext))]
-    [Migration("20220809212445_CheersCount")]
-    partial class CheersCount
+    [Migration("20220809224014_RemoveDeleted")]
+    partial class RemoveDeleted
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -75,7 +75,7 @@ namespace DbDll.Migrations
                     b.Property<DateTime>("LastUsedDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValue(new DateTime(2022, 8, 9, 23, 24, 45, 806, DateTimeKind.Local).AddTicks(3914));
+                        .HasDefaultValue(new DateTime(2022, 8, 10, 0, 40, 14, 277, DateTimeKind.Local).AddTicks(3381));
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -152,32 +152,6 @@ namespace DbDll.Migrations
                         .IsUnique();
 
                     b.ToTable("Messages");
-                });
-
-            modelBuilder.Entity("ModelsDll.Db.Cheer", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Amount")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreationDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("LastModificationDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("Owner")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Id")
-                        .IsUnique();
-
-                    b.ToTable("Cheers");
                 });
 
             modelBuilder.Entity("ModelsDll.Db.Command", b =>

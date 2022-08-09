@@ -73,7 +73,7 @@ namespace DbDll.Migrations
                     b.Property<DateTime>("LastUsedDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValue(new DateTime(2022, 8, 9, 23, 24, 45, 806, DateTimeKind.Local).AddTicks(3914));
+                        .HasDefaultValue(new DateTime(2022, 8, 10, 0, 40, 14, 277, DateTimeKind.Local).AddTicks(3381));
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -122,7 +122,7 @@ namespace DbDll.Migrations
                     b.HasIndex("Id")
                         .IsUnique();
 
-                    b.ToTable("ChannelRewards", (string)null);
+                    b.ToTable("ChannelRewards");
                 });
 
             modelBuilder.Entity("ModelsDll.Db.ChatMessage", b =>
@@ -149,33 +149,7 @@ namespace DbDll.Migrations
                     b.HasIndex("Id")
                         .IsUnique();
 
-                    b.ToTable("Messages", (string)null);
-                });
-
-            modelBuilder.Entity("ModelsDll.Db.Cheer", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Amount")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreationDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("LastModificationDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("Owner")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Id")
-                        .IsUnique();
-
-                    b.ToTable("Cheers", (string)null);
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("ModelsDll.Db.Command", b =>
@@ -219,7 +193,7 @@ namespace DbDll.Migrations
                         .IsUnique()
                         .HasFilter("Deleted = 0");
 
-                    b.ToTable("Commands", (string)null);
+                    b.ToTable("Commands");
                 });
 
             modelBuilder.Entity("ModelsDll.Db.Uptime", b =>
@@ -247,7 +221,7 @@ namespace DbDll.Migrations
                     b.HasIndex("Id")
                         .IsUnique();
 
-                    b.ToTable("Uptimes", (string)null);
+                    b.ToTable("Uptimes");
                 });
 
             modelBuilder.Entity("ModelsDll.Db.Viewer", b =>
@@ -319,7 +293,7 @@ namespace DbDll.Migrations
                         .IsUnique()
                         .HasFilter("Deleted = 0");
 
-                    b.ToTable("Viewers", (string)null);
+                    b.ToTable("Viewers");
                 });
 #pragma warning restore 612, 618
         }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DbDll.Migrations
 {
-    public partial class Cheers : Migration
+    public partial class RemoveDeleted : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -17,42 +17,29 @@ namespace DbDll.Migrations
                 name: "Deleted",
                 table: "Messages");
 
+            migrationBuilder.AddColumn<int>(
+                name: "CheersCount",
+                table: "Viewers",
+                type: "int",
+                nullable: false,
+                defaultValue: 0);
+
             migrationBuilder.AlterColumn<DateTime>(
                 name: "LastUsedDateTime",
                 table: "ChannelRewards",
                 type: "datetime2",
                 nullable: false,
-                defaultValue: new DateTime(2022, 8, 9, 23, 15, 38, 386, DateTimeKind.Local).AddTicks(9675),
+                defaultValue: new DateTime(2022, 8, 10, 0, 40, 14, 277, DateTimeKind.Local).AddTicks(3381),
                 oldClrType: typeof(DateTime),
                 oldType: "datetime2",
                 oldDefaultValue: new DateTime(2022, 8, 5, 15, 14, 27, 661, DateTimeKind.Local).AddTicks(5201));
-
-            migrationBuilder.CreateTable(
-                name: "Cheers",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Amount = table.Column<int>(type: "int", nullable: false),
-                    Owner = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreationDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    LastModificationDateTime = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Cheers", x => x.Id);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Cheers_Id",
-                table: "Cheers",
-                column: "Id",
-                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Cheers");
+            migrationBuilder.DropColumn(
+                name: "CheersCount",
+                table: "Viewers");
 
             migrationBuilder.AddColumn<bool>(
                 name: "Deleted",
@@ -76,7 +63,7 @@ namespace DbDll.Migrations
                 defaultValue: new DateTime(2022, 8, 5, 15, 14, 27, 661, DateTimeKind.Local).AddTicks(5201),
                 oldClrType: typeof(DateTime),
                 oldType: "datetime2",
-                oldDefaultValue: new DateTime(2022, 8, 9, 23, 15, 38, 386, DateTimeKind.Local).AddTicks(9675));
+                oldDefaultValue: new DateTime(2022, 8, 10, 0, 40, 14, 277, DateTimeKind.Local).AddTicks(3381));
         }
     }
 }

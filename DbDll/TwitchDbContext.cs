@@ -26,7 +26,6 @@ namespace DbDll
         public DbSet<ChatMessage> Messages => Set<ChatMessage>();
         public DbSet<Uptime> Uptimes => Set<Uptime>();
         public DbSet<ChannelReward> ChannelRewards => Set<ChannelReward>();
-        public DbSet<Cheer> Cheers => Set<Cheer>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -196,15 +195,6 @@ namespace DbDll
                 AddGenericFields<ChannelReward>(entity);
             });
             modelBuilder.Entity<ChannelReward>().HasIndex(t => new { t.Id }).IsUnique(true);
-
-            modelBuilder.Entity<Cheer>(entity =>
-            {
-                entity.Property(e => e.Amount)
-                    .IsRequired();
-
-                AddGenericFields<Cheer>(entity);
-            });
-            modelBuilder.Entity<Cheer>().HasIndex(t => new { t.Id }).IsUnique(true);
 
             Expression<Func<ISoftDeleteable, bool>> filterSoftDeleteable = bm => !bm.Deleted;
             Expression<Func<IOwnable, bool>> filterOwnable = bm => Owner == Guid.Empty || bm.Owner == Owner;
