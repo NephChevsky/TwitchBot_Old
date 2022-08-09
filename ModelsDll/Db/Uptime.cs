@@ -7,16 +7,13 @@ using System.Threading.Tasks;
 
 namespace ModelsDll.Db
 {
-	public class Uptime : IOwnable, ISoftDeleteable, IDateTimeTrackable
+	public class Uptime : IOwnable, IDateTimeTrackable
 	{
 		public Guid Id { get; set; }
 		public int Sum { get; set; }
 
 		//IOwnable
 		public Guid Owner { get; set; }
-
-		// ISoftDeleteable
-		public bool Deleted { get; set; }
 
 		// IDateTimeTrackable
 		public DateTime CreationDateTime { get; set; }
