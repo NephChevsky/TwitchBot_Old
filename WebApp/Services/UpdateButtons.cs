@@ -230,6 +230,22 @@ namespace WebApp.Services
                     return "";
                 }
             }
+            else if (name == "last_cheers")
+            {
+                using (TwitchDbContext db = new(Guid.Empty))
+                {
+                    Cheer last = db.Cheers.OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
+                    if (last != null)
+                    {
+                        Viewer dbViewer = db.Viewers.Where(x => x.Id == last.Owner).FirstOrDefault();
+                        if (dbViewer != null)
+                        {
+                            return dbViewer.DisplayName + " (" + last.Amount + ")";
+                        }
+                    }
+                    return "";
+                }
+            }
             else if (name == "subscriber_count" || name == "subscriber_goal" || name == "last_subscriber" || name == "last_subscription_gifter")
             {
                 List<Subscription> subscribers = await _api.GetSubscribers();
@@ -306,6 +322,9 @@ namespace WebApp.Services
                     break;
                 case "most_cheers_total":
                     value = "Meilleur bits gifter (total)";
+                    break;
+                case "last_cheers":
+                    value = "Dernier bits gifter";
                     break;
                 case "subscriber_goal":
                     value = "Sub goal";

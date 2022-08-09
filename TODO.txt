@@ -5,9 +5,8 @@ add timeout count
 chat overlay
 best subgifter (daily, monthly, total) (no api, need to keep an historic in webapp)
 longest subscriber (no api, need to keep an historic in webapp)
-last cheer (no api, need to keep an historic in webapp)
 make sure alerts are displayed until the end before processing the next one
-clean up uptimes and chat messages history after a month
+clean up uptimes, chat messages and cheers history after a month
 
 ===============
 Commands
@@ -16,7 +15,7 @@ Commands
 ===============
 Discord
 ===============
-Poster automatiquement un message dans le channel annonces quand un live démarre <= a fixer
+Supprimer le message d'annonce de live en fin de live <= a fixer
 
 ===============
 Channel Rewards
