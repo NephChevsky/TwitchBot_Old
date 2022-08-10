@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace InputReader
+namespace HotKeyManager
 {
     public static class HotKeyManager
     {
