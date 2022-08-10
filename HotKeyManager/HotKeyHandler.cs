@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace HotKeyManager
 {
-    public static class HotKeyManager
+    public static class HotKeyHandler
     {
         public static event EventHandler<HotKeyEventArgs> HotKeyPressed;
 
@@ -36,9 +36,9 @@ namespace HotKeyManager
 
         private static void OnHotKeyPressed(HotKeyEventArgs e)
         {
-            if (HotKeyManager.HotKeyPressed != null)
+            if (HotKeyHandler.HotKeyPressed != null)
             {
-                HotKeyManager.HotKeyPressed(null, e);
+                HotKeyHandler.HotKeyPressed(null, e);
             }
         }
 
@@ -46,7 +46,7 @@ namespace HotKeyManager
         private static volatile IntPtr _hwnd;
         private static ManualResetEvent _windowReadyEvent = new ManualResetEvent(false);
 
-        static HotKeyManager()
+        static HotKeyHandler()
         {
             Thread messageLoop = new Thread(delegate ()
             {
@@ -71,7 +71,7 @@ namespace HotKeyManager
                 if (m.Msg == WM_HOTKEY)
                 {
                     HotKeyEventArgs e = new HotKeyEventArgs(m.LParam);
-                    HotKeyManager.OnHotKeyPressed(e);
+                    HotKeyHandler.OnHotKeyPressed(e);
                 }
 
                 base.WndProc(ref m);
@@ -92,35 +92,5 @@ namespace HotKeyManager
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         private static int _id = 0;
-    }
-
-
-    public class HotKeyEventArgs : EventArgs
-    {
-        public readonly Keys Key;
-        public readonly KeyModifiers Modifiers;
-
-        public HotKeyEventArgs(Keys key, KeyModifiers modifiers)
-        {
-            this.Key = key;
-            this.Modifiers = modifiers;
-        }
-
-        public HotKeyEventArgs(IntPtr hotKeyParam)
-        {
-            uint param = (uint)hotKeyParam.ToInt64();
-            Key = (Keys)((param & 0xffff0000) >> 16);
-            Modifiers = (KeyModifiers)(param & 0x0000ffff);
-        }
-    }
-
-    [Flags]
-    public enum KeyModifiers
-    {
-        Alt = 1,
-        Control = 2,
-        Shift = 4,
-        Windows = 8,
-        NoRepeat = 0x4000
     }
 }

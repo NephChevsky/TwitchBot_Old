@@ -1,15 +1,11 @@
 ﻿using ChatDll;
+using HotKeyManager;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelsDll;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using TwitchLib.Client.Events;
 using WindowsInput;
 
@@ -23,7 +19,6 @@ namespace InputReader
         public BasicChat _chat;
         public Dictionary<string, VirtualKeyCode> KeyMapping;
         public bool IsRunning = false;
-        public InputSimulator Simulator = new InputSimulator();
         public string Application;
         public Process Process;
 
@@ -37,8 +32,8 @@ namespace InputReader
             _chat = chat;
             KeyMapping = configuration.GetSection("KeyMapping").Get<Dictionary<string, VirtualKeyCode>>();
             Application = configuration.GetValue<string>("Application");
-            HotKeyManager.RegisterHotKey(Keys.A, KeyModifiers.Alt);
-            HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_TogglePause);
+            HotKeyHandler.RegisterHotKey(Keys.A, KeyModifiers.Alt);
+            HotKeyHandler.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_TogglePause);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
