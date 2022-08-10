@@ -25,6 +25,7 @@ using TwitchLib.Api.Helix.Models.Subscriptions;
 using TwitchLib.Api.Helix.Models.ChannelPoints.UpdateCustomRewardRedemptionStatus;
 using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Helix.Models.Channels.GetChannelVIPs;
+using TwitchLib.Api.Helix.Models.Bits;
 
 namespace ApiDll
 {
@@ -273,6 +274,12 @@ namespace ApiDll
                 await api.Helix.Channels.RemoveChannelVIPAsync(_settings.StreamerTwitchId, vips.Data[0].UserId);
 			}
             await api.Helix.Channels.AddChannelVIPAsync(_settings.StreamerTwitchId, userId);
+		}
+
+        public async Task<List<Listing>> GetBitsLeaderBoard(int count, BitsLeaderboardPeriodEnum period)
+        {
+            GetBitsLeaderboardResponse response = await api.Helix.Bits.GetBitsLeaderboardAsync(count, period, DateTime.Now);
+            return response.Listings.ToList();
 		}
 
         public void Dispose()

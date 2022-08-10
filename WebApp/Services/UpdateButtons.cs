@@ -5,6 +5,8 @@ using ModelsDll;
 using ModelsDll.Db;
 using SpotifyAPI.Web;
 using SpotifyDll;
+using TwitchLib.Api.Core.Enums;
+using TwitchLib.Api.Helix.Models.Bits;
 using TwitchLib.Api.Helix.Models.Subscriptions;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 
@@ -186,6 +188,24 @@ namespace WebApp.Services
                 }
                 return "";
             }
+            else if (name == "top_cheers_daily" || name == "top_cheers_monthly" || name == "top_cheers_total")
+            {
+                BitsLeaderboardPeriodEnum period = BitsLeaderboardPeriodEnum.All;
+                if (name == "top_cheers_daily")
+                {
+                    period = BitsLeaderboardPeriodEnum.Day;
+                }
+                else if (name == "top_cheers_monthly")
+                {
+                    period = BitsLeaderboardPeriodEnum.Month;
+                }
+                List<Listing> cheers = await _api.GetBitsLeaderBoard(1, period);
+                if (cheers.Count != 0)
+                {
+                    return cheers[0].UserName + " (" + cheers[0].Score + ")";
+				}
+                return "";
+			}
             else if (name == "subscriber_count" || name == "subscriber_goal" || name == "last_subscriber" || name == "last_subscription_gifter")
             {
                 List<Subscription> subscribers = await _api.GetSubscribers();
@@ -254,6 +274,15 @@ namespace WebApp.Services
                 case "current_song":
                     value = "Musique";
                     break;
+                case "top_cheers_daily":
+                    value = "Top bits (daily)";
+                    break;
+                case "top_cheers_monthly":
+                    value = "Top bits (monthly)";
+                    break;
+                case "top_cheers_total":
+                    value = "Top bits (total)";
+					break;
                 case "subscriber_goal":
                     value = "Sub goal";
                     break;
