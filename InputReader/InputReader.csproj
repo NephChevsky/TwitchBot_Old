@@ -16,6 +16,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\ModelsDll\ModelsDll.csproj" />
 		<ProjectReference Include="..\ChatDll\ChatDll.csproj" />
+		<ProjectReference Include="..\HotKeyManager\HotKeyManager.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
