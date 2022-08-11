@@ -58,6 +58,10 @@ namespace InputReader
 
         private void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
         {
+            if (e.ChatMessage.Message.ToLower() == "!help")
+            {
+                _chat.SendMessage("Commandes disponibles: " + string.Join(", ", KeyMapping.Keys));
+            }
             if (IsRunning)
             {
                 var input = e.ChatMessage.Message.ToLower();
