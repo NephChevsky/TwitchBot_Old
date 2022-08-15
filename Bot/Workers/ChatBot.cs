@@ -204,10 +204,6 @@ namespace ChatDll
                             db.SaveChanges();
                             updateTimer = true;
                         }
-                        else
-                        {
-                            _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Commande inconnue");
-                        }
                     }
                 }
 
