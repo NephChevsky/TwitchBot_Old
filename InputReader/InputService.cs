@@ -60,7 +60,7 @@ namespace InputReader
         {
             if (e.ChatMessage.Message.ToLower() == "!help")
             {
-                _chat.SendMessage("Commandes disponibles: " + string.Join(", ", KeyMapping.Keys));
+                _chat.SendMessage("Commandes disponibles: a, b, up, down, left, right, start, select");
             }
             if (IsRunning)
             {
