@@ -36,12 +36,6 @@ namespace Bot
             })
             .Build();
 
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = "https://accounts.spotify.com/authorize?client_id=e3e3047455fb4f85b889cc251133b9c9&response_type=code&redirect_uri=https%3A%2F%2Fbot-neph.azurewebsites.net%2Fcallback&scope=user-read-currently-playing+user-modify-playback-state+playlist-modify-public+playlist-modify-private",
-                UseShellExecute = true
-            });
-
             host.Run();
         }
 	}
