@@ -70,7 +70,7 @@ namespace ApiDll
                 Task.Run(() => RefreshToken()).Wait();
             }
 
-            RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(4 * 60 - 5), TimeSpan.FromMinutes(4 * 60 - 5));
+            RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(3 * 60 + 30), TimeSpan.FromMinutes(3 * 60 + 30));
         }
 
         public async void RefreshToken(object state = null)
