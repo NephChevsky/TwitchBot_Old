@@ -343,10 +343,11 @@ namespace ChatDll
             }
             else if (string.Equals(e["type"], "Timeout un viewer", StringComparison.InvariantCultureIgnoreCase))
             {
-                e["user-input"] = e["user-input"].Replace("@", "");
+                e["user-input"] = e["user-input"].Replace("@", "").Split(" ")[0];
                 List<Moderator> mods = await _api.GetModerators();
-                Moderator mod = mods.Where(x => string.Equals(e["user-input"], x.UserName)).FirstOrDefault();
-                if (mod == null)
+                Moderator firstmod = mods.Where(x => string.Equals(e["user-input"], x.UserName)).FirstOrDefault();
+                Moderator secondmod = mods.Where(x => string.Equals(e["username"], x.UserName)).FirstOrDefault();
+                if (firstmod == null && secondmod == null)
                 {
                     Viewer firstViewer, secondViewer;
                     using (TwitchDbContext db = new(Guid.Empty))
@@ -382,15 +383,23 @@ namespace ChatDll
                     }
                     else
                     {
-                        _chat.SendMessage($"{firstViewer.DisplayName} : Utilisateur inconnu");
+                        _chat.SendMessage($"{(firstViewer != null ? firstViewer.DisplayName : e["username"])} : Utilisateur inconnu");
                         success = false;
                     }
                 }
                 else
                 {
-                    _chat.SendMessage($"{e["username"]} : T'as cru t'allais timeout un modo?");
-                    _api.BanUser(e["username"]);
-                    success = true;
+                    if (firstmod == null)
+                    {
+                        _chat.SendMessage($"{e["username"]} : T'as cru t'allais timeout un modo?");
+                        _api.BanUser(e["username"]);
+                        success = true;
+                    }
+                    else
+                    {
+                        _chat.SendMessage($"{e["username"]} : T'es un modo gros bouff'!");
+                        success = true;
+                    }
                 }
             }
             else if ((string.Equals(e["type"], "VIP", StringComparison.InvariantCultureIgnoreCase)))
