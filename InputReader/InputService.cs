@@ -64,12 +64,28 @@ namespace InputReader
             }
             if (IsRunning)
             {
-                var input = e.ChatMessage.Message.ToLower();
-                if (KeyMapping.ContainsKey(input))
+                string[] inputs = e.ChatMessage.Message.ToLower().Split(" ");
+                if (KeyMapping.ContainsKey(inputs[0]))
                 {
-                    bool ret = PostMessage(Process.MainWindowHandle, 0x0100, (int) KeyMapping[input], 0);
-                    Task.Delay(50).Wait();
-                    PostMessage(Process.MainWindowHandle, 0x0101, (int)KeyMapping[input], 0);
+                    int repeat = 1;
+                    if (inputs.Length > 1)
+                    {
+                        int buffer;
+                        if (int.TryParse(inputs[1], out buffer))
+                        {
+                            repeat = buffer;
+                            if (repeat > 5)
+                            {
+                                repeat = 5;
+							}
+						}
+					}
+                    for (int i = 0; i < repeat; i++)
+                    {
+                        bool ret = PostMessage(Process.MainWindowHandle, 0x0100, (int)KeyMapping[inputs[0]], 0);
+                        Task.Delay(50).Wait();
+                        PostMessage(Process.MainWindowHandle, 0x0101, (int)KeyMapping[inputs[0]], 0);
+                    }
                 }
 			}
         }
