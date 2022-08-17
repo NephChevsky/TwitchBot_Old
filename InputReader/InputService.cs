@@ -80,12 +80,9 @@ namespace InputReader
 							}
 						}
 					}
-                    for (int i = 0; i < repeat; i++)
-                    {
-                        bool ret = PostMessage(Process.MainWindowHandle, 0x0100, (int)KeyMapping[inputs[0]], 0);
-                        Task.Delay(50).Wait();
-                        PostMessage(Process.MainWindowHandle, 0x0101, (int)KeyMapping[inputs[0]], 0);
-                    }
+                    PostMessage(Process.MainWindowHandle, 0x0100, (int)KeyMapping[inputs[0]], 0);
+                    Task.Delay(50 + 300 * (repeat-1)).Wait();
+                    PostMessage(Process.MainWindowHandle, 0x0101, (int)KeyMapping[inputs[0]], 0);
                 }
 			}
         }
