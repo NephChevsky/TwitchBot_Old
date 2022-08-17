@@ -217,18 +217,18 @@ namespace WebApp.Services
         {
             if (!HandledEvents.Contains(e.Notification.Event.Id))
             {
-                _discord.SendMessage(_settings.DiscordFunction.NewsChannelId, "@Neph a lancé un live. Viens foutre le bordel avec nous sur https://www.twitch.tv/nephchevsky !").Wait();
+                _discord.SendMessage(_settings.DiscordFunction.NewsChannelId, "Neph a lancé un live. Viens foutre le bordel avec nous sur https://www.twitch.tv/nephchevsky !").Wait();
+                HandledEvents.Add(e.Notification.Event.Id);
             }
-            HandledEvents.Add(e.Notification.Event.Id);
         }
 
         private void OnStreamOffline(object sender, StreamOfflineArgs e)
         {
             if (!HandledEvents.Contains(e.Notification.Subscription.Id))
             {
-                _discord.DeleteMessage(_settings.DiscordFunction.NewsChannelId, "NephBot", "@Neph a lancé un live. Viens foutre le bordel avec nous sur https://www.twitch.tv/nephchevsky !").Wait();
+                _discord.DeleteMessage(_settings.DiscordFunction.NewsChannelId, "NephBot", "Neph a lancé un live. Viens foutre le bordel avec nous sur https://www.twitch.tv/nephchevsky !").Wait();
+                HandledEvents.Add(e.Notification.Subscription.Id);
             }
-            HandledEvents.Add(e.Notification.Subscription.Id);
         }
 
         private void OnError(object sender, OnErrorArgs e)
