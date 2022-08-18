@@ -32,7 +32,6 @@ namespace ApiDll
     public class Api : IDisposable
     {
         private Settings _settings;
-        private string _configPath;
         private ILogger<Api> _logger;
         private ILoggerFactory _loggerFactory;
         private TwitchAPI api;
@@ -41,13 +40,7 @@ namespace ApiDll
 
         public Api(IConfiguration configuration, string apiType)
         {
-            _configPath = configuration.GetValue<string>("ConfigPath");
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            if (_settings == null)
-            {
-                string path = Path.IsPathRooted(_configPath) ? _configPath : Path.Combine(Directory.GetCurrentDirectory(), _configPath);
-                throw new Exception($"Couldn't load settings: {path}");
-			}
             _loggerFactory = LoggerFactory.Create(lf => { lf.AddAzureWebAppDiagnostics(); });
             _logger = _loggerFactory.CreateLogger<Api>();
             ApiType = apiType;
@@ -66,27 +59,19 @@ namespace ApiDll
             }
             else
             {
-                api.Settings.AccessToken = ApiType == "twitchapi" ? _settings.StreamerAccessToken : _settings.BotAccessToken;
+                api.Settings.AccessToken = _settings.StreamerAccessToken;
                 Task.Run(() => RefreshToken()).Wait();
             }
 
-            RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(3 * 60 + 30), TimeSpan.FromMinutes(3 * 60 + 30));
+            RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromHours(3.5), TimeSpan.FromHours(3.5));
         }
 
         public async void RefreshToken(object state = null)
         {
-            RefreshResponse token = await api.Auth.RefreshAuthTokenAsync(ApiType == "twitchapi" ? _settings.StreamerRefreshToken : _settings.BotRefreshToken, _settings.Secret);
-            Helpers.UpdateTokens(ApiType, _configPath, token.AccessToken, token.RefreshToken);
-            if (ApiType == "twitchapi")
-            {
-                _settings.StreamerAccessToken = token.AccessToken;
-                _settings.StreamerRefreshToken = token.RefreshToken;
-            }
-            else
-            {
-                _settings.BotAccessToken = token.AccessToken;
-                _settings.BotRefreshToken = token.RefreshToken;
-            }
+            RefreshResponse token = await api.Auth.RefreshAuthTokenAsync(_settings.StreamerRefreshToken, _settings.Secret);
+            Helpers.UpdateTokens(ApiType, token.AccessToken, token.RefreshToken);
+            _settings.StreamerAccessToken = token.AccessToken;
+            _settings.StreamerRefreshToken = token.RefreshToken;
         }
 
         public async Task<EventSubSubscription> CreateEventSubSubscription(string type)
@@ -281,6 +266,12 @@ namespace ApiDll
             GetBitsLeaderboardResponse response = await api.Helix.Bits.GetBitsLeaderboardAsync(count, period, DateTime.Now);
             return response.Listings.ToList();
 		}
+
+        public async Task<Listing> GetBitsPerUser(string userId, BitsLeaderboardPeriodEnum period)
+        {
+            GetBitsLeaderboardResponse response = await api.Helix.Bits.GetBitsLeaderboardAsync(1, period, DateTime.Now, userId);
+            return response.Listings.FirstOrDefault();
+        }
 
         public void Dispose()
         {
