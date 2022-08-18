@@ -74,7 +74,7 @@ namespace ChatDll
                 }
                 else if (_settings.CheckUptimeFunction.ComputeUptime && string.Equals(e.Command.CommandText, "uptime", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    using (TwitchDbContext db = new(Guid.Empty))
+                    using (TwitchDbContext db = new())
                     {
                         string username = e.Command.ArgumentsAsList.Count > 0 ? e.Command.ArgumentsAsList[0] : e.Command.ChatMessage.Username;
                         Viewer viewer = db.Viewers.Where(obj => obj.Username == username).FirstOrDefault();
@@ -151,7 +151,7 @@ namespace ChatDll
                 {
                     if (e.Command.ArgumentsAsList.Count >= 2)
                     {
-                        AddCommand(e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ArgumentsAsString.Substring(e.Command.ArgumentsAsList[0].Length + 1), true, e.Command.ChatMessage.DisplayName);
+                        AddCommand(e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ArgumentsAsString.Substring(e.Command.ArgumentsAsList[0].Length + 1), e.Command.ChatMessage.UserId, e.Command.ChatMessage.DisplayName);
                     }
                     else
                     {
@@ -163,7 +163,7 @@ namespace ChatDll
                 {
                     if (e.Command.ArgumentsAsList.Count == 1)
                     {
-                        DeleteCommand(e.Command.ArgumentsAsList[0].Replace("!", ""), true, e.Command.ChatMessage.DisplayName);
+                        DeleteCommand(e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ChatMessage.DisplayName);
                     }
                     else
                     {
@@ -197,7 +197,7 @@ namespace ChatDll
                 }
                 else if (_settings.ChatFunction.AddCustomCommands && string.IsNullOrEmpty(e.Command.ChatMessage.CustomRewardId))
                 {
-                    using (TwitchDbContext db = new(Guid.Empty))
+                    using (TwitchDbContext db = new())
                     {
                         Command dbCmd = db.Commands.Where(x => x.Name == e.Command.CommandText).FirstOrDefault();
                         if (dbCmd != null)
@@ -227,18 +227,14 @@ namespace ChatDll
 
         private void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
         {
-            using (TwitchDbContext db = new(Guid.Empty))
+            using (TwitchDbContext db = new())
             {
                 Viewer dbViewer = db.Viewers.Where(x => x.Username == e.ChatMessage.Username).FirstOrDefault();
                 if (dbViewer != null)
                 {
                     dbViewer.MessageCount++;
-                    using (TwitchDbContext db1 = new(dbViewer.Id))
-                    {
-                        ModelsDll.Db.ChatMessage message = new(dbViewer.Id, e.ChatMessage.Message);
-                        db1.Messages.Add(message);
-                        db1.SaveChanges();
-                    }
+                    ChatMessage message = new(dbViewer.Id, e.ChatMessage.Message);
+                    db.Messages.Add(message);
                     db.SaveChanges();
                 }
 			}
@@ -338,12 +334,12 @@ namespace ChatDll
                 {
                     string commandName = e["user-input"].Substring(0, offset).Replace("!", "");
                     string commandMessage = e["user-input"].Substring(offset + 1);
-                    success = AddCommand(commandName, commandMessage, false, e["username"]);
+                    success = AddCommand(commandName, commandMessage, e["user-id"], e["username"]);
                 }
             }
             else if (string.Equals(e["type"], "Supprimer une commande", StringComparison.InvariantCultureIgnoreCase))
             {
-                success = DeleteCommand(e["user-input"].Replace("!", ""), false, e["username"]);
+                success = DeleteCommand(e["user-input"].Replace("!", ""), e["username"]);
             }
             else if (string.Equals(e["type"], "Timeout un viewer", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -354,7 +350,7 @@ namespace ChatDll
                 if (firstmod == null && secondmod == null)
                 {
                     Viewer firstViewer, secondViewer;
-                    using (TwitchDbContext db = new(Guid.Empty))
+                    using (TwitchDbContext db = new())
                     {
                         firstViewer = db.Viewers.Where(x => x.Username == e["username"]).FirstOrDefault();
                         secondViewer = db.Viewers.Where(x => x.Username == e["user-input"]).FirstOrDefault();
@@ -415,7 +411,7 @@ namespace ChatDll
             if (success)
             {
                 await _api.UpdateRedemptionStatus(e["reward-id"], e["event-id"], CustomRewardRedemptionStatus.FULFILLED);
-                using (TwitchDbContext db = new(Guid.Empty))
+                using (TwitchDbContext db = new())
                 {
                     ChannelReward dbReward = db.ChannelRewards.Where(x => x.Name == e["type"]).FirstOrDefault();
                     if (dbReward != null)
@@ -433,72 +429,47 @@ namespace ChatDll
             }
         }
 
-        public bool AddCommand(string commandName, string commandMessage, bool isMod, string displayName)
+        public bool AddCommand(string commandName, string commandMessage, string userId, string displayName)
         {
             Command cmd = new();
             cmd.Name = commandName;
             cmd.Message = commandMessage;
-            Guid guid = GetUserGuid(displayName.ToLower());
-            if (guid != InvalidGuid)
+            cmd.Owner = userId;
+            using (TwitchDbContext db = new())
             {
-                using (TwitchDbContext db = new(guid))
+                db.Commands.Add(cmd);
+                try
                 {
-                    db.Commands.Add(cmd);
-                    try
-                    {
-                        db.SaveChanges();
-                    }
-                    catch (DbUpdateException ex)
-                    when ((ex.InnerException as SqlException)?.Number == 2601 || (ex.InnerException as SqlException)?.Number == 2627)
-                    {
-                        _chat.SendMessage($"{displayName} : Une commande du même nom existe déja");
-                        return false;
-                    }
-                    _chat.SendMessage($"{displayName} : Command {commandName} créée");
-                    return true;
+                    db.SaveChanges();
                 }
-            }
-            else
-            {
-                _chat.SendMessage($"{displayName} : Utilisateur inconnu");
-                return false;
+                catch (DbUpdateException ex)
+                when ((ex.InnerException as SqlException)?.Number == 2601 || (ex.InnerException as SqlException)?.Number == 2627)
+                {
+                    _chat.SendMessage($"{displayName} : Une commande du même nom existe déja");
+                    return false;
+                }
+                _chat.SendMessage($"{displayName} : Command {commandName} créée");
+                return true;
             }
         }
 
-        public bool DeleteCommand(string commandName, bool isMod, string displayName)
+        public bool DeleteCommand(string commandName, string displayName)
         {
-            Guid guid = GetUserGuid(displayName.ToLower());
-            if (guid != InvalidGuid)
+            using (TwitchDbContext db = new())
             {
-                using (TwitchDbContext db = new(guid))
+                Command dbCmd = db.Commands.Where(x => x.Name == commandName).FirstOrDefault();
+                if (dbCmd != null)
                 {
-                    Command dbCmd = db.Commands.Where(x => x.Name == commandName).FirstOrDefault();
-                    if (dbCmd != null)
-                    {
-                        if (guid == Guid.Empty || guid == dbCmd.Owner)
-                        {
-                            db.Remove(dbCmd);
-                            db.SaveChanges();
-                            _chat.SendMessage($"{displayName} : Command {commandName} supprimée");
-                            return true;
-                        }
-                        else
-                        {
-                            _chat.SendMessage($"{displayName} : Pas touche!");
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        _chat.SendMessage($"{displayName} : Commande inconnue");
-                        return false;
-                    }
+                    db.Remove(dbCmd);
+                    db.SaveChanges();
+                    _chat.SendMessage($"{displayName} : Command {commandName} supprimée");
+                    return true;
                 }
-            }
-            else
-            {
-                _chat.SendMessage($"{displayName} : Utilisateur inconnu");
-                return false;
+                else
+                {
+                    _chat.SendMessage($"{displayName} : Commande inconnue");
+                    return false;
+                }
             }
         }
         public async Task SkipSong(string displayName)
@@ -539,22 +510,6 @@ namespace ChatDll
                 _chat.SendMessage($"{displayName} : La musique n'a pas pu être supprimée de la playlist");
             }
             return ret;
-        }
-
-        public Guid GetUserGuid(string name)
-        {
-            using (TwitchDbContext db = new(Guid.Empty))
-            {
-                Viewer dbViewer = db.Viewers.Where(x => x.Username == name).FirstOrDefault();
-                if (dbViewer != null)
-                {
-                    return dbViewer.Id;
-                }
-                else
-                {
-                    return InvalidGuid;
-                }
-			}
         }
 	}
 }

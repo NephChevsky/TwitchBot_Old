@@ -5,8 +5,7 @@ namespace ModelsDll.DTO
 	public class UserStatsResponse
 	{
 		public int Position { get; set; }
-		public Guid Id { get; set; }
-		public string TwitchId { get; set; }
+		public string Id { get; set; }
 		public string Name { get; set; }
 		public int Seen { get; set; }
 		public string Presence { get; set; }
@@ -23,7 +22,6 @@ namespace ModelsDll.DTO
 		public UserStatsResponse(Viewer viewer)
 		{
 			Id = viewer.Id;
-			TwitchId = viewer.TwitchId;
 			Name = viewer.DisplayName;
 			Seen = viewer.Seen;
 			Presence = $"{viewer.CreationDateTime.ToString("dd/MM/yyyy")} - {viewer.LastViewedDateTime.ToString("dd/MM/yyyy")}";

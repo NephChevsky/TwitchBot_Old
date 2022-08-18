@@ -45,7 +45,7 @@ namespace Bot.Workers
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
-                using (TwitchDbContext db = new(Guid.Empty))
+                using (TwitchDbContext db = new())
                 {
                     List<ChannelReward> channelRewards = db.ChannelRewards.ToList();
                     List<CustomReward> customRewards = await _api.GetChannelRewards();

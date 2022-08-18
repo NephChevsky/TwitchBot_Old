@@ -19,7 +19,7 @@ namespace ModelsDll.Db
 		public DateTime LastModificationDateTime { get; set; }
 
 		// IOwnable
-		public Guid Owner { get; set; }
+		public string Owner { get; set; }
 
 		// ISoftDeleteable
 		public bool Deleted { get; set; }

@@ -93,7 +93,7 @@ namespace WebApp.Services
             }
             else if (name == "most_present_viewer_daily" || name == "most_present_viewer_monthly")
             {
-                using (TwitchDbContext db = new(Guid.Empty))
+                using (TwitchDbContext db = new())
                 {
                     DateTime limit = DateTime.MinValue;
                     if (name == "most_present_viewer_daily")
@@ -123,7 +123,7 @@ namespace WebApp.Services
             }
             else if (name == "most_present_viewer_total")
             {
-                using (TwitchDbContext db = new(Guid.Empty))
+                using (TwitchDbContext db = new())
                 {
                     Viewer mostPresentViewer = db.Viewers.Where(x => x.IsBot == false && x.Username != _settings.Streamer).OrderByDescending(x => x.Uptime).FirstOrDefault();
                     if (mostPresentViewer != null)
@@ -135,7 +135,7 @@ namespace WebApp.Services
             }
             else if (name == "most_speaking_viewer_daily" || name == "most_speaking_viewer_monthly")
             {
-                using (TwitchDbContext db = new(Guid.Empty))
+                using (TwitchDbContext db = new())
                 {
                     DateTime limit = DateTime.MinValue;
                     if (name == "most_speaking_viewer_daily")
@@ -165,7 +165,7 @@ namespace WebApp.Services
             }
             else if (name == "most_speaking_viewer_total")
             {
-                using (TwitchDbContext db = new(Guid.Empty))
+                using (TwitchDbContext db = new())
                 {
                     Viewer dbViewer = db.Viewers.Where(x => x.IsBot == false && x.Username != _settings.Streamer).OrderByDescending(x => x.MessageCount).FirstOrDefault();
                     if (dbViewer != null )

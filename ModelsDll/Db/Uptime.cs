@@ -13,7 +13,7 @@ namespace ModelsDll.Db
 		public int Sum { get; set; }
 
 		//IOwnable
-		public Guid Owner { get; set; }
+		public string Owner { get; set; }
 
 		// IDateTimeTrackable
 		public DateTime CreationDateTime { get; set; }

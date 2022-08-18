@@ -4,10 +4,9 @@ namespace ModelsDll.Db
 {
     public class Viewer : ISoftDeleteable, IDateTimeTrackable
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; }
         public string Username { get; set; }
         public string DisplayName { get; set; }
-        public string TwitchId { get; set; }
         public bool IsBot { get; set; }
         public int Seen { get; set; }
         public DateTime LastViewedDateTime { get; set; }
@@ -28,9 +27,9 @@ namespace ModelsDll.Db
 
         public Viewer(string username, string displayname, string id)
         {
+            Id = Id;
             Username = username;
             DisplayName = displayname;
-            TwitchId = id;
             CreationDateTime = DateTime.Now;
             LastViewedDateTime = CreationDateTime;
             Uptime = 0;

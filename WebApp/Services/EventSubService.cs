@@ -72,7 +72,7 @@ namespace WebApp.Services
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"Service stoping");
+            _logger.LogInformation($"Service stopping");
             _api.DeleteEventSubSubscription(Subscriptions);
             _eventSubWebhooks.OnError -= OnError;
             _eventSubWebhooks.OnChannelFollow -= OnChannelFollow;

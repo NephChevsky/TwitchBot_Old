@@ -10,15 +10,12 @@ namespace DbDll
 {
     public partial class TwitchDbContext : DbContext
     {
-        private Guid Owner;
-
         public TwitchDbContext(DbContextOptions options) : base(options)
         {
         }
 
-        public TwitchDbContext(Guid owner)
+        public TwitchDbContext()
         {
-            Owner = owner;
         }
 
         public DbSet<Viewer> Viewers => Set<Viewer>();
@@ -57,10 +54,6 @@ namespace DbDll
                     .IsRequired()
                     .HasMaxLength(512);
 
-                entity.Property(e => e.TwitchId)
-                    .IsRequired()
-                    .HasMaxLength(512);
-
                 entity.Property(e => e.IsBot)
                     .IsRequired()
                     .HasDefaultValue(false);
@@ -83,7 +76,6 @@ namespace DbDll
                 AddGenericFields<Viewer>(entity);
             });
             modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Id }).IsUnique(true);
-            modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Username }).HasFilter($"{nameof(Viewer.Deleted)} = 0").IsUnique(true);
 
             modelBuilder.Entity<Command>(entity =>
             {
@@ -185,15 +177,13 @@ namespace DbDll
                     .IsRequired();
 
                 entity.Property(e => e.LastUsedDateTime)
-                    .IsRequired()
-                    .HasDefaultValue(DateTime.Now);
+                    .IsRequired();
 
                 AddGenericFields<ChannelReward>(entity);
             });
             modelBuilder.Entity<ChannelReward>().HasIndex(t => new { t.Id }).IsUnique(true);
 
             Expression<Func<ISoftDeleteable, bool>> filterSoftDeleteable = bm => !bm.Deleted;
-            Expression<Func<IOwnable, bool>> filterOwnable = bm => Owner == Guid.Empty || bm.Owner == Owner;
             foreach (var type in modelBuilder.Model.GetEntityTypes())
             {
                 Expression filter = null;
@@ -201,11 +191,6 @@ namespace DbDll
                 if (typeof(ISoftDeleteable).IsAssignableFrom(type.ClrType))
                 {
                     filter = AddFilter(filter, ReplacingExpressionVisitor.Replace(filterSoftDeleteable.Parameters.First(), param, filterSoftDeleteable.Body));
-                }
-
-                if (typeof(IOwnable).IsAssignableFrom(type.ClrType))
-                {
-                    filter = AddFilter(filter, ReplacingExpressionVisitor.Replace(filterOwnable.Parameters.First(), param, filterOwnable.Body));
                 }
 
                 if (filter != null)
@@ -231,7 +216,8 @@ namespace DbDll
         public void AddGenericFields<T>(EntityTypeBuilder entity)
         {
             entity.Property("Id")
-                  .ValueGeneratedOnAdd();
+                  .HasMaxLength(512)
+                  .IsRequired();
 
             if (typeof(IDateTimeTrackable).IsAssignableFrom(typeof(T)))
             {
@@ -247,19 +233,12 @@ namespace DbDll
                     .IsRequired()
                     .HasDefaultValue(false);
             }
-
-            if (typeof(IOwnable).IsAssignableFrom(typeof(T)))
-            {
-                entity.Property("Owner")
-                    .IsRequired();
-            }
         }
 
         public override int SaveChanges()
         {
             SoftDelete();
             TimeTrack();
-            Ownable();
             return base.SaveChanges();
         }
 
@@ -267,7 +246,6 @@ namespace DbDll
         {
             SoftDelete();
             TimeTrack();
-            Ownable();
             return await base.SaveChangesAsync(cancellationToken);
         }
 
@@ -302,33 +280,5 @@ namespace DbDll
                 }
             }
         }
-
-        private void Ownable()
-        {
-            ChangeTracker.DetectChanges();
-            var markedEntries = ChangeTracker.Entries();
-            foreach (var item in markedEntries)
-            {
-                if (item.Entity is IOwnable entity)
-                {
-                    if (item.State == EntityState.Added)
-                    {
-                        if (Owner != Guid.Empty)
-                        {
-                            entity.Owner = Owner;
-                        }
-                        else
-                        {
-                            throw new Exception("Unauthorized database insert detected");
-                        }
-                    }
-                    if (entity.Owner != Owner && Owner != Guid.Empty)
-                    {
-                        throw new Exception("Unauthorized database request detected");
-                    }
-                }
-            }
-        }
-
     }
 }

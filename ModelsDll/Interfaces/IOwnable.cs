@@ -8,6 +8,6 @@ namespace ModelsDll.Interfaces
 {
 	public interface IOwnable
 	{
-		public Guid Owner { get; set; }
+		public string Owner { get; set; }
 	}
 }

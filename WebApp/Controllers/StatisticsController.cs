@@ -28,7 +28,7 @@ namespace WebApp.Controllers
 		public async Task<ActionResult<List<UserStatsResponse>>> Get()
 		{
 			List<UserStatsResponse> response = new();
-			using (TwitchDbContext db = new(Guid.Empty))
+			using (TwitchDbContext db = new())
 			{
 				List<Viewer> viewers = db.Viewers.Where(x => x.IsBot == false && x.Username != _settings.Streamer).OrderByDescending(x => x.Uptime).ToList();
 				int i = 1;
@@ -87,7 +87,7 @@ namespace WebApp.Controllers
 				List<Listing> allTimesBits = await _api.GetBitsLeaderBoard(viewers.Count, BitsLeaderboardPeriodEnum.All);
 				foreach (var bits in allTimesBits)
 				{
-					UserStatsResponse viewer = response.Where(x => x.TwitchId == bits.UserId).FirstOrDefault();
+					UserStatsResponse viewer = response.Where(x => x.Id == bits.UserId).FirstOrDefault();
 					if (viewer != null)
 					{
 						viewer.BitsTotal = bits.Score;
@@ -97,7 +97,7 @@ namespace WebApp.Controllers
 				List<Listing> monthlyBits = await _api.GetBitsLeaderBoard(viewers.Count, BitsLeaderboardPeriodEnum.Month);
 				foreach (var bits in allTimesBits)
 				{
-					UserStatsResponse viewer = response.Where(x => x.TwitchId == bits.UserId).FirstOrDefault();
+					UserStatsResponse viewer = response.Where(x => x.Id == bits.UserId).FirstOrDefault();
 					if (viewer != null)
 					{
 						viewer.BitsMonth = bits.Score;
@@ -107,7 +107,7 @@ namespace WebApp.Controllers
 				List<Listing> dailyBits = await _api.GetBitsLeaderBoard(viewers.Count, BitsLeaderboardPeriodEnum.Day);
 				foreach (var bits in allTimesBits)
 				{
-					UserStatsResponse viewer = response.Where(x => x.TwitchId == bits.UserId).FirstOrDefault();
+					UserStatsResponse viewer = response.Where(x => x.Id == bits.UserId).FirstOrDefault();
 					if (viewer != null)
 					{
 						viewer.BitsMonth = bits.Score;

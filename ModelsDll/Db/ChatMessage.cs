@@ -8,13 +8,13 @@ namespace ModelsDll.Db
 		public string Message { get; set; }
 
 		//IOwnable
-		public Guid Owner { get; set; }
+		public string Owner { get; set; }
 
 		// IDateTimeTrackable
 		public DateTime CreationDateTime { get; set; }
 		public DateTime LastModificationDateTime { get; set; }
 
-		public ChatMessage (Guid owner, string message)
+		public ChatMessage (string owner, string message)
 		{
 			Message = message;
 			Owner = owner;

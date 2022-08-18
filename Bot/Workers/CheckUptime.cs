@@ -51,16 +51,16 @@ namespace Bot.Workers
                 List<ChatterFormatted> chatters = await _api.GetChatters();
                 bool genericWelcome = false;
                 DateTime now = DateTime.Now;
-                foreach (ChatterFormatted x in chatters)
+                foreach (ChatterFormatted chatter in chatters)
                 {
-                    using (TwitchDbContext db = new(Guid.Empty))
+                    using (TwitchDbContext db = new())
                     {
                         User user;
-                        Viewer dbViewer = db.Viewers.Where(obj => obj.Username == x.Username).FirstOrDefault();
+                        Viewer dbViewer = db.Viewers.Where(obj => obj.Username == chatter.Username).FirstOrDefault();
                         if (dbViewer == null)
                         {
-                            user = await _api.GetUser(x.Username.ToLower());
-                            dbViewer = db.Viewers.Where(obj => obj.TwitchId == user.Id).FirstOrDefault();
+                            user = await _api.GetUser(chatter.Username.ToLower());
+                            dbViewer = db.Viewers.Where(obj => obj.Id == user.Id).FirstOrDefault();
                             if (dbViewer != null)
                             {
                                 dbViewer.Username = user.Login;
@@ -68,7 +68,7 @@ namespace Bot.Workers
 							}
                             else
                             {
-                                if (!_bots.Contains(x.Username.ToLower()))
+                                if (!_bots.Contains(chatter.Username.ToLower()))
                                 {
                                     dbViewer = new Viewer(user.Login, user.DisplayName, user.Id);
                                     db.Viewers.Add(dbViewer);
@@ -88,7 +88,7 @@ namespace Bot.Workers
                         }
                         if (dbViewer != null && !dbViewer.IsBot)
                         {
-                            if (!CurrentChatters.Select(y => y.Username).ToList().Contains(x.Username, StringComparer.OrdinalIgnoreCase))
+                            if (!CurrentChatters.Select(x => x.Username).ToList().Contains(chatter.Username, StringComparer.OrdinalIgnoreCase))
                             {
                                 if (dbViewer.LastViewedDateTime < DateTime.Now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer))
                                 {
@@ -104,21 +104,18 @@ namespace Bot.Workers
                             {
                                 int uptime = (int)(now - dbViewer.LastViewedDateTime).TotalSeconds;
                                 dbViewer.Uptime += uptime;
-                                using (TwitchDbContext db1 = new(dbViewer.Id))
+                                Uptime dbUptime = db.Uptimes.Where(x => x.CreationDateTime >= now.AddDays(-1)).FirstOrDefault();
+                                if (dbUptime != null)
                                 {
-                                    Uptime dbUptime = db1.Uptimes.Where(y => y.CreationDateTime >= now.AddDays(-1)).FirstOrDefault();
-                                    if (dbUptime != null)
-                                    {
-                                        dbUptime.Sum += uptime;
-									}
-                                    else
-                                    {
-                                        dbUptime = new();
-                                        dbUptime.Sum = uptime;
-                                        db1.Uptimes.Add(dbUptime);
-									}
-                                    db1.SaveChanges();
-                                }
+                                    dbUptime.Sum += uptime;
+								}
+                                else
+                                {
+                                    dbUptime = new();
+                                    dbUptime.Sum = uptime;
+                                    dbUptime.Owner = dbViewer.Id;
+                                    db.Uptimes.Add(dbUptime);
+								}
                             }
                             dbViewer.LastViewedDateTime = now;
                             db.SaveChanges();
