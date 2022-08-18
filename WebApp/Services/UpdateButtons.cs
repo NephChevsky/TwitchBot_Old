@@ -208,7 +208,7 @@ namespace WebApp.Services
 			}
             else if (name == "subscriber_count" || name == "subscriber_goal" || name == "last_subscriber" || name == "last_subscription_gifter")
             {
-                List<Subscription> subscribers = await _api.GetSubscribers();
+                List<TwitchLib.Api.Helix.Models.Subscriptions.Subscription> subscribers = await _api.GetSubscribers();
                 if (subscribers != null)
                 {
                     if (name == "subscriber_count" || name == "subscriber_goal")

@@ -112,6 +112,15 @@ namespace WebApp.Services
                 alert.Add("username", e.Notification.Event.UserName);
                 alert.Add("isGift", e.Notification.Event.IsGift);
                 alert.Add("tier", e.Notification.Event.Tier);
+                using (TwitchDbContext db = new ())
+                {
+                    Subscription sub = new();
+                    sub.Owner = e.Notification.Event.UserId;
+                    sub.IsGift = false;
+                    sub.Tier = e.Notification.Event.Tier;
+                    db.Subscriptions.Add(sub);
+                    db.SaveChanges();
+				}
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
                 HandledEvents.Add(e.Notification.Subscription.Id);
             }
@@ -130,6 +139,18 @@ namespace WebApp.Services
                 alert.Add("total", e.Notification.Event.Total);
                 alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                if (!e.Notification.Event.IsAnonymous)
+                {
+                    using (TwitchDbContext db = new())
+                    {
+                        Subscription sub = new();
+                        sub.Owner = e.Notification.Event.UserId;
+                        sub.IsGift = true;
+                        sub.Tier = e.Notification.Event.Tier;
+                        db.Subscriptions.Add(sub);
+                        db.SaveChanges();
+                    }
+                }
                 HandledEvents.Add(e.Notification.Subscription.Id);
             }
         }
@@ -147,6 +168,15 @@ namespace WebApp.Services
                 alert.Add("durationMonths", e.Notification.Event.DurationMonths);
                 alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                using (TwitchDbContext db = new())
+                {
+                    Subscription sub = new();
+                    sub.Owner = e.Notification.Event.UserId;
+                    sub.IsGift = false;
+                    sub.Tier = e.Notification.Event.Tier;
+                    db.Subscriptions.Add(sub);
+                    db.SaveChanges();
+                }
                 HandledEvents.Add(e.Notification.Subscription.Id);
             }
         }

@@ -23,6 +23,7 @@ namespace DbDll
         public DbSet<ChatMessage> Messages => Set<ChatMessage>();
         public DbSet<Uptime> Uptimes => Set<Uptime>();
         public DbSet<ChannelReward> ChannelRewards => Set<ChannelReward>();
+        public DbSet<Subscription> Subscriptions => Set<Subscription>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -183,6 +184,18 @@ namespace DbDll
             });
             modelBuilder.Entity<ChannelReward>().HasIndex(t => new { t.Id }).IsUnique(true);
 
+            modelBuilder.Entity<Subscription>(entity =>
+            {
+                entity.Property(e => e.IsGift)
+                    .IsRequired();
+
+                entity.Property(e => e.Tier)
+                    .HasMaxLength(10);
+
+                AddGenericFields<Subscription>(entity);
+            });
+            modelBuilder.Entity<Subscription>().HasIndex(t => new { t.Id }).IsUnique(true);
+
             Expression<Func<ISoftDeleteable, bool>> filterSoftDeleteable = bm => !bm.Deleted;
             foreach (var type in modelBuilder.Model.GetEntityTypes())
             {
@@ -232,6 +245,13 @@ namespace DbDll
                 entity.Property("Deleted")
                     .IsRequired()
                     .HasDefaultValue(false);
+            }
+
+            if (typeof(IOwnable).IsAssignableFrom(typeof(T)))
+            {
+                entity.Property("Owner")
+                    .HasMaxLength(512)
+                    .IsRequired();
             }
         }
 

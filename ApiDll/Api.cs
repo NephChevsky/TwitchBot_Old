@@ -229,7 +229,7 @@ namespace ApiDll
             return followers.Follows.ToList();
         }
 
-        public async Task<List<Subscription>> GetSubscribers()
+        public async Task<List<TwitchLib.Api.Helix.Models.Subscriptions.Subscription>> GetSubscribers()
         {
             GetBroadcasterSubscriptionsResponse subscribers = await api.Helix.Subscriptions.GetBroadcasterSubscriptionsAsync(_settings.StreamerTwitchId, 100);
             return subscribers.Data.ToList();
