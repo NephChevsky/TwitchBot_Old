@@ -45,6 +45,10 @@ namespace ChatDll
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            while (!_chat.IsConnected)
+            {
+                Task.Delay(20).Wait();
+			}
             _chat._client.OnChatCommandReceived += Client_OnChatCommandReceived;
             _chat._client.OnMessageReceived += Client_OnMessageReceived;
             Task hub = _connection.StartAsync();
