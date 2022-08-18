@@ -15,12 +15,12 @@ namespace Bot
             IHost host = Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, configBuilder) =>
             {
-                IConfigurationRoot config = configBuilder
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", false)
-                    .Build();
-                string path = config.GetValue<string>("ConfigPath");
-                configBuilder.SetBasePath(Directory.GetCurrentDirectory())
+                string path = "config.json";
+                if (!File.Exists(path))
+                {
+                    path = Path.Combine(@"D:\dev\Twitch", path);
+				}
+                IConfigurationRoot config = configBuilder.SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", false)
                     .AddJsonFile(path, false)
                     .AddJsonFile("bots.json", false)
