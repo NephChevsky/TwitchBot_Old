@@ -267,12 +267,6 @@ namespace ApiDll
             return response.Listings.ToList();
 		}
 
-        public async Task<Listing> GetBitsPerUser(string userId, BitsLeaderboardPeriodEnum period)
-        {
-            GetBitsLeaderboardResponse response = await api.Helix.Bits.GetBitsLeaderboardAsync(1, period, DateTime.Now, userId);
-            return response.Listings.FirstOrDefault();
-        }
-
         public void Dispose()
         {
             _logger.LogInformation($"Disposing of ApiDll");

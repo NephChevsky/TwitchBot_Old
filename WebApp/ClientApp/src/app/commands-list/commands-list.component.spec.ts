@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CommandsListComponent } from './commands-list.component';
 
-describe('AlertsComponent', () => {
+describe('CommandsListComponent', () => {
   let component: CommandsListComponent;
   let fixture: ComponentFixture<CommandsListComponent>;
 

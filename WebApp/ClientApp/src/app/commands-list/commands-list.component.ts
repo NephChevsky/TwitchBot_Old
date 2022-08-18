@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 
 @Component({
@@ -17,7 +18,7 @@ export class CommandsListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.http.get("/Commands").subscribe((data: any) => {
+    this.http.get(environment.baseUrl + "Commands").subscribe((data: any) => {
       this.commands = data.customCommands;
       delete data.customCommands;
       this.options = data;

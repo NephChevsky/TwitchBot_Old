@@ -8,7 +8,7 @@ longest subscriber (no api, need to keep an historic in webapp)
 make sure alerts are displayed until the end before processing the next one
 clean up uptimes, chat messages and cheers history after a month
 last cheers (no api, need to keep an historic in webapp)
-Ajouter une page pour voir le classement des uptimes et des message count
+Ajouter la possibilité d'ordonner les stats
 
 ===============
 Commands

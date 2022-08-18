@@ -1,0 +1,12 @@
+.content {
+  padding: 20px;
+}
+
+table {
+	width: 100%;
+}
+
+th.mat-header-cell, td.mat-cell {
+	padding-left:10px;
+	padding-right:10px;
+}

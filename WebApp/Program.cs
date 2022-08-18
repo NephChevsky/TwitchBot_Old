@@ -10,14 +10,28 @@ namespace WebApp
 		public static void Main(string[] args)
 		{
 			WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-
+			string path = "config.json";
+			if (!File.Exists(path))
+			{
+				path = Path.Combine(@"D:\Dev\Twitch", path);
+			}
 			builder.Configuration.SetBasePath(Directory.GetCurrentDirectory())
 					.AddJsonFile("appsettings.json", false)
-					.AddJsonFile("config.json", false)
+					.AddJsonFile(path, false)
 					.Build();
 
 			builder.Services.AddControllers();
 			builder.Services.AddSignalR();
+			builder.Services.AddCors(options =>
+			{
+				options.AddPolicy("devCORS",
+				builder =>
+				{
+					builder.WithOrigins("https://localhost:44427")
+						.AllowAnyHeader()
+						.AllowCredentials();
+				});
+			});
 			builder.Services.AddTwitchLibEventSubWebhooks(config =>
 			{
 				config.CallbackPath = "/webhooks";
@@ -37,6 +51,10 @@ namespace WebApp
 			app.UseHttpsRedirection();
 			app.UseStaticFiles();
 			app.UseRouting();
+			if (app.Environment.EnvironmentName.Equals("Development"))
+			{
+				app.UseCors("devCORS");
+			}
 			app.UseTwitchLibEventSubWebhooks();
 
 			app.UseEndpoints(config =>

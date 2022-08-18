@@ -1,5 +1,6 @@
 import { HubConnectionBuilder, HubConnection, HubConnectionState } from '@microsoft/signalr';
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class HubClient {
@@ -12,7 +13,7 @@ export class HubClient {
   public GetHubConnection(): HubConnection {
     if (!this.hubConnection) {
       this.hubConnection = new HubConnectionBuilder()
-        .withUrl("/hub")
+        .withUrl(environment.baseUrl + "hub")
         .withAutomaticReconnect()
         .build();
     }
