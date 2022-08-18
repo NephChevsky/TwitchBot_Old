@@ -9,8 +9,7 @@ namespace ModelsDll.DTO
 		public string TwitchId { get; set; }
 		public string Name { get; set; }
 		public int Seen { get; set; }
-		public string CreationDateTime { get; set; }
-		public string LastViewedDateTime { get; set; }
+		public string Presence { get; set; }
 		public string UptimeTotal { get; set; }
 		public string UptimeMonth { get; set; }
 		public string UptimeDay { get; set; }
@@ -27,8 +26,7 @@ namespace ModelsDll.DTO
 			TwitchId = viewer.TwitchId;
 			Name = viewer.DisplayName;
 			Seen = viewer.Seen;
-			CreationDateTime = viewer.CreationDateTime.ToString("dd/MM/yyyy");
-			LastViewedDateTime = viewer.LastViewedDateTime.ToString("dd/MM/yyyy");
+			Presence = $"{viewer.CreationDateTime.ToString("dd/MM/yyyy")} - {viewer.LastViewedDateTime.ToString("dd/MM/yyyy")}";
 			string hours = Math.Floor( (double) viewer.Uptime / 3600).ToString();
 			string minutes = Math.Floor((double) (viewer.Uptime % 3600) / 60).ToString();
 			UptimeTotal = $"{hours.PadLeft(2, '0')}h{minutes.PadLeft(2, '0')}";
