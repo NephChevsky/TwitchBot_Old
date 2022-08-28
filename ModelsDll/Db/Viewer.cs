@@ -27,7 +27,7 @@ namespace ModelsDll.Db
 
         public Viewer(string username, string displayname, string id)
         {
-            Id = Id;
+            Id = id;
             Username = username;
             DisplayName = displayname;
             CreationDateTime = DateTime.Now;
