@@ -140,7 +140,7 @@ namespace WebApp.Services
                 Dictionary<string, object> alert = new Dictionary<string, object>();
                 alert.Add("type", "channel.subscription.message");
                 alert.Add("username", e.Notification.Event.UserName);
-                alert.Add("message", e.Notification.Event.Message);
+                alert.Add("message", e.Notification.Event.Message.Text);
                 alert.Add("tier", e.Notification.Event.Tier);
                 alert.Add("durationMonths", e.Notification.Event.DurationMonths);
                 alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
