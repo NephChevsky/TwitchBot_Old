@@ -42,6 +42,8 @@ namespace WebApp
 			builder.Services.AddSingleton<DiscordDll.Discord>();
 			builder.Services.AddHostedService<EventSubService>();
 			builder.Services.AddHostedService<UpdateButtons>();
+			builder.Services.AddHostedService<DailyTasks>();
+			builder.Services.AddHostedService<ChronicTasks>();
 
 			builder.Logging.ClearProviders();
 			builder.Logging.AddAzureWebAppDiagnostics();

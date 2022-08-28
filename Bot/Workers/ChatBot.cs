@@ -51,8 +51,7 @@ namespace ChatDll
 			}
             _chat._client.OnChatCommandReceived += Client_OnChatCommandReceived;
             _chat._client.OnMessageReceived += Client_OnMessageReceived;
-            Task hub = _connection.StartAsync();
-            hub.Wait();
+            _connection.StartAsync().Wait();
 
             return Task.CompletedTask;
         }

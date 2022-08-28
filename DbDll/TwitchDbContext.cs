@@ -189,6 +189,9 @@ namespace DbDll
                 entity.Property(e => e.IsGift)
                     .IsRequired();
 
+                entity.Property(e => e.GifterId)
+                    .HasMaxLength(512);
+
                 entity.Property(e => e.Tier)
                     .HasMaxLength(10);
 

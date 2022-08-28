@@ -10,8 +10,9 @@ namespace ModelsDll.Db
 	public class Subscription : IOwnable, IDateTimeTrackable, ISoftDeleteable
 	{
 		public Guid Id { get; set; }
-		public bool IsGift { get; set; }
 		public string Tier { get; set; }
+		public bool IsGift { get; set; }
+		public string GifterId { get; set; }
 
 		// IOwnable
 		public string Owner { get; set; }
