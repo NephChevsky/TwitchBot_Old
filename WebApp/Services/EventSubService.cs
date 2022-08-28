@@ -65,7 +65,6 @@ namespace WebApp.Services
             _eventSubWebhooks.OnChannelHypeTrainBegin += OnChannelHypeTrainBegin;
             _eventSubWebhooks.OnChannelPointsCustomRewardRedemptionAdd += OnChannelPointsCustomRewardRedemptionAdd;
             _eventSubWebhooks.OnStreamOnline += OnStreamOnline;
-            _eventSubWebhooks.OnStreamOffline += OnStreamOffline;
             _logger.LogInformation($"Service started");
             return Task.CompletedTask;
         }
@@ -84,7 +83,6 @@ namespace WebApp.Services
             _eventSubWebhooks.OnChannelHypeTrainBegin -= OnChannelHypeTrainBegin;
             _eventSubWebhooks.OnChannelPointsCustomRewardRedemptionAdd -= OnChannelPointsCustomRewardRedemptionAdd;
             _eventSubWebhooks.OnStreamOnline -= OnStreamOnline;
-            _eventSubWebhooks.OnStreamOffline -= OnStreamOffline;
             _logger.LogInformation($"Service stopped");
             return Task.CompletedTask;
         }
@@ -164,7 +162,7 @@ namespace WebApp.Services
         {
             if (!HandledEvents.Contains(e.Notification.Subscription.Id))
             {
-                _logger.LogInformation($"{e.Notification.Event.UserName} gifted {e.Notification.Event.Bits} cheers to {e.Notification.Event.BroadcasterUserName}");
+                _logger.LogInformation($"{e.Notification.Event.UserName} gifted {e.Notification.Event.Bits} cheers");
                 Dictionary<string, object> alert = new Dictionary<string, object>();
                 alert.Add("type", "channel.cheer");
                 alert.Add("username", e.Notification.Event.UserName);
@@ -180,7 +178,7 @@ namespace WebApp.Services
         {
             if (!HandledEvents.Contains(e.Notification.Subscription.Id))
             {
-                _logger.LogInformation($"{e.Notification.Event.FromBroadcasterUserName} raided {e.Notification.Event.ToBroadcasterUserName} with {e.Notification.Event.Viewers} person");
+                _logger.LogInformation($"{e.Notification.Event.FromBroadcasterUserName} raided {e.Notification.Event.ToBroadcasterUserName} with {e.Notification.Event.Viewers} viewers");
                 Dictionary<string, object> alert = new Dictionary<string, object>();
                 alert.Add("type", "channel.raid");
                 alert.Add("username", e.Notification.Event.FromBroadcasterUserName);
@@ -228,15 +226,6 @@ namespace WebApp.Services
             {
                 _discord.SendMessage(_settings.DiscordFunction.NewsChannelId, "Neph a lancé un live. Viens foutre le bordel avec nous sur https://www.twitch.tv/nephchevsky !").Wait();
                 HandledEvents.Add(e.Notification.Event.Id);
-            }
-        }
-
-        private void OnStreamOffline(object sender, StreamOfflineArgs e)
-        {
-            if (!HandledEvents.Contains(e.Notification.Subscription.Id))
-            {
-                _discord.DeleteMessage(_settings.DiscordFunction.NewsChannelId, "NephBot", "Neph a lancé un live. Viens foutre le bordel avec nous sur https://www.twitch.tv/nephchevsky !").Wait();
-                HandledEvents.Add(e.Notification.Subscription.Id);
             }
         }
 
