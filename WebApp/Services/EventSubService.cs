@@ -224,7 +224,7 @@ namespace WebApp.Services
         {
             if (!HandledEvents.Contains(e.Notification.Event.Id))
             {
-                _discord.SendMessage(_settings.DiscordFunction.NewsChannelId, "Neph a lancé un live. Viens foutre le bordel avec nous sur https://www.twitch.tv/nephchevsky !").Wait();
+                _discord.SendMessage(_settings.DiscordFunction.NewsChannelId, "@everyone Neph a lancé un live. Viens foutre le bordel avec nous sur https://www.twitch.tv/nephchevsky !").Wait();
                 HandledEvents.Add(e.Notification.Event.Id);
             }
         }
