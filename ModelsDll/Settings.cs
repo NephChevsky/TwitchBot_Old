@@ -56,6 +56,8 @@
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
         public string Playlist { get; set; }
+        public string ServerCallbackUrl { get; set; }
+        public string LocalCallbackUrl { get; set; }
     }
 
     public class CheckChannelRewardsFunction

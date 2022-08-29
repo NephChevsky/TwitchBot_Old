@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using System.Diagnostics;
+using System.Web;
 
 namespace SpotifyDll
 {
@@ -24,7 +25,7 @@ namespace SpotifyDll
 
 			if (!Directory.GetCurrentDirectory().Contains("wwwroot"))
 			{
-				_server = new EmbedIOAuthServer(new Uri("http://localhost:5001/callback"), 5001);
+				_server = new EmbedIOAuthServer(new Uri(_settings.SpotifyFunction.LocalCallbackUrl), 5001);
 				_server.AuthorizationCodeReceived += OnAuthorizationCodeReceived;
 				_server.Start().Wait();
 
@@ -32,17 +33,12 @@ namespace SpotifyDll
 				{
 					Scope = new List<string> { Scopes.UserReadCurrentlyPlaying, Scopes.UserModifyPlaybackState, Scopes.PlaylistModifyPrivate, Scopes.PlaylistModifyPublic }
 				};
-
-				Uri uri = request.ToUri();
-				try
+				BrowserUtil.Open(request.ToUri());
+				request = new LoginRequest(new Uri(_settings.SpotifyFunction.ServerCallbackUrl), _settings.SpotifyFunction.ClientId, LoginRequest.ResponseType.Code)
 				{
-					BrowserUtil.Open(request.ToUri());
-					BrowserUtil.Open(new Uri("https://accounts.spotify.com/authorize?client_id=e3e3047455fb4f85b889cc251133b9c9&response_type=code&redirect_uri=https%3A%2F%2Fbot-neph.azurewebsites.net%2Fcallback&scope=user-read-currently-playing+user-modify-playback-state+playlist-modify-public+playlist-modify-private"));
-				}
-				catch (Exception)
-				{
-					_logger.LogInformation("Unable to open URL for spotify connection, manually open: {0}", uri);
-				}
+					Scope = new List<string> { Scopes.UserReadCurrentlyPlaying, Scopes.UserModifyPlaybackState, Scopes.PlaylistModifyPrivate, Scopes.PlaylistModifyPublic }
+				};
+				BrowserUtil.Open(request.ToUri());
 			}
 
 			RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(55), TimeSpan.FromMinutes(55));
@@ -54,11 +50,11 @@ namespace SpotifyDll
 			Uri uri;
 			if (Directory.GetCurrentDirectory().Contains("wwwroot"))
 			{
-				uri = new Uri("https://bot-neph.azurewebsites.net/callback");
+				uri = new Uri(_settings.SpotifyFunction.ServerCallbackUrl);
 			}
 			else
 			{
-				uri = new Uri("http://localhost:5001/callback");
+				uri = new Uri(_settings.SpotifyFunction.LocalCallbackUrl);
 			}
 			var tokenRequest = new AuthorizationCodeTokenRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, code.Code, uri);
 			var tokenResponse = await oauth.RequestToken(tokenRequest);
