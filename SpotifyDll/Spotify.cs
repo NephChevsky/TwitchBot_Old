@@ -25,9 +25,8 @@ namespace SpotifyDll
 			if (!Directory.GetCurrentDirectory().Contains("wwwroot"))
 			{
 				_server = new EmbedIOAuthServer(new Uri("http://localhost:5001/callback"), 5001);
-				_server.Start().Wait(); 
-				
 				_server.AuthorizationCodeReceived += OnAuthorizationCodeReceived;
+				_server.Start().Wait();
 
 				var request = new LoginRequest(_server.BaseUri, _settings.SpotifyFunction.ClientId, LoginRequest.ResponseType.Code)
 				{
