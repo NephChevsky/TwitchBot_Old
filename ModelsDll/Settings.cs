@@ -19,8 +19,8 @@
         public UpdateButtonsFunction UpdateButtonsFunction { get; set; }
         public SpotifyFunction SpotifyFunction { get; set; }
         public CheckChannelRewardsFunction CheckChannelRewardsFunction { get; set; }
-
         public DiscordFunction DiscordFunction { get; set; }
+        public ObsFunction ObsFunction { get; set; }
 
         public Tags Tags { get; set; }
     }
@@ -70,6 +70,12 @@
         public string AccessToken { get; set; }
         public ulong NewsChannelId { get; set; }
 	}
+
+    public class ObsFunction
+    {
+        public string Url { get; set; }
+        public string Password { get; set; }
+    }
 
     public class Tags
     {

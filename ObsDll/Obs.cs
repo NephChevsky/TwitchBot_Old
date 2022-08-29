@@ -19,6 +19,8 @@ namespace ObsDll
 			_obs = new OBSWebsocket();
 			_obs.Connected += onConnect;
 			_obs.Disconnected += onDisconnect;
+
+			_obs.Connect(_settings.ObsFunction.Url, _settings.ObsFunction.Password);
 		}
 
 		private void onConnect(object sender, EventArgs e)
