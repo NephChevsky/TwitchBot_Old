@@ -403,8 +403,18 @@ namespace ChatDll
             }
             else if ((string.Equals(e["type"], "VIP", StringComparison.InvariantCultureIgnoreCase)))
             {
-                await _api.AddVIP(e["user-id"]);
-                success = true;
+                List<Moderator> mods = await _api.GetModerators();
+                Moderator mod = mods.Where(x => string.Equals(e["user-id"], x.UserId)).FirstOrDefault();
+                if (mod == null)
+                {
+                    await _api.AddVIP(e["user-id"]);
+                    success = true;
+                }
+                else
+                {
+                    _chat.SendMessage($"{e["username"]} T'es modo ducon!");
+                    success = false;
+				}
 			}
 
             if (success)
