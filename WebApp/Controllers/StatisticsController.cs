@@ -10,7 +10,7 @@ using TwitchLib.Api.Helix.Models.Bits;
 namespace WebApp.Controllers
 {
 	[ApiController]
-	[Route("[controller]")]
+	[Route("api/[controller]")]
 	public class StatisticsController : ControllerBase
 	{
 		private readonly ILogger<StatisticsController> _logger;

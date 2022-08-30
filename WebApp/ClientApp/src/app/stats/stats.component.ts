@@ -20,7 +20,7 @@ export class StatsComponent implements OnInit
 
 	ngOnInit(): void
 	{
-		this.http.get(environment.baseUrl + "Statistics").subscribe((data: any) =>
+		this.http.get(environment.baseUrl + "api/Statistics").subscribe((data: any) =>
 		{
 			this.dataSource = data;
 		}, error =>

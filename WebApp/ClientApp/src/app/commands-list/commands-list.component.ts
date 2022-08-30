@@ -21,7 +21,7 @@ export class CommandsListComponent implements OnInit
 
 	ngOnInit(): void
 	{
-		this.http.get(environment.baseUrl + "Commands").subscribe((data: any) =>
+		this.http.get(environment.baseUrl + "api/Commands").subscribe((data: any) =>
 		{
 			this.commands = data.customCommands;
 			delete data.customCommands;

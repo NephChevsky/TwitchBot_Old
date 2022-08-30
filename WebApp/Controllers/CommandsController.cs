@@ -7,7 +7,7 @@ using ModelsDll.DTO;
 namespace WebApp.Controllers
 {
 	[ApiController]
-	[Route("[controller]")]
+	[Route("api/[controller]")]
 	public class CommandsController : ControllerBase
 	{
 		private readonly ILogger<CommandsController> _logger;
