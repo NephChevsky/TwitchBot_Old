@@ -1,77 +1,60 @@
 ﻿using ApiDll;
 using DbDll;
-using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using ModelsDll;
 using ModelsDll.Db;
+using ModelsDll.DTO;
 using SpotifyAPI.Web;
 using SpotifyDll;
 using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Helix.Models.Bits;
-using TwitchLib.Api.Helix.Models.Subscriptions;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 
-namespace WebApp.Services
+namespace WebApp.Controllers
 {
-	public class UpdateButtons : BackgroundService
-    {
-        private readonly ILogger<UpdateButtons> _logger;
-        private readonly Settings _settings;
-        private Api _api;
-        private Spotify _spotify;
-        readonly IHubContext<SignalService> _hub;
+	[Route("api/[controller]")]
+	[ApiController]
+	public class ButtonsController : ControllerBase
+	{
+		private readonly ILogger<ButtonsController> _logger;
+		private readonly Settings _settings;
+		private Api _api;
+		private Spotify _spotify;
 
-        private int CurrentButtonCursor = 0;
+        private static int CurrentButtonCursor = 0;
 
-        public UpdateButtons(ILogger<UpdateButtons> logger, IConfiguration configuration, Spotify spotify, IHubContext<SignalService> hub)
+        public ButtonsController(ILogger<ButtonsController> logger, IConfiguration configuration, Spotify spotify)
+		{
+			_logger = logger;
+			_settings = configuration.GetSection("Settings").Get<Settings>();
+			_api = new Api(configuration, "twitchapi");
+			_spotify = spotify;
+		}
+
+		[HttpGet]
+		public async Task<ActionResult<List<ButtonResponse>>> Get()
+		{
+            _logger.LogInformation("Fetching buttons value");
+            List<ButtonResponse> response = new();
+            response.Add(await GetNextButton());
+            response.Add(await GetNextButton());
+            return Ok(response);
+		}
+
+        private async Task<ButtonResponse> GetNextButton()
         {
-            _logger = logger;
-            _settings = configuration.GetSection("Settings").Get<Settings>();
-            _api = new Api(configuration, "twitchapi");
-            _spotify = spotify;
-            _hub = hub;
-        }
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            while (!stoppingToken.IsCancellationRequested)
+            ButtonResponse button = new();
+            while (string.IsNullOrEmpty(button.Value))
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                string buttonTitle = "";
-                string buttonValue = "";
-                Dictionary<string, object> button1 = new Dictionary<string, object>();
-                Dictionary<string, object> button2 = new Dictionary<string, object>();
-                (buttonTitle, buttonValue) = await GetNextButton();
-                button1.Add("index", 1);
-                button1.Add("title", buttonTitle);
-                button1.Add("value", buttonValue);
-                buttonTitle = "";
-                buttonValue = "";
-                (buttonTitle, buttonValue) = await GetNextButton();
-                button2.Add("index", 2);
-                button2.Add("title", buttonTitle);
-                button2.Add("value", buttonValue);
-
-                await _hub.Clients.All.SendAsync("UpdateButton", button1);
-                await _hub.Clients.All.SendAsync("UpdateButton", button2);
-
-                await Task.Delay(TimeSpan.FromSeconds(_settings.UpdateButtonsFunction.Timer), stoppingToken);
-            }
-        }
-
-        public async Task<(string, string)> GetNextButton()
-        {
-            string buttonValue = "";
-            string buttonTitle = "";
-            while (string.IsNullOrEmpty(buttonValue))
-            {
-                buttonTitle = GetButtonNiceName(_settings.UpdateButtonsFunction.AvailableButtons[CurrentButtonCursor]);
-                buttonValue = await GetButtonValue(_settings.UpdateButtonsFunction.AvailableButtons[CurrentButtonCursor]);
+                button.Title = GetButtonNiceName(_settings.UpdateButtonsFunction.AvailableButtons[CurrentButtonCursor]);
+                button.Value = await GetButtonValue(_settings.UpdateButtonsFunction.AvailableButtons[CurrentButtonCursor]);
                 CurrentButtonCursor = (CurrentButtonCursor + 1) % _settings.UpdateButtonsFunction.AvailableButtons.Count;
             }
-            return (buttonTitle, buttonValue);
+            return button;
         }
 
-        public async Task<string> GetButtonValue(string name)
+        private async Task<string> GetButtonValue(string name)
         {
             if (name == "follower_goal" || name == "follower_count")
             {
@@ -141,12 +124,12 @@ namespace WebApp.Services
                     if (name == "most_speaking_viewer_daily")
                     {
                         limit = DateTime.Now.AddDays(-1);
-					}
+                    }
                     else if (name == "most_speaking_viewer_monthly")
                     {
                         limit = DateTime.Now.AddMonths(-1);
                     }
-                    var messages = db.Messages.Where(x => x.CreationDateTime > limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count()}).OrderByDescending(g => g.Count).ToList();
+                    var messages = db.Messages.Where(x => x.CreationDateTime > limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).ToList();
                     if (messages.Count != 0)
                     {
                         Viewer dbViewer;
@@ -168,12 +151,12 @@ namespace WebApp.Services
                 using (TwitchDbContext db = new())
                 {
                     Viewer dbViewer = db.Viewers.Where(x => x.IsBot == false && x.Username != _settings.Streamer).OrderByDescending(x => x.MessageCount).FirstOrDefault();
-                    if (dbViewer != null )
+                    if (dbViewer != null)
                     {
                         return dbViewer.DisplayName;
-					}
+                    }
                     return "";
-				}
+                }
             }
             else if (name == "last_follower")
             {
@@ -203,9 +186,9 @@ namespace WebApp.Services
                 if (cheers.Count != 0)
                 {
                     return cheers[0].UserName + " (" + cheers[0].Score + ")";
-				}
+                }
                 return "";
-			}
+            }
             else if (name == "subscriber_count" || name == "subscriber_goal" || name == "last_subscriber" || name == "last_subscription_gifter")
             {
                 List<TwitchLib.Api.Helix.Models.Subscriptions.Subscription> subscribers = await _api.GetSubscribers();
@@ -230,13 +213,13 @@ namespace WebApp.Services
                         return subscribers[subscribers.Count - 1].GifterName;
                     }
                     return "";
-				}
+                }
                 return "";
-			}
+            }
             return "";
         }
 
-        public string GetButtonNiceName(string name)
+        private string GetButtonNiceName(string name)
         {
             string value = "";
             switch (name)
@@ -282,7 +265,7 @@ namespace WebApp.Services
                     break;
                 case "top_cheers_total":
                     value = "Top bits (total)";
-					break;
+                    break;
                 case "subscriber_goal":
                     value = "Sub goal";
                     break;

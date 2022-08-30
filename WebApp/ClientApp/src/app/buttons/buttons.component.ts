@@ -1,46 +1,65 @@
-import { Component, NgZone, OnInit } from '@angular/core';
-import { HubClient } from '../services/hub.service';
+import { HttpClient } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+import { environment } from '../../environments/environment';
+import { interval, Subscription, timer } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators'
 
 @Component({
-  selector: 'app-buttons',
-  templateUrl: './buttons.component.html',
-  styleUrls: ['./buttons.component.css'],
-  providers: [HubClient]
+	selector: 'app-buttons',
+	templateUrl: './buttons.component.html',
+	styleUrls: ['./buttons.component.css'],
 })
-export class ButtonsComponent implements OnInit {
+export class ButtonsComponent implements OnInit
+{
 
-  public buttons: any[] = [];
+	public buttons: any[] = [];
+	public subscription !: Subscription;
 
-  constructor(private ngZone: NgZone, public hubClient: HubClient) {
-    this.buttons = [{
-      title: '',
-      value: ''
-    },
-    {
-      title: '',
-      value: ''
-    }];
-    this.hubClient.GetStartedHubConnection().then(hub => hub.on("UpdateButton", data => this.ngZone.run(() => this.updateButton(data))));
-  }
+	constructor(public httpClient: HttpClient)
+	{
+		this.buttons = [{
+			title: '',
+			value: ''
+		},
+		{
+			title: '',
+			value: ''
+		}];
+	}
 
-  ngOnInit(): void {
-  }
+	ngOnInit(): void
+	{
+		this.subscription = timer(0, 15 * 1000).pipe(
+			switchMap(() => this.httpClient.get(environment.baseUrl + "api/buttons"))
+		).subscribe((data: any) =>
+		{
+			this.updateButton(1, data[0]);
+			this.updateButton(2, data[1]);
+		}, error =>
+		{
+			// TODO: handle error
+		});
+	}
 
-  ngOnDestroy() {
-    this.hubClient.StopHubConnection();
-  }
+	ngOnDestroy()
+	{
+		this.subscription.unsubscribe();
+	}
 
-  updateButton(data: any) {
-    this.buttons[data.index - 1] = {
-      title: data.title,
-      value: data.value
-    }
-    var element = document.getElementById("button" + data.index);
-    if (this.buttons[data.index - 1].value.length > 23) {
-      element?.classList.add("scroll-text");
-    }
-    else {
-      element?.classList.remove("scroll-text");
-    }
-  }
+	updateButton(index: number, data: any)
+	{
+		this.buttons[index - 1] = {
+			title: data.title,
+			value: data.value
+		}
+		var element = document.getElementById("button" + index);
+		if (this.buttons[index - 1].value.length > 23)
+		{
+			element?.classList.add("scroll-text");
+		}
+		else
+		{
+			element?.classList.remove("scroll-text");
+		}
+	}
 }
