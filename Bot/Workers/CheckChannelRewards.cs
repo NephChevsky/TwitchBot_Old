@@ -26,11 +26,11 @@ namespace Bot.Workers
         private Api _api;
         private Spotify _spotify;
 
-        public CheckChannelRewards(ILogger<CheckChannelRewards> logger, IConfiguration configuration, Spotify spotify)
+        public CheckChannelRewards(ILogger<CheckChannelRewards> logger, IConfiguration configuration, Api api, Spotify spotify)
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            _api = new(configuration, "twitchapi");
+            _api = api;
             _spotify = spotify;
         }
 

@@ -1,4 +1,5 @@
-﻿using Bot.Workers;
+﻿using ApiDll;
+using Bot.Workers;
 using ChatDll;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,7 @@ namespace Bot
             })
             .ConfigureServices(services =>
             {
+                services.AddSingleton<Api>();
                 services.AddSingleton<BasicChat>();
                 services.AddSingleton<Spotify>();
                 services.AddHostedService<ChatBot>();

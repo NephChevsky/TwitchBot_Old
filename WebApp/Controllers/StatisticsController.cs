@@ -17,11 +17,11 @@ namespace WebApp.Controllers
 		private Settings _settings;
 		private Api _api;
 
-		public StatisticsController(ILogger<StatisticsController> logger, IConfiguration configuration)
+		public StatisticsController(ILogger<StatisticsController> logger, IConfiguration configuration, Api api)
 		{
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
-			_api = new(configuration, "twitchapi");
+			_api = api;
 		}
 
 		[HttpGet]

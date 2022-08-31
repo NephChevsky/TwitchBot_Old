@@ -23,13 +23,13 @@ namespace Bot.Workers
         private List<ChatterFormatted> CurrentChatters = new List<ChatterFormatted>();
         private List<string> _bots;
 
-        public CheckUptime(ILogger<CheckUptime> logger, IConfiguration configuration, BasicChat chat)
+        public CheckUptime(ILogger<CheckUptime> logger, IConfiguration configuration, Api api, BasicChat chat)
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
             _bots = configuration.GetSection("TwitchBotList").Get<List<string>>();
             _chat = chat;
-            _api = new(configuration, "twitchapi");
+            _api = api;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

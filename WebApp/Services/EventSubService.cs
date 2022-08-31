@@ -3,6 +3,7 @@ using DbDll;
 using Microsoft.AspNetCore.SignalR;
 using ModelsDll;
 using ModelsDll.Db;
+using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.EventSub;
 using TwitchLib.EventSub.Webhooks.Core;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs;
@@ -17,8 +18,8 @@ namespace WebApp.Services
         private readonly ITwitchEventSubWebhooks _eventSubWebhooks;
         readonly IHubContext<SignalService> _hub;
         private Settings _settings;
-        private Api _api;
         private DiscordDll.Discord _discord;
+        private TwitchAPI _api;
         private List<EventSubSubscription> Subscriptions;
         private List<string> HandledEvents = new List<string>();
 
@@ -28,28 +29,58 @@ namespace WebApp.Services
             _eventSubWebhooks = eventSubWebhooks;
             _hub = hub;
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            _api = new(configuration, "twitchapp");
             _discord = discord;
 
-            Subscriptions = new();
-            Task<bool> subscriptionsTask = Task.Run(async () =>
-            {
-                List<EventSubSubscription> subs = await _api.GetEventSubSubscription();
-                _api.DeleteEventSubSubscription(subs);
-                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.follow"));
-                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.subscribe"));
-                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.subscription.gift"));
-                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.subscription.message"));
-                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.cheer"));
-                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.raid"));
-                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.hype_train.begin"));
-                Subscriptions.Add(await _api.CreateEventSubSubscription("channel.channel_points_custom_reward_redemption.add"));
-                Subscriptions.Add(await _api.CreateEventSubSubscription("stream.online"));
-                Subscriptions.Add(await _api.CreateEventSubSubscription("stream.offline"));
+            _api = new();
+            _api.Settings.ClientId = _settings.ClientId;
+            _api.Settings.Secret = _settings.Secret;
 
-                return true;
+            Task.Run(async () => {
+                _api.Settings.AccessToken = await _api.Auth.GetAccessTokenAsync();
+                Subscriptions = new();
+                List<EventSubSubscription> subs = await GetEventSubSubscription();
+                DeleteEventSubSubscription(subs);
+                Subscriptions.Add(await CreateEventSubSubscription("channel.follow"));
+                Subscriptions.Add(await CreateEventSubSubscription("channel.subscribe"));
+                Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.gift"));
+                Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.message"));
+                Subscriptions.Add(await CreateEventSubSubscription("channel.cheer"));
+                Subscriptions.Add(await CreateEventSubSubscription("channel.raid"));
+                Subscriptions.Add(await CreateEventSubSubscription("channel.hype_train.begin"));
+                Subscriptions.Add(await CreateEventSubSubscription("channel.channel_points_custom_reward_redemption.add"));
+                Subscriptions.Add(await CreateEventSubSubscription("stream.online"));
+                Subscriptions.Add(await CreateEventSubSubscription("stream.offline"));
+            }).Wait();
+        }
+
+        private async Task<EventSubSubscription> CreateEventSubSubscription(string type)
+        {
+            Dictionary<string, string> conditions = new Dictionary<string, string>();
+            switch (type)
+            {
+                case "channel.raid":
+                    conditions.Add("to_broadcaster_user_id", _settings.StreamerTwitchId);
+                    break;
+                default:
+                    conditions.Add("broadcaster_user_id", _settings.StreamerTwitchId);
+                    break;
+            }
+            CreateEventSubSubscriptionResponse response = await _api.Helix.EventSub.CreateEventSubSubscriptionAsync(type, "1", conditions, "webhook", _settings.EventSubUrl, _settings.Secret);
+            return response.Subscriptions[0];
+        }
+
+        private void DeleteEventSubSubscription(List<EventSubSubscription> subscriptions)
+        {
+            subscriptions.ForEach(async x =>
+            {
+                await _api.Helix.EventSub.DeleteEventSubSubscriptionAsync(x.Id);
             });
-            subscriptionsTask.Wait();
+        }
+
+        private async Task<List<EventSubSubscription>> GetEventSubSubscription()
+        {
+            GetEventSubSubscriptionsResponse response = await _api.Helix.EventSub.GetEventSubSubscriptionsAsync();
+            return response.Subscriptions.ToList();
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -72,7 +103,7 @@ namespace WebApp.Services
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation($"Service stopping");
-            _api.DeleteEventSubSubscription(Subscriptions);
+            DeleteEventSubSubscription(Subscriptions);
             _eventSubWebhooks.OnError -= OnError;
             _eventSubWebhooks.OnChannelFollow -= OnChannelFollow;
             _eventSubWebhooks.OnChannelSubscribe += OnChannelSubscribe;

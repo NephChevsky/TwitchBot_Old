@@ -34,59 +34,44 @@ namespace ApiDll
     {
         private Settings _settings;
         private ILogger<Api> _logger;
-        private ILoggerFactory _loggerFactory;
         private TwitchAPI api;
-        private string ApiType;
         private Timer RefreshTokenTimer;
 
-        public Api(IConfiguration configuration, string apiType)
+        public Api(IConfiguration configuration, ILogger<Api> logger)
         {
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            _loggerFactory = LoggerFactory.Create(lf => { lf.AddAzureWebAppDiagnostics(); });
-            _logger = _loggerFactory.CreateLogger<Api>();
-            ApiType = apiType;
+            _logger = logger;
 
             TimeSpan firstRefresh = TimeSpan.FromSeconds(4 * 60 * 60 - 600);
 
             api = new TwitchAPI();
             api.Settings.ClientId = _settings.ClientId;
             api.Settings.Secret = _settings.Secret;
-            if (ApiType == "twitchapp")
+
+            Task.Run(async () =>
             {
-                Task<string> credentialsTask = Task.Run(async () =>
+                using (TwitchDbContext db = new())
                 {
-                    return await api.Auth.GetAccessTokenAsync();
-                });
-                credentialsTask.Wait();
-                api.Settings.AccessToken = credentialsTask.Result;
-            }
-            else
-            {
-                Task.Run(async () =>
-                {
-                    using (TwitchDbContext db = new())
+                    Token accessToken = db.Tokens.Where(x => x.Name == "StreamerAccessToken").FirstOrDefault();
+                    if (accessToken != null)
                     {
-                        Token accessToken = db.Tokens.Where(x => x.Name == "StreamerAccessToken").FirstOrDefault();
-                        if (accessToken != null)
+                        api.Settings.AccessToken = accessToken.Value;
+                        ValidateAccessTokenResponse response = await api.Auth.ValidateAccessTokenAsync();
+                        if (response == null)
                         {
-                            api.Settings.AccessToken = accessToken.Value;
-                            ValidateAccessTokenResponse response = await api.Auth.ValidateAccessTokenAsync();
-                            if (response == null)
-                            {
-                                await RefreshTokenAsync();
-                            }
-                            else
-                            {
-                                firstRefresh = TimeSpan.FromSeconds(Math.Max(0, response.ExpiresIn - 600));
-							}
+                            await RefreshTokenAsync();
                         }
                         else
                         {
-                            throw new Exception("Implement auth flow for api");
-                        }
+                            firstRefresh = TimeSpan.FromSeconds(Math.Max(0, response.ExpiresIn - 600));
+						}
                     }
-                }).Wait();
-            }
+                    else
+                    {
+                        throw new Exception("Implement auth flow for api");
+                    }
+                }
+            }).Wait();
 
             RefreshTokenTimer = new Timer(RefreshToken, null, firstRefresh, TimeSpan.FromSeconds(4 * 60 * 60 - 600));
         }
@@ -116,36 +101,6 @@ namespace ApiDll
         {
             await Task.Run(async () => await RefreshTokenAsync());
         }
-
-        public async Task<EventSubSubscription> CreateEventSubSubscription(string type)
-        {
-            Dictionary<string, string> conditions = new Dictionary<string, string>();
-            switch (type)
-            {
-                case "channel.raid":
-                    conditions.Add("to_broadcaster_user_id", _settings.StreamerTwitchId);
-                    break;
-                default:
-                    conditions.Add("broadcaster_user_id", _settings.StreamerTwitchId);
-                    break;
-            }
-            CreateEventSubSubscriptionResponse response = await api.Helix.EventSub.CreateEventSubSubscriptionAsync(type, "1", conditions, "webhook", _settings.EventSubUrl, _settings.Secret);
-            return response.Subscriptions[0];
-        }
-
-        public void DeleteEventSubSubscription(List<EventSubSubscription> subscriptions)
-        {
-            subscriptions.ForEach(async x =>
-            {
-                await api.Helix.EventSub.DeleteEventSubSubscriptionAsync(x.Id);
-            });
-        }
-
-        public async Task<List<EventSubSubscription>> GetEventSubSubscription()
-        {
-            GetEventSubSubscriptionsResponse response = await api.Helix.EventSub.GetEventSubSubscriptionsAsync();
-            return response.Subscriptions.ToList();
-		}
 
         public async Task<ModifyChannelInformationResponse> ModifyChannelInformation(string title = null, string game=null)
         {

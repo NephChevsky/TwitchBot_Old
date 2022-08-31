@@ -24,21 +24,22 @@ namespace WebApp.Controllers
 
         private static int CurrentButtonCursor = 0;
 
-        public ButtonsController(ILogger<ButtonsController> logger, IConfiguration configuration, Spotify spotify)
+        public ButtonsController(ILogger<ButtonsController> logger, IConfiguration configuration, Api api, Spotify spotify)
 		{
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
-			_api = new Api(configuration, "twitchapi");
+			_api = api;
 			_spotify = spotify;
 		}
 
 		[HttpGet]
 		public async Task<ActionResult<List<ButtonResponse>>> Get()
 		{
-            _logger.LogInformation("Fetching buttons value");
+            _logger.LogInformation("Get buttons value");
             List<ButtonResponse> response = new();
             response.Add(await GetNextButton());
             response.Add(await GetNextButton());
+            _logger.LogInformation("Return buttons value");
             return Ok(response);
 		}
 
@@ -56,6 +57,7 @@ namespace WebApp.Controllers
 
         private async Task<string> GetButtonValue(string name)
         {
+            _logger.LogInformation($"Fetching button value: {name}");
             if (name == "follower_goal" || name == "follower_count")
             {
                 List<Follow> followers = await _api.GetFollowers();

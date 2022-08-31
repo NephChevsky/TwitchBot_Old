@@ -32,11 +32,11 @@ namespace ChatDll
         private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
         private HubConnection _connection;
 
-        public ChatBot(ILogger<ChatBot> logger, IConfiguration configuration, BasicChat chat, Spotify spotify)
+        public ChatBot(ILogger<ChatBot> logger, IConfiguration configuration, BasicChat chat, Api api, Spotify spotify)
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            _api = new(configuration, "twitchapi");
+            _api = api;
             _spotify = spotify;
             _chat = chat;
             _connection = new HubConnectionBuilder().WithUrl("https://bot-neph.azurewebsites.net/hub").WithAutomaticReconnect().Build();
