@@ -8,8 +8,6 @@
         public string BotTwitchId { get; set; }
         public string ClientId { get; set; }
         public string Secret { get; set; }
-        public string StreamerAccessToken { get; set; }
-        public string StreamerRefreshToken { get; set; }
         public string EventSubUrl { get; set; }
         public string ServerCallbackUrl { get; set; }
         public string LocalCallbackUrl { get; set; }
