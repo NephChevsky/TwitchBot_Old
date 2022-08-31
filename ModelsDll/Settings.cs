@@ -10,9 +10,9 @@
         public string Secret { get; set; }
         public string StreamerAccessToken { get; set; }
         public string StreamerRefreshToken { get; set; }
-        public string BotAccessToken { get; set; }
-        public string BotRefreshToken { get; set; }
         public string EventSubUrl { get; set; }
+        public string ServerCallbackUrl { get; set; }
+        public string LocalCallbackUrl { get; set; }
 
         public ChatFunction ChatFunction { get; set; }
         public CheckUptimeFunction CheckUptimeFunction { get; set; }

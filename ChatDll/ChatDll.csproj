@@ -21,6 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\DbDll\DbDll.csproj" />
 		<ProjectReference Include="..\ModelsDll\ModelsDll.csproj" />
 		<ProjectReference Include="..\ApiDll\ApiDll.csproj" />
 	</ItemGroup>

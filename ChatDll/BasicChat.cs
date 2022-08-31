@@ -1,7 +1,9 @@
 ﻿using ApiDll;
+using DbDll;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ModelsDll;
+using ModelsDll.Db;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +31,34 @@ namespace ChatDll
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
 
-			Task.Run(() => RefreshToken()).Wait();
+			Task.Run(async () => {
+				TwitchAPI api = new();
+				api.Settings.ClientId = _settings.ClientId;
+				api.Settings.Secret = _settings.Secret;
+				using (TwitchDbContext db = new())
+				{
+					Token accessToken = db.Tokens.Where(x => x.Name == "BotAccessToken").FirstOrDefault();
+					if (accessToken != null)
+					{
+						ValidateAccessTokenResponse response = await api.Auth.ValidateAccessTokenAsync(accessToken.Value);
+						if (response == null)
+						{
+							Token refreshToken = db.Tokens.Where(x => x.Name == "BotRefreshToken").FirstOrDefault();
+							if (refreshToken != null)
+							{
+								RefreshResponse newToken = await api.Auth.RefreshAuthTokenAsync(refreshToken.Value, _settings.Secret);
+								accessToken.Value = newToken.AccessToken;
+								refreshToken.Value = newToken.RefreshToken;
+								db.SaveChanges();
+							}
+							else
+							{
+								throw new Exception("Implement auth flow for chat bot");
+							}
+						}
+					}
+				}
+			}).Wait();
 
 			var clientOptions = new ClientOptions
 			{
@@ -39,8 +68,12 @@ namespace ChatDll
 			WebSocketClient customClient = new WebSocketClient(clientOptions);
 			_client = new TwitchClient(customClient);
 
-			ConnectionCredentials credentials = new (_settings.Bot, _settings.BotAccessToken);
-			_client.Initialize(credentials, _settings.Streamer);
+			using (TwitchDbContext db = new())
+			{
+				Token token = db.Tokens.Where(x => x.Name == "BotAccessToken").FirstOrDefault();
+				ConnectionCredentials credentials = new(_settings.Bot, token.Value);
+				_client.Initialize(credentials, _settings.Streamer);
+			}
 
 			_client.OnLog += Client_OnLog;
 			_client.OnJoinedChannel += Client_OnJoinedChannel;
@@ -63,18 +96,6 @@ namespace ChatDll
 			{
 				return _client != null ? _client.IsConnected : false;
 			}
-		}
-
-		public async void RefreshToken(object state = null)
-		{
-			TwitchAPI api = new();
-			api.Settings.ClientId = _settings.ClientId;
-			api.Settings.Secret = _settings.Secret;
-			api.Settings.AccessToken = _settings.BotAccessToken;
-			RefreshResponse token = await api.Auth.RefreshAuthTokenAsync(_settings.BotRefreshToken, _settings.Secret);
-			Helpers.UpdateTokens("twitchchat", token.AccessToken, token.RefreshToken);
-			_settings.BotAccessToken = token.AccessToken;
-			_settings.BotRefreshToken = token.RefreshToken;
 		}
 
 		private void Client_OnLog(object sender, OnLogArgs e)

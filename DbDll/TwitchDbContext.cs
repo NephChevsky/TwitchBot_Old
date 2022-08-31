@@ -24,6 +24,7 @@ namespace DbDll
         public DbSet<Uptime> Uptimes => Set<Uptime>();
         public DbSet<ChannelReward> ChannelRewards => Set<ChannelReward>();
         public DbSet<Subscription> Subscriptions => Set<Subscription>();
+        public DbSet<Token> Tokens => Set<Token>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -198,6 +199,20 @@ namespace DbDll
                 AddGenericFields<Subscription>(entity);
             });
             modelBuilder.Entity<Subscription>().HasIndex(t => new { t.Id }).IsUnique(true);
+
+            modelBuilder.Entity<Token>(entity =>
+            {
+                entity.Property(e => e.Name)
+                    .HasMaxLength(512)
+                    .IsRequired();
+
+                entity.Property(e => e.Value)
+                    .HasMaxLength(512)
+                    .IsRequired();
+
+                AddGenericFields<Token>(entity);
+            });
+            modelBuilder.Entity<Token>().HasIndex(t => new { t.Id }).IsUnique(true);
 
             Expression<Func<ISoftDeleteable, bool>> filterSoftDeleteable = bm => !bm.Deleted;
             foreach (var type in modelBuilder.Model.GetEntityTypes())
