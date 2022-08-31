@@ -41,7 +41,7 @@ namespace SpotifyDll
 					else
 					{;
 						_client = new SpotifyClient(accessToken.Value);
-						firstRefresh = TimeSpan.FromSeconds(Math.Max(0, 55 * 60 * 60 - (DateTime.Now - accessToken.LastModificationDateTime).TotalSeconds));
+						firstRefresh = TimeSpan.FromSeconds(Math.Max(0, 55 * 60 - (DateTime.Now - accessToken.LastModificationDateTime).TotalSeconds));
 					}
 				}
 			}
