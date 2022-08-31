@@ -37,6 +37,7 @@ export class ButtonsComponent implements OnInit
 			this.updateButton(2, data[1]);
 		}, error =>
 		{
+			console.log("Http Error: ", error);
 			// TODO: handle error
 		});
 	}
