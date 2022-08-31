@@ -39,22 +39,5 @@ namespace DiscordDll
 			IMessageChannel channel = await _client.GetChannelAsync(channelId) as IMessageChannel;
 			await channel.SendMessageAsync(message);
 		}
-
-		public async Task<bool> DeleteMessage(ulong channelId, string owner, string message)
-		{
-			IMessageChannel channel = await _client.GetChannelAsync(channelId) as IMessageChannel;
-			RequestOptions options = new();
-			List<IMessage> messages = (List<IMessage>) await channel.GetMessagesAsync().FlattenAsync();
-			ulong id = messages.Where(x => x.Author.Username == owner && x.Content == message).Select(x => x.Id).FirstOrDefault();
-			if (id != 0)
-			{
-				await channel.DeleteMessageAsync(id);
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
 	}
 }
