@@ -57,6 +57,10 @@ namespace ChatDll
 							}
 						}
 					}
+					else
+					{
+						throw new Exception("Implement auth flow for chat bot");
+					}
 				}
 			}).Wait();
 
