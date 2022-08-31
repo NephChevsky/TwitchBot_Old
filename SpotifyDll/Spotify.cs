@@ -63,11 +63,6 @@ namespace SpotifyDll
 				};
 				BrowserUtil.Open(request.ToUri());
 			}
-			else
-			{
-				throw new Exception("Impossible to fetch spotify's tokens without user input");
-				// TODO: Implement timer that checks db to see if a new token is available
-			}
 		}
 
 		public async Task OnAuthorizationCodeReceived(object sender, AuthorizationCodeResponse code)
@@ -78,6 +73,7 @@ namespace SpotifyDll
 			var tokenResponse = await oauth.RequestToken(tokenRequest);
 			UpdateTokens(tokenResponse.AccessToken, tokenResponse.RefreshToken);
 			_client = new SpotifyClient(tokenResponse.AccessToken);
+			RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(55), TimeSpan.FromMinutes(55));
 			_server.Stop().Wait();
 		}
 
@@ -128,13 +124,21 @@ namespace SpotifyDll
 				Token token = db.Tokens.Where(x => x.Name == "SpotifyRefreshToken").FirstOrDefault();
 				if (token == null)
 				{
-					FetchTokens();
+					if (!Directory.GetCurrentDirectory().Contains("wwwroot"))
+					{
+						FetchTokens();
+					}
+					else
+					{
+						RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+					}
 				}
 				else
 				{
 					var tokenResponse = await new OAuthClient().RequestToken(new AuthorizationCodeRefreshRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, token.Value));
 					UpdateTokens(tokenResponse.AccessToken, tokenResponse.RefreshToken);
 					_client = new SpotifyClient(tokenResponse.AccessToken);
+					RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(55), TimeSpan.FromMinutes(55));
 				}
 			}
 		}
