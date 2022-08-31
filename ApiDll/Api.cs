@@ -26,6 +26,7 @@ using TwitchLib.Api.Helix.Models.ChannelPoints.UpdateCustomRewardRedemptionStatu
 using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Helix.Models.Channels.GetChannelVIPs;
 using TwitchLib.Api.Helix.Models.Bits;
+using DbDll;
 
 namespace ApiDll
 {
@@ -45,6 +46,8 @@ namespace ApiDll
             _logger = _loggerFactory.CreateLogger<Api>();
             ApiType = apiType;
 
+            TimeSpan firstRefresh = TimeSpan.FromSeconds(4 * 60 * 60 - 600);
+
             api = new TwitchAPI();
             api.Settings.ClientId = _settings.ClientId;
             api.Settings.Secret = _settings.Secret;
@@ -59,19 +62,59 @@ namespace ApiDll
             }
             else
             {
-                api.Settings.AccessToken = _settings.StreamerAccessToken;
-                Task.Run(() => RefreshToken()).Wait();
+                Task.Run(async () =>
+                {
+                    using (TwitchDbContext db = new())
+                    {
+                        Token accessToken = db.Tokens.Where(x => x.Name == "StreamerAccessToken").FirstOrDefault();
+                        if (accessToken != null)
+                        {
+                            api.Settings.AccessToken = accessToken.Value;
+                            ValidateAccessTokenResponse response = await api.Auth.ValidateAccessTokenAsync();
+                            if (response == null)
+                            {
+                                await RefreshTokenAsync();
+                            }
+                            else
+                            {
+                                firstRefresh = TimeSpan.FromSeconds(Math.Min(0, response.ExpiresIn - 600));
+							}
+                        }
+                        else
+                        {
+                            throw new Exception("Implement auth flow for api");
+                        }
+                    }
+                }).Wait();
             }
 
-            RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromHours(3.5), TimeSpan.FromHours(3.5));
+            RefreshTokenTimer = new Timer(RefreshToken, null, firstRefresh, TimeSpan.FromSeconds(4 * 60 * 60 - 600));
+        }
+
+        public async Task RefreshTokenAsync()
+        {
+            using (TwitchDbContext db = new())
+            {
+                Token accessToken = db.Tokens.Where(x => x.Name == "StreamerAccessToken").FirstOrDefault();
+                Token refreshToken = db.Tokens.Where(x => x.Name == "StreamerRefreshToken").FirstOrDefault();
+                if (refreshToken != null)
+                {
+                    RefreshResponse newToken = await api.Auth.RefreshAuthTokenAsync(refreshToken.Value, _settings.Secret);
+                    accessToken.Value = newToken.AccessToken;
+                    refreshToken.Value = newToken.RefreshToken;
+                    db.SaveChanges();
+                    api.Settings.AccessToken = newToken.AccessToken;
+                }
+                else
+                {
+                    throw new Exception("Implement auth flow for api");
+                }
+            }
         }
 
         public async void RefreshToken(object state = null)
         {
-            RefreshResponse token = await api.Auth.RefreshAuthTokenAsync(_settings.StreamerRefreshToken, _settings.Secret);
-            Helpers.UpdateTokens(ApiType, token.AccessToken, token.RefreshToken);
-            _settings.StreamerAccessToken = token.AccessToken;
-            _settings.StreamerRefreshToken = token.RefreshToken;
+            await Task.Run(async () => await RefreshTokenAsync());
         }
 
         public async Task<EventSubSubscription> CreateEventSubSubscription(string type)
