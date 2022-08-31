@@ -34,14 +34,15 @@ namespace SpotifyDll
 				}
 				else
 				{
-					if (accessToken.LastModificationDateTime < DateTime.Now.AddMinutes(-55))
+					DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+					if (accessToken.LastModificationDateTime < now.AddMinutes(-55))
 					{
 						Task.Run(async () => await RefreshTokenAsync()).Wait();
 					}
 					else
-					{;
+					{
 						_client = new SpotifyClient(accessToken.Value);
-						firstRefresh = TimeSpan.FromSeconds(Math.Max(0, 55 * 60 - (DateTime.Now - accessToken.LastModificationDateTime).TotalSeconds));
+						firstRefresh = TimeSpan.FromSeconds(Math.Max(0, 55 * 60 - (now - accessToken.LastModificationDateTime).TotalSeconds));
 					}
 				}
 			}

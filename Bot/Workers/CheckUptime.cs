@@ -50,7 +50,7 @@ namespace Bot.Workers
 
                 List<ChatterFormatted> chatters = await _api.GetChatters();
                 bool genericWelcome = false;
-                DateTime now = DateTime.Now;
+                DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
                 foreach (ChatterFormatted chatter in chatters)
                 {
                     using (TwitchDbContext db = new())
@@ -90,7 +90,7 @@ namespace Bot.Workers
                         {
                             if (!CurrentChatters.Select(x => x.Username).ToList().Contains(chatter.Username, StringComparer.OrdinalIgnoreCase))
                             {
-                                if (dbViewer.LastViewedDateTime < DateTime.Now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer))
+                                if (dbViewer.LastViewedDateTime < now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer))
                                 {
                                     dbViewer.Seen++;
                                     if (_settings.CheckUptimeFunction.WelcomeOnReJoin)

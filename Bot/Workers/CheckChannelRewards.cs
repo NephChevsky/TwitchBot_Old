@@ -63,10 +63,11 @@ namespace Bot.Workers
                         {
                             updateReward = true;
                         }
-                        if (reward.CurrentCost >= reward.BeginCost + reward.CostIncreaseAmount && reward.LastUsedDateTime < DateTime.Now.AddSeconds(-reward.CostDecreaseTimer))
+                        DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+                        if (reward.CurrentCost >= reward.BeginCost + reward.CostIncreaseAmount && reward.LastUsedDateTime < now.AddSeconds(-reward.CostDecreaseTimer))
                         {
                             reward.CurrentCost = reward.CurrentCost - reward.CostIncreaseAmount;
-                            reward.LastUsedDateTime = DateTime.Now;
+                            reward.LastUsedDateTime = now;
                             updateReward = true;
                         }
                         if (reward.TriggerType == "game")

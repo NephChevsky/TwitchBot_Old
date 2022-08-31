@@ -81,13 +81,14 @@ namespace WebApp.Controllers
                 using (TwitchDbContext db = new())
                 {
                     DateTime limit = DateTime.MinValue;
+                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
                     if (name == "most_present_viewer_daily")
                     {
-                        limit = DateTime.Now.AddDays(-1);
+                        limit = now.AddDays(-1);
                     }
                     else if (name == "most_present_viewer_monthly")
                     {
-                        limit = DateTime.Now.AddMonths(-1);
+                        limit = now.AddMonths(-1);
                     }
                     var uptime = db.Uptimes.Where(x => x.CreationDateTime > limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).OrderByDescending(g => g.Sum).ToList();
                     if (uptime.Count != 0)
@@ -123,13 +124,14 @@ namespace WebApp.Controllers
                 using (TwitchDbContext db = new())
                 {
                     DateTime limit = DateTime.MinValue;
+                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
                     if (name == "most_speaking_viewer_daily")
                     {
-                        limit = DateTime.Now.AddDays(-1);
+                        limit = now.AddDays(-1);
                     }
                     else if (name == "most_speaking_viewer_monthly")
                     {
-                        limit = DateTime.Now.AddMonths(-1);
+                        limit = now.AddMonths(-1);
                     }
                     var messages = db.Messages.Where(x => x.CreationDateTime > limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).ToList();
                     if (messages.Count != 0)

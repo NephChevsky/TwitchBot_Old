@@ -30,7 +30,6 @@ namespace ModelsDll.Db
             Id = id;
             Username = username;
             DisplayName = displayname;
-            CreationDateTime = DateTime.Now;
             LastViewedDateTime = CreationDateTime;
             Uptime = 0;
             Seen = 1;

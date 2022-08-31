@@ -24,11 +24,13 @@ namespace WebApp.Services
 				
 				using (TwitchDbContext db = new())
 				{
-					List<Uptime> uptimes = db.Uptimes.Where(x => x.CreationDateTime < DateTime.Now.AddMonths(-1)).ToList();
+					DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+
+					List<Uptime> uptimes = db.Uptimes.Where(x => x.CreationDateTime < now.AddMonths(-1)).ToList();
 					db.Uptimes.RemoveRange(uptimes);
 					db.SaveChanges();
 
-					List<ChatMessage> messages = db.Messages.Where(x => x.CreationDateTime < DateTime.Now.AddMonths(-1)).ToList();
+					List<ChatMessage> messages = db.Messages.Where(x => x.CreationDateTime < now.AddMonths(-1)).ToList();
 					db.Messages.RemoveRange(messages);
 					db.SaveChanges();
 				}

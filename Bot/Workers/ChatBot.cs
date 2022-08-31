@@ -63,7 +63,8 @@ namespace ChatDll
 
         private async void Client_OnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
         {
-            if (!AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) || (AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) && AntiSpamTimer[e.Command.CommandText.ToLower()].AddSeconds(60) < DateTime.Now))
+            DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+            if (!AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) || (AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) && AntiSpamTimer[e.Command.CommandText.ToLower()].AddSeconds(60) < now))
             {
                 bool updateTimer = false;
                 if (string.Equals(e.Command.CommandText, "bot", StringComparison.InvariantCultureIgnoreCase))
@@ -214,11 +215,11 @@ namespace ChatDll
                 {
                     if (AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()))
                     {
-                        AntiSpamTimer[e.Command.CommandText.ToLower()] = DateTime.Now;
+                        AntiSpamTimer[e.Command.CommandText.ToLower()] = now;
 					}
                     else
                     {
-                        AntiSpamTimer.Add(e.Command.CommandText.ToLower(), DateTime.Now);
+                        AntiSpamTimer.Add(e.Command.CommandText.ToLower(), now);
                     }
 				}
             }
@@ -426,7 +427,7 @@ namespace ChatDll
                     if (dbReward != null)
                     {
                         dbReward.CurrentCost += dbReward.CostIncreaseAmount;
-                        dbReward.LastUsedDateTime = DateTime.Now;
+                        dbReward.LastUsedDateTime = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time")); ;
                         await _api.UpdateChannelReward(dbReward);
                         db.SaveChanges();
                     }

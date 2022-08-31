@@ -27,9 +27,10 @@ namespace WebApp.Services
 				using (TwitchDbContext db = new())
 				{
 					List<TwitchLib.Api.Helix.Models.Subscriptions.Subscription> subs = await _api.GetSubscribers();
+					DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
 					foreach (TwitchLib.Api.Helix.Models.Subscriptions.Subscription sub in subs)
 					{
-						Subscription tmp = db.Subscriptions.Where(x => x.Owner == sub.UserId && x.CreationDateTime >= DateTime.Now.AddMonths(-1)).FirstOrDefault();
+						Subscription tmp = db.Subscriptions.Where(x => x.Owner == sub.UserId && x.CreationDateTime >= now.AddMonths(-1)).FirstOrDefault();
 						if (tmp == null)
 						{
 							tmp = new();
@@ -37,7 +38,6 @@ namespace WebApp.Services
 							tmp.Tier = sub.Tier;
 							tmp.IsGift = sub.IsGift;
 							tmp.GifterId = sub.GiftertId;
-							DateTime now = DateTime.Now;
 							tmp.CreationDateTime = now;
 							tmp.LastModificationDateTime = now;
 							db.Subscriptions.Add(tmp);

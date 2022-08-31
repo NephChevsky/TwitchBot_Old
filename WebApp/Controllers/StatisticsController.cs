@@ -40,7 +40,9 @@ namespace WebApp.Controllers
 					response.Add(entry);
 				}
 
-				var uptimes = db.Uptimes.Where(x => x.CreationDateTime > DateTime.Now.AddMonths(-1)).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).ToList();
+				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+
+				var uptimes = db.Uptimes.Where(x => x.CreationDateTime > now.AddMonths(-1)).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).ToList();
 				foreach (var uptime in uptimes)
 				{
 					UserStatsResponse viewer = response.Where(x => x.Id == uptime.Owner).FirstOrDefault();
@@ -52,7 +54,7 @@ namespace WebApp.Controllers
 					}
 				}
 
-				uptimes = db.Uptimes.Where(x => x.CreationDateTime > DateTime.Now.AddDays(-1)).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).ToList();
+				uptimes = db.Uptimes.Where(x => x.CreationDateTime > now.AddDays(-1)).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).ToList();
 				foreach (var uptime in uptimes)
 				{
 					UserStatsResponse viewer = response.Where(x => x.Id == uptime.Owner).FirstOrDefault();
@@ -64,7 +66,7 @@ namespace WebApp.Controllers
 					}
 				}
 
-				var messages = db.Messages.Where(x => x.CreationDateTime > DateTime.Now.AddMonths(-1)).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count()}).ToList();
+				var messages = db.Messages.Where(x => x.CreationDateTime > now.AddMonths(-1)).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count()}).ToList();
 				foreach (var message in messages)
 				{
 					UserStatsResponse viewer = response.Where(x => x.Id == message.Owner).FirstOrDefault();
@@ -74,7 +76,7 @@ namespace WebApp.Controllers
 					}
 				}
 
-				messages = db.Messages.Where(x => x.CreationDateTime > DateTime.Now.AddDays(-1)).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).ToList();
+				messages = db.Messages.Where(x => x.CreationDateTime > now.AddDays(-1)).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).ToList();
 				foreach (var message in messages)
 				{
 					UserStatsResponse viewer = response.Where(x => x.Id == message.Owner).FirstOrDefault();
