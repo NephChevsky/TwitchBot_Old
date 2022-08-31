@@ -77,7 +77,7 @@ namespace ApiDll
                             }
                             else
                             {
-                                firstRefresh = TimeSpan.FromSeconds(Math.Min(0, response.ExpiresIn - 600));
+                                firstRefresh = TimeSpan.FromSeconds(Math.Max(0, response.ExpiresIn - 600));
 							}
                         }
                         else
