@@ -9,8 +9,6 @@
         public string ClientId { get; set; }
         public string Secret { get; set; }
         public string EventSubUrl { get; set; }
-        public string ServerCallbackUrl { get; set; }
-        public string LocalCallbackUrl { get; set; }
 
         public ChatFunction ChatFunction { get; set; }
         public CheckUptimeFunction CheckUptimeFunction { get; set; }
@@ -54,7 +52,6 @@
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
         public string Playlist { get; set; }
-        public string ServerCallbackUrl { get; set; }
         public string LocalCallbackUrl { get; set; }
     }
 

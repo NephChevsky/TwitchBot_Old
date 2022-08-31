@@ -18,6 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\DbDll\DbDll.csproj" />
 		<ProjectReference Include="..\ModelsDll\ModelsDll.csproj" />
 	</ItemGroup>
 </Project>

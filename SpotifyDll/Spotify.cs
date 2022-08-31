@@ -5,6 +5,8 @@ using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using System.Diagnostics;
 using System.Web;
+using DbDll;
+using ModelsDll.Db;
 
 namespace SpotifyDll
 {
@@ -13,9 +15,7 @@ namespace SpotifyDll
 		private Settings _settings;
 		private readonly ILogger<Spotify> _logger;
 		private SpotifyClient _client;
-		private string _accessToken;
-		private string _refreshToken;
-		private static EmbedIOAuthServer _server;
+		public EmbedIOAuthServer _server;
 		private Timer RefreshTokenTimer;
 
 		public Spotify(ILogger<Spotify> logger, IConfiguration configuration)
@@ -23,6 +23,34 @@ namespace SpotifyDll
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
 
+			TimeSpan firstRefresh = TimeSpan.FromMinutes(55);
+
+			using (TwitchDbContext db = new())
+			{
+				Token accessToken = db.Tokens.Where(x => x.Name == "SpotifyAccessToken").FirstOrDefault();
+				if (accessToken == null)
+				{
+					FetchTokens();
+				}
+				else
+				{
+					if (accessToken.LastModificationDateTime < DateTime.Now.AddMinutes(-55))
+					{
+						Task.Run(async () => await RefreshTokenAsync()).Wait();
+					}
+					else
+					{;
+						_client = new SpotifyClient(accessToken.Value);
+						firstRefresh = TimeSpan.FromSeconds(Math.Max(0, 55 * 60 * 60 - (DateTime.Now - accessToken.LastModificationDateTime).TotalSeconds));
+					}
+				}
+			}
+
+			RefreshTokenTimer = new Timer(RefreshToken, null, firstRefresh, TimeSpan.FromMinutes(55));
+		}
+
+		public void FetchTokens()
+		{
 			if (!Directory.GetCurrentDirectory().Contains("wwwroot"))
 			{
 				_server = new EmbedIOAuthServer(new Uri(_settings.SpotifyFunction.LocalCallbackUrl), 5001);
@@ -34,49 +62,80 @@ namespace SpotifyDll
 					Scope = new List<string> { Scopes.UserReadCurrentlyPlaying, Scopes.UserModifyPlaybackState, Scopes.PlaylistModifyPrivate, Scopes.PlaylistModifyPublic }
 				};
 				BrowserUtil.Open(request.ToUri());
-				request = new LoginRequest(new Uri(_settings.SpotifyFunction.ServerCallbackUrl), _settings.SpotifyFunction.ClientId, LoginRequest.ResponseType.Code)
-				{
-					Scope = new List<string> { Scopes.UserReadCurrentlyPlaying, Scopes.UserModifyPlaybackState, Scopes.PlaylistModifyPrivate, Scopes.PlaylistModifyPublic }
-				};
-				BrowserUtil.Open(request.ToUri());
 			}
-
-			RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(55), TimeSpan.FromMinutes(55));
+			else
+			{
+				throw new Exception("Impossible to fetch spotify's tokens without user input");
+				// TODO: Implement timer that checks db to see if a new token is available
+			}
 		}
 
 		public async Task OnAuthorizationCodeReceived(object sender, AuthorizationCodeResponse code)
 		{
 			var oauth = new OAuthClient();
-			Uri uri;
-			if (Directory.GetCurrentDirectory().Contains("wwwroot"))
-			{
-				uri = new Uri(_settings.SpotifyFunction.ServerCallbackUrl);
-			}
-			else
-			{
-				uri = new Uri(_settings.SpotifyFunction.LocalCallbackUrl);
-			}
+			Uri uri = new Uri(_settings.SpotifyFunction.LocalCallbackUrl);
 			var tokenRequest = new AuthorizationCodeTokenRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, code.Code, uri);
 			var tokenResponse = await oauth.RequestToken(tokenRequest);
-			_accessToken = tokenResponse.AccessToken;
-			_refreshToken = tokenResponse.RefreshToken;
-
-			_client = new SpotifyClient(_accessToken);
+			UpdateTokens(tokenResponse.AccessToken, tokenResponse.RefreshToken);
+			_client = new SpotifyClient(tokenResponse.AccessToken);
+			_server.Stop().Wait();
 		}
 
-		private async void RefreshToken(object o) 
+		private void UpdateTokens(string newAccessToken, string newRefreshToken)
 		{
-			try
+			using (TwitchDbContext db = new())
 			{
-				var tokenResponse = await new OAuthClient().RequestToken(new AuthorizationCodeRefreshRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, _refreshToken));
-				_accessToken = tokenResponse.AccessToken;
-				if (tokenResponse.RefreshToken != null)
-					_refreshToken = tokenResponse.RefreshToken;
-				_client = new SpotifyClient(_accessToken);
+				Token accessToken = db.Tokens.Where(x => x.Name == "SpotifyAccessToken").FirstOrDefault();
+				Token refreshToken = db.Tokens.Where(x => x.Name == "SpotifyRefreshToken").FirstOrDefault();
+				if (accessToken == null)
+				{
+					accessToken = new();
+					accessToken.Name = "SpotifyAccessToken";
+					accessToken.Value = newAccessToken;
+					db.Add(accessToken);
+				}
+				else
+				{
+					accessToken.Value = newAccessToken;
+				}
+				if (newRefreshToken != null)
+				{
+					if (refreshToken == null)
+					{
+						refreshToken = new();
+						refreshToken.Name = "SpotifyRefreshToken";
+						refreshToken.Value = newRefreshToken;
+						db.Add(refreshToken);
+					}
+					else
+					{
+						refreshToken.Value = newRefreshToken;
+					}
+				}
+				db.SaveChanges();
 			}
-			catch
+		}
+
+		private async void RefreshToken(object state = null)
+		{
+			await Task.Run(async () => await RefreshTokenAsync());
+		}
+
+		private async Task RefreshTokenAsync() 
+		{
+			using (TwitchDbContext db = new())
 			{
-				_logger.LogError("Couldn't refresh token for spotify");
+				Token token = db.Tokens.Where(x => x.Name == "SpotifyRefreshToken").FirstOrDefault();
+				if (token == null)
+				{
+					FetchTokens();
+				}
+				else
+				{
+					var tokenResponse = await new OAuthClient().RequestToken(new AuthorizationCodeRefreshRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, token.Value));
+					UpdateTokens(tokenResponse.AccessToken, tokenResponse.RefreshToken);
+					_client = new SpotifyClient(tokenResponse.AccessToken);
+				}
 			}
 		}
 

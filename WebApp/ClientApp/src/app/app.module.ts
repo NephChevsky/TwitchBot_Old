@@ -31,8 +31,7 @@ import { StatsComponent } from './stats/stats.component';
 			{ path: 'alerts', component: AlertsComponent },
 			{ path: 'buttons', component: ButtonsComponent },
 			{ path: 'commands-list', component: CommandsListComponent },
-			{ path: 'stats', component: StatsComponent },
-			{ path: 'webhooks', redirectTo: 'webhooks' }
+			{ path: 'stats', component: StatsComponent }
 		])
 	],
 	providers: [],
