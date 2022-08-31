@@ -53,12 +53,14 @@ namespace ChatDll
 							}
 							else
 							{
+								// https://github.com/swiftyspiffy/Twitch-Auth-Example/tree/main/TwitchAuthExample
 								throw new Exception("Implement auth flow for chat bot");
 							}
 						}
 					}
 					else
 					{
+						// https://github.com/swiftyspiffy/Twitch-Auth-Example/tree/main/TwitchAuthExample
 						throw new Exception("Implement auth flow for chat bot");
 					}
 				}

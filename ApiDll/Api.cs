@@ -68,6 +68,7 @@ namespace ApiDll
                     }
                     else
                     {
+                        // https://github.com/swiftyspiffy/Twitch-Auth-Example/tree/main/TwitchAuthExample
                         throw new Exception("Implement auth flow for api");
                     }
                 }
@@ -92,6 +93,7 @@ namespace ApiDll
                 }
                 else
                 {
+                    // https://github.com/swiftyspiffy/Twitch-Auth-Example/tree/main/TwitchAuthExample
                     throw new Exception("Implement auth flow for api");
                 }
             }
