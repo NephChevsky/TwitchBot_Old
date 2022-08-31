@@ -305,7 +305,7 @@ namespace DbDll
         {
             ChangeTracker.DetectChanges();
             var markedEntries = ChangeTracker.Entries().Where(x => x.State == EntityState.Added || x.State == EntityState.Modified);
-            DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+            DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
             foreach (var item in markedEntries)
             {
                 if (item.Entity is IDateTimeTrackable entity)

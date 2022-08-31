@@ -40,7 +40,7 @@ namespace WebApp.Controllers
 					response.Add(entry);
 				}
 
-				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
 
 				var uptimes = db.Uptimes.Where(x => x.CreationDateTime > now.AddMonths(-1)).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).ToList();
 				foreach (var uptime in uptimes)

@@ -81,7 +81,7 @@ namespace WebApp.Controllers
                 using (TwitchDbContext db = new())
                 {
                     DateTime limit = DateTime.MinValue;
-                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                     if (name == "most_present_viewer_daily")
                     {
                         limit = now.AddDays(-1);
@@ -124,7 +124,7 @@ namespace WebApp.Controllers
                 using (TwitchDbContext db = new())
                 {
                     DateTime limit = DateTime.MinValue;
-                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                     if (name == "most_speaking_viewer_daily")
                     {
                         limit = now.AddDays(-1);

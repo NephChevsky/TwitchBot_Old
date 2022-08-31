@@ -34,7 +34,7 @@ namespace SpotifyDll
 				}
 				else
 				{
-					DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+					DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
 					if (accessToken.LastModificationDateTime < now.AddMinutes(-55))
 					{
 						Task.Run(async () => await RefreshTokenAsync()).Wait();

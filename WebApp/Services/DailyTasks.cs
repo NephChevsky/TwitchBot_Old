@@ -24,7 +24,7 @@ namespace WebApp.Services
 				
 				using (TwitchDbContext db = new())
 				{
-					DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+					DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
 
 					List<Uptime> uptimes = db.Uptimes.Where(x => x.CreationDateTime < now.AddMonths(-1)).ToList();
 					db.Uptimes.RemoveRange(uptimes);

@@ -63,7 +63,7 @@ namespace ChatDll
 
         private async void Client_OnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
         {
-            DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+            DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
             if (!AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) || (AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) && AntiSpamTimer[e.Command.CommandText.ToLower()].AddSeconds(60) < now))
             {
                 bool updateTimer = false;
@@ -427,7 +427,7 @@ namespace ChatDll
                     if (dbReward != null)
                     {
                         dbReward.CurrentCost += dbReward.CostIncreaseAmount;
-                        dbReward.LastUsedDateTime = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time")); ;
+                        dbReward.LastUsedDateTime = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time")); ;
                         await _api.UpdateChannelReward(dbReward);
                         db.SaveChanges();
                     }

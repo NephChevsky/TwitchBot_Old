@@ -50,7 +50,7 @@ namespace Bot.Workers
 
                 List<ChatterFormatted> chatters = await _api.GetChatters();
                 bool genericWelcome = false;
-                DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+                DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                 foreach (ChatterFormatted chatter in chatters)
                 {
                     using (TwitchDbContext db = new())

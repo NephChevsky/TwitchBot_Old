@@ -63,7 +63,7 @@ namespace Bot.Workers
                         {
                             updateReward = true;
                         }
-                        DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Time"));
+                        DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                         if (reward.CurrentCost >= reward.BeginCost + reward.CostIncreaseAmount && reward.LastUsedDateTime < now.AddSeconds(-reward.CostDecreaseTimer))
                         {
                             reward.CurrentCost = reward.CurrentCost - reward.CostIncreaseAmount;
