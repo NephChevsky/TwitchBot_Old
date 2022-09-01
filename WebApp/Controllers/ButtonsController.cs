@@ -92,7 +92,7 @@ namespace WebApp.Controllers
                         Viewer dbViewer;
                         do
                         {
-                            dbViewer = db.Viewers.Where(x => x.Id == uptime[0].Owner).FirstOrDefault();
+                            dbViewer = _api.GetOrCreateUserById(uptime[0].Owner);
                             uptime.RemoveAt(0);
                         } while (uptime.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
                         if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
@@ -135,7 +135,7 @@ namespace WebApp.Controllers
                         Viewer dbViewer;
                         do
                         {
-                            dbViewer = db.Viewers.Where(x => x.Id == messages[0].Owner).FirstOrDefault();
+                            dbViewer = _api.GetOrCreateUserById(messages[0].Owner);
                             messages.RemoveAt(0);
                         } while (messages.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
                         if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
@@ -188,7 +188,7 @@ namespace WebApp.Controllers
                     var topCheerer = db.Cheers.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Amount) }).OrderByDescending(g => g.Sum).FirstOrDefault();
                     if (topCheerer != null)
                     {
-                        Viewer viewer = db.Viewers.Where(x => x.Id == topCheerer.Owner).FirstOrDefault();
+                        Viewer viewer = _api.GetOrCreateUserById(topCheerer.Owner);
                         if (viewer != null)
                         {
                             return $"{viewer.DisplayName} ({topCheerer.Sum})";
@@ -216,7 +216,7 @@ namespace WebApp.Controllers
                     Subscription sub = db.Subscriptions.Where(x => x.Owner != _settings.StreamerTwitchId).OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
                     if (sub != null)
                     {
-                        Viewer viewer = db.Viewers.Where(x => x.Id == sub.Owner).FirstOrDefault();
+                        Viewer viewer = _api.GetOrCreateUserById(sub.Owner);
                         if (viewer != null)
                         {
                             return viewer.DisplayName;
@@ -231,7 +231,7 @@ namespace WebApp.Controllers
                     Subscription subgift = db.Subscriptions.Where(x => x.IsGift == true).OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
                     if (subgift != null)
                     {
-                        Viewer viewer = db.Viewers.Where(x => x.Id == subgift.GifterId).FirstOrDefault();
+                        Viewer viewer = _api.GetOrCreateUserById(subgift.GifterId);
                         if (viewer != null)
                         {
                             return viewer.DisplayName;
@@ -259,7 +259,7 @@ namespace WebApp.Controllers
                     var topSubGifter = db.Subscriptions.Where(x => x.IsGift == true && x.CreationDateTime >= limit).GroupBy(x => x.GifterId).Select(g => new { GifterId = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).FirstOrDefault();
                     if (topSubGifter != null)
                     {
-                        Viewer viewer = db.Viewers.Where(x => x.Id == topSubGifter.GifterId).FirstOrDefault();
+                        Viewer viewer = _api.GetOrCreateUserById(topSubGifter.GifterId);
                         if (viewer != null)
                         {
                             return $"{viewer.DisplayName} ({topSubGifter.Count})";
@@ -272,7 +272,7 @@ namespace WebApp.Controllers
                 using (TwitchDbContext db = new())
                 {
                     var subers = db.Subscriptions.Where(x => x.Owner != _settings.StreamerTwitchId).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).ToList();
-                    Viewer viewer = db.Viewers.Where(x => x.Id == subers[0].Owner).FirstOrDefault();
+                    Viewer viewer = _api.GetOrCreateUserById(subers[0].Owner);
                     if (viewer != null)
                     {
                         return viewer.DisplayName;
@@ -286,7 +286,7 @@ namespace WebApp.Controllers
                     var lastCheer = db.Cheers.Where(x => x.Owner != _settings.StreamerTwitchId).OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
                     if (lastCheer != null)
                     {
-                        Viewer viewer = db.Viewers.Where(x => x.Id == lastCheer.Owner).FirstOrDefault();
+                        Viewer viewer = _api.GetOrCreateUserById(lastCheer.Owner);
                         if (viewer != null)
                         {
                             return $"{viewer.DisplayName} ({lastCheer.Amount})";

@@ -25,14 +25,14 @@ namespace ModelsDll.Db
 
         }
 
-        public Viewer(string username, string displayname, string id)
+        public Viewer(string id, string username, string displayname)
         {
             Id = id;
             Username = username;
             DisplayName = displayname;
             LastViewedDateTime = CreationDateTime;
             Uptime = 0;
-            Seen = 1;
+            Seen = 0;
             IsBot = false;
         }
     }

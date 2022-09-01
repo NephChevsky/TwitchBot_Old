@@ -21,13 +21,11 @@ namespace Bot.Workers
         private BasicChat _chat;
         private Api _api;
         private List<ChatterFormatted> CurrentChatters = new List<ChatterFormatted>();
-        private List<string> _bots;
 
         public CheckUptime(ILogger<CheckUptime> logger, IConfiguration configuration, Api api, BasicChat chat)
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
-            _bots = configuration.GetSection("TwitchBotList").Get<List<string>>();
             _chat = chat;
             _api = api;
         }
@@ -55,45 +53,29 @@ namespace Bot.Workers
                 {
                     using (TwitchDbContext db = new())
                     {
-                        User user;
-                        Viewer dbViewer = db.Viewers.Where(obj => obj.Username == chatter.Username).FirstOrDefault();
-                        if (dbViewer == null)
+                        Viewer dbViewer = _api.GetOrCreateUserByUsername(chatter.Username);
+                        db.Viewers.Attach(dbViewer);
+                        if (dbViewer != null)
                         {
-                            user = await _api.GetUser(chatter.Username.ToLower());
-                            dbViewer = db.Viewers.Where(obj => obj.Id == user.Id).FirstOrDefault();
-                            if (dbViewer != null)
+                            if (dbViewer.Seen == 0)
                             {
-                                dbViewer.Username = user.Login;
-                                dbViewer.DisplayName = user.DisplayName;
-							}
-                            else
-                            {
-                                if (!_bots.Contains(chatter.Username.ToLower()))
+                                if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin && !dbViewer.IsBot)
                                 {
-                                    dbViewer = new Viewer(user.Login, user.DisplayName, user.Id);
-                                    db.Viewers.Add(dbViewer);
-                                    if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin)
-                                    {
-                                        _logger.LogInformation($"Show commands when a new viewer is here");
-                                        _chat.SendMessage($"Bienvenue sur le stream {dbViewer.DisplayName}. Tu peux venir rigoler avec nous où bien taper ton meilleur lurk ;)");
-                                    }
-                                    if (_settings.CheckUptimeFunction.GenericWelcome)
-                                    {
-                                        genericWelcome = true;
-                                    }
-                                    db.SaveChanges();
+                                    _logger.LogInformation($"Show commands when a new viewer is here");
+                                    _chat.SendMessage($"Bienvenue sur le stream {dbViewer.DisplayName}. Tu peux venir rigoler avec nous ou bien taper ton meilleur lurk ;)");
                                 }
-                                continue;
+                                if (_settings.CheckUptimeFunction.GenericWelcome && !dbViewer.IsBot)
+                                {
+                                    genericWelcome = true;
+                                }
+                                dbViewer.Seen++;
                             }
-                        }
-                        if (dbViewer != null && !dbViewer.IsBot)
-                        {
-                            if (!CurrentChatters.Select(x => x.Username).ToList().Contains(chatter.Username, StringComparer.OrdinalIgnoreCase))
+                            else if(!CurrentChatters.Select(x => x.Username).ToList().Contains(chatter.Username, StringComparer.OrdinalIgnoreCase))
                             {
                                 if (dbViewer.LastViewedDateTime < now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer))
                                 {
                                     dbViewer.Seen++;
-                                    if (_settings.CheckUptimeFunction.WelcomeOnReJoin)
+                                    if (_settings.CheckUptimeFunction.WelcomeOnReJoin && !dbViewer.IsBot)
                                     {
                                         _logger.LogInformation($"Say hi to known viewer {dbViewer.Username}");
                                         _chat.SendMessage($"Salut {dbViewer.DisplayName} ! Bon retour sur le stream !");
@@ -108,14 +90,14 @@ namespace Bot.Workers
                                 if (dbUptime != null)
                                 {
                                     dbUptime.Sum += uptime;
-								}
+                                }
                                 else
                                 {
                                     dbUptime = new();
                                     dbUptime.Sum = uptime;
                                     dbUptime.Owner = dbViewer.Id;
                                     db.Uptimes.Add(dbUptime);
-								}
+                                }
                             }
                             dbViewer.LastViewedDateTime = now;
                             db.SaveChanges();

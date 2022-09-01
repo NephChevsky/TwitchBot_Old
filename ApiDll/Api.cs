@@ -33,10 +33,12 @@ namespace ApiDll
         private ILogger<Api> _logger;
         private TwitchAPI api;
         private Timer RefreshTokenTimer;
+        private List<string> _bots;
 
         public Api(IConfiguration configuration, ILogger<Api> logger)
         {
             _settings = configuration.GetSection("Settings").Get<Settings>();
+            _bots = configuration.GetSection("TwitchBotList").Get<List<string>>();
             _logger = logger;
 
             TimeSpan firstRefresh = TimeSpan.FromSeconds(4 * 60 * 60 - 600);
@@ -264,6 +266,77 @@ namespace ApiDll
             GetBitsLeaderboardResponse response = await api.Helix.Bits.GetBitsLeaderboardAsync(count, period, now);
             return response.Listings.ToList();
 		}
+
+        public Viewer GetOrCreateUserById(string id)
+        {
+            using (TwitchDbContext db = new())
+            {
+                Viewer viewer = db.Viewers.Where(x => x.Id == id).FirstOrDefault();
+                if (viewer == null)
+                {
+                    Task<GetUsersResponse> query = Task.Run(async () => {
+                        return await api.Helix.Users.GetUsersAsync(new List<string>() { id });
+                    });
+                    query.Wait();
+                    GetUsersResponse response = query.Result;
+                    if (response != null && response.Users.Count() != 0)
+                    {
+                        viewer = new(response.Users[0].Id, response.Users[0].Login, response.Users[0].DisplayName);
+                        if (_bots.Contains(response.Users[0].Login.ToLower()))
+                        {
+                            viewer.IsBot = true;
+                        }
+                        db.Viewers.Add(viewer);
+                        db.SaveChanges();
+					}
+                    else
+                    {
+                        return null;
+					}
+				}
+                return viewer;
+			}
+		}
+
+        public Viewer GetOrCreateUserByUsername(string username)
+        {
+            using (TwitchDbContext db = new())
+            {
+                Viewer viewer = db.Viewers.Where(x => x.Username == username).FirstOrDefault();
+                if (viewer == null)
+                {
+                    Task<GetUsersResponse> query = Task.Run(async () => {
+                        return await api.Helix.Users.GetUsersAsync(null, new List<string>() { username });
+                    });
+                    query.Wait();
+                    GetUsersResponse response = query.Result;
+                    if (response != null && response.Users.Count() != 0)
+                    {
+                        viewer = db.Viewers.Where(x => x.Id == response.Users[0].Id).FirstOrDefault();
+                        if (viewer != null)
+                        {
+                            viewer.Username = response.Users[0].Login;
+                            viewer.DisplayName = response.Users[0].DisplayName;
+						}
+                        else
+                        {
+                            viewer = new(response.Users[0].Id, response.Users[0].Login, response.Users[0].DisplayName);
+                            if (_bots.Contains(response.Users[0].Login.ToLower()))
+                            {
+                                viewer.IsBot = true;
+                            }
+                            db.Viewers.Add(viewer);
+                        }
+                        db.SaveChanges();
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                return viewer;
+            }
+        }
 
         public void Dispose()
         {

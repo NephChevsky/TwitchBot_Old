@@ -28,7 +28,6 @@ namespace ChatDll
         private Api _api;
         private Spotify _spotify;
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
-        private Guid InvalidGuid = Guid.Parse("12345678-1234-1234-1234-123456789000");
         private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
         private HubConnection _connection;
 
@@ -77,7 +76,7 @@ namespace ChatDll
                     using (TwitchDbContext db = new())
                     {
                         string username = e.Command.ArgumentsAsList.Count > 0 ? e.Command.ArgumentsAsList[0] : e.Command.ChatMessage.Username;
-                        Viewer viewer = db.Viewers.Where(obj => obj.Username == username).FirstOrDefault();
+                        Viewer viewer = _api.GetOrCreateUserByUsername(username);
                         if (viewer != null)
                         {
                             int hours = (int)Math.Floor((decimal)viewer.Uptime / 3600);
@@ -229,12 +228,13 @@ namespace ChatDll
         {
             using (TwitchDbContext db = new())
             {
-                Viewer dbViewer = db.Viewers.Where(x => x.Username == e.ChatMessage.Username).FirstOrDefault();
+                Viewer dbViewer = _api.GetOrCreateUserByUsername(e.ChatMessage.Username);
                 if (dbViewer != null)
                 {
                     dbViewer.MessageCount++;
                     ChatMessage message = new(dbViewer.Id, e.ChatMessage.Message);
                     db.Messages.Add(message);
+                    db.Viewers.Attach(dbViewer);
                     db.SaveChanges();
                 }
 			}
@@ -352,8 +352,8 @@ namespace ChatDll
                     Viewer firstViewer, secondViewer;
                     using (TwitchDbContext db = new())
                     {
-                        firstViewer = db.Viewers.Where(x => x.Username == e["username"]).FirstOrDefault();
-                        secondViewer = db.Viewers.Where(x => x.Username == e["user-input"]).FirstOrDefault();
+                        firstViewer = _api.GetOrCreateUserByUsername(e["username"]);
+                        secondViewer = _api.GetOrCreateUserByUsername(e["user-input"]);
                     }
                     if (firstViewer != null && secondViewer != null)
                     {
