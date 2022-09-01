@@ -89,33 +89,35 @@ namespace WebApp.Controllers
 					}
 				}
 
-				List<Listing> allTimesBits = await _api.GetBitsLeaderBoard(viewers.Count, BitsLeaderboardPeriodEnum.All);
-				foreach (var bits in allTimesBits)
+				var cheerers = db.Cheers.GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Amount) }).ToList();
+				foreach (var cheer in cheerers)
 				{
-					UserStatsResponse viewer = response.Where(x => x.Id == bits.UserId).FirstOrDefault();
+					UserStatsResponse viewer = response.Where(x => x.Id == cheer.Owner).FirstOrDefault();
 					if (viewer != null)
 					{
-						viewer.BitsTotal = bits.Score;
+						viewer.BitsTotal = cheer.Sum;
 					}
 				}
 
-				List<Listing> monthlyBits = await _api.GetBitsLeaderBoard(viewers.Count, BitsLeaderboardPeriodEnum.Month);
-				foreach (var bits in allTimesBits)
+				limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
+				cheerers = db.Cheers.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Amount) }).ToList();
+				foreach (var cheer in cheerers)
 				{
-					UserStatsResponse viewer = response.Where(x => x.Id == bits.UserId).FirstOrDefault();
+					UserStatsResponse viewer = response.Where(x => x.Id == cheer.Owner).FirstOrDefault();
 					if (viewer != null)
 					{
-						viewer.BitsMonth = bits.Score;
+						viewer.BitsMonth = cheer.Sum;
 					}
 				}
 
-				List<Listing> dailyBits = await _api.GetBitsLeaderBoard(viewers.Count, BitsLeaderboardPeriodEnum.Day);
-				foreach (var bits in allTimesBits)
+				limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+				cheerers = db.Cheers.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Amount) }).ToList();
+				foreach (var cheer in cheerers)
 				{
-					UserStatsResponse viewer = response.Where(x => x.Id == bits.UserId).FirstOrDefault();
+					UserStatsResponse viewer = response.Where(x => x.Id == cheer.Owner).FirstOrDefault();
 					if (viewer != null)
 					{
-						viewer.BitsMonth = bits.Score;
+						viewer.BitsDay = cheer.Sum;
 					}
 				}
 			}

@@ -8,6 +8,7 @@ Afficher les couleurs VIP/Modérateurs/Subs dans les stats
 Replace Emote in alert messages
 Rajouter les subs et les cheers dans les stats
 Ajouter la possibilité d'ordonner les stats
+Automatiquement créer le user quand on fait un get sur un Id et qu'on le trouve pas en db
 
 ===============
 Commands
