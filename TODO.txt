@@ -9,6 +9,7 @@ Replace Emote in alert messages
 Rajouter les subs et les cheers dans les stats
 Ajouter la possibilité d'ordonner les stats
 Merger les colonnes uptimes/messages/bits/subs dans les stats
+Déplacer le worker CheckUptime côté serveur
 
 ===============
 Commands
