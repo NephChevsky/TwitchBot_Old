@@ -56,7 +56,7 @@ namespace WebApp.Services
 						{
 							DateTime limit = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
 							limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
-							int currentTotal = db.Cheers.Where(x => x.Owner == cheer.UserId && x.CreationDateTime > limit).Sum(x => x.Amount);
+							int currentTotal = db.Cheers.Where(x => x.Owner == cheer.UserId && x.CreationDateTime >= limit).Sum(x => x.Amount);
 							if (currentTotal < cheer.Score)
 							{
 								Cheer tmp = new();

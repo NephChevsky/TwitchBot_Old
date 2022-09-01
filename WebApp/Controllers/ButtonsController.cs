@@ -80,13 +80,13 @@ namespace WebApp.Controllers
                     DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                     if (name == "most_present_viewer_daily")
                     {
-                        limit = now.AddDays(-1);
+                        limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
                     }
                     else if (name == "most_present_viewer_monthly")
                     {
-                        limit = now.AddMonths(-1);
+                        limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
                     }
-                    var uptime = db.Uptimes.Where(x => x.CreationDateTime > limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).OrderByDescending(g => g.Sum).ToList();
+                    var uptime = db.Uptimes.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).OrderByDescending(g => g.Sum).ToList();
                     if (uptime.Count != 0)
                     {
                         Viewer dbViewer;
@@ -123,13 +123,13 @@ namespace WebApp.Controllers
                     DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                     if (name == "most_speaking_viewer_daily")
                     {
-                        limit = now.AddDays(-1);
+                        limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
                     }
                     else if (name == "most_speaking_viewer_monthly")
                     {
-                        limit = now.AddMonths(-1);
+                        limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
                     }
-                    var messages = db.Messages.Where(x => x.CreationDateTime > limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).ToList();
+                    var messages = db.Messages.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).ToList();
                     if (messages.Count != 0)
                     {
                         Viewer dbViewer;
