@@ -143,7 +143,6 @@ namespace WebApp.Controllers
                             return dbViewer.DisplayName;
                         }
                     }
-                    return "";
                 }
             }
             else if (name == "most_speaking_viewer_total")
@@ -155,7 +154,6 @@ namespace WebApp.Controllers
                     {
                         return dbViewer.DisplayName;
                     }
-                    return "";
                 }
             }
             else if (name == "last_follower")
@@ -169,7 +167,6 @@ namespace WebApp.Controllers
                 {
                     return song.Artists[0].Name + " - " + song.Name;
                 }
-                return "";
             }
             else if (name == "top_cheers_daily" || name == "top_cheers_monthly" || name == "top_cheers_total")
             {
@@ -187,7 +184,6 @@ namespace WebApp.Controllers
                 {
                     return cheers[0].UserName + " (" + cheers[0].Score + ")";
                 }
-                return "";
             }
             else if (name == "subscriber_count" || name == "subscriber_goal")
             {
@@ -199,13 +195,14 @@ namespace WebApp.Controllers
                     {
                         value += " / " + _settings.UpdateButtonsFunction.SubscriptionGoal;
                     }
+                    return value;
                 }
             }
             else if (name == "last_subscriber")
             {
                 using (TwitchDbContext db = new())
                 {
-                    Subscription sub = db.Subscriptions.OrderBy(x => x.CreationDateTime).FirstOrDefault();
+                    Subscription sub = db.Subscriptions.Where(x => x.Owner != _settings.StreamerTwitchId).OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
                     if (sub != null)
                     {
                         Viewer viewer = db.Viewers.Where(x => x.Id == sub.Owner).FirstOrDefault();
@@ -215,13 +212,12 @@ namespace WebApp.Controllers
                         }
                     }
                 }
-                return "";
             }
             else if (name == "last_subscription_gifter")
             {
                 using(TwitchDbContext db = new())
                 {
-                    Subscription subgift = db.Subscriptions.Where(x => x.IsGift == true).OrderBy(x => x.CreationDateTime).FirstOrDefault();
+                    Subscription subgift = db.Subscriptions.Where(x => x.IsGift == true).OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
                     if (subgift != null)
                     {
                         Viewer viewer = db.Viewers.Where(x => x.Id == subgift.GifterId).FirstOrDefault();
@@ -231,7 +227,6 @@ namespace WebApp.Controllers
 						}
 					}
 				}
-                return "";
             }
             else if (name == "top_subscription_gifter_daily" || name == "top_subscription_gifter_monthly" || name == "top_subscription_gifter_total")
             {
@@ -251,12 +246,14 @@ namespace WebApp.Controllers
                         }
                     }
                     var subGifters = db.Subscriptions.Where(x => x.IsGift == true && x.CreationDateTime >= limit).GroupBy(x => x.GifterId).Select(g => new { GifterId = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).ToList();
-                    Viewer viewer = db.Viewers.Where(x => x.Id == subGifters[0].GifterId).FirstOrDefault();
-                    if (viewer != null)
+                    if (subGifters.Count() > 0)
                     {
-                        return viewer.DisplayName;
-					}
-                    return "";
+                        Viewer viewer = db.Viewers.Where(x => x.Id == subGifters[0].GifterId).FirstOrDefault();
+                        if (viewer != null)
+                        {
+                            return $"{viewer.DisplayName} ({subGifters.Count})";
+                        }
+                    }
 				}
             }
             else if (name == "longest_subscriber")
