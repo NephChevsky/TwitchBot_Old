@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using ModelsDll;
 using ModelsDll.Db;
 using ModelsDll.DTO;
-using TwitchLib.Api.Core.Enums;
-using TwitchLib.Api.Helix.Models.Bits;
 
 namespace WebApp.Controllers
 {
