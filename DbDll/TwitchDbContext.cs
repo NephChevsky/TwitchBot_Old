@@ -25,6 +25,7 @@ namespace DbDll
         public DbSet<ChannelReward> ChannelRewards => Set<ChannelReward>();
         public DbSet<Subscription> Subscriptions => Set<Subscription>();
         public DbSet<Token> Tokens => Set<Token>();
+        public DbSet<Cheer> Cheers => Set<Cheer>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -213,6 +214,15 @@ namespace DbDll
                 AddGenericFields<Token>(entity);
             });
             modelBuilder.Entity<Token>().HasIndex(t => new { t.Id }).IsUnique(true);
+
+            modelBuilder.Entity<Cheer>(entity =>
+            {
+                entity.Property(e => e.Amount)
+                    .IsRequired();
+
+                AddGenericFields<Cheer>(entity);
+            });
+            modelBuilder.Entity<Cheer>().HasIndex(t => new { t.Id }).IsUnique(true);
 
             Expression<Func<ISoftDeleteable, bool>> filterSoftDeleteable = bm => !bm.Deleted;
             foreach (var type in modelBuilder.Model.GetEntityTypes())
