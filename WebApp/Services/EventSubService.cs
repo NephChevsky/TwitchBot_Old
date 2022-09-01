@@ -176,15 +176,6 @@ namespace WebApp.Services
                 alert.Add("durationMonths", e.Notification.Event.DurationMonths);
                 alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
-                using (TwitchDbContext db = new())
-                {
-                    Subscription sub = new();
-                    sub.Owner = e.Notification.Event.UserId;
-                    sub.IsGift = false;
-                    sub.Tier = e.Notification.Event.Tier;
-                    db.Subscriptions.Add(sub);
-                    db.SaveChanges();
-                }
                 HandledEvents.Add(e.Notification.Subscription.Id);
             }
         }

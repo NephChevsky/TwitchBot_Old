@@ -68,10 +68,6 @@ namespace WebApp.Controllers
                 }
                 return value;
             }
-            else if (name == "follower_count")
-            {
-                return (await _api.GetFollowers()).Count.ToString();
-            }
             else if (name == "viewer_count")
             {
                 return (await _api.GetViewerCount()).ToString();
@@ -193,32 +189,87 @@ namespace WebApp.Controllers
                 }
                 return "";
             }
-            else if (name == "subscriber_count" || name == "subscriber_goal" || name == "last_subscriber" || name == "last_subscription_gifter")
+            else if (name == "subscriber_count" || name == "subscriber_goal")
             {
-                List<TwitchLib.Api.Helix.Models.Subscriptions.Subscription> subscribers = await _api.GetSubscribers();
-                if (subscribers != null)
+                using (TwitchDbContext db = new())
                 {
-                    if (name == "subscriber_count" || name == "subscriber_goal")
+                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                    string value = db.Subscriptions.OrderByDescending(x => x.CreationDateTime > now.AddMonths(-1)).Count().ToString();
+                    if (name == "subscriber_goal")
                     {
-                        string value = (subscribers.Count - 1).ToString();
-                        if (name == "subscriber_goal")
+                        value += " / " + _settings.UpdateButtonsFunction.SubscriptionGoal;
+                    }
+                }
+            }
+            else if (name == "last_subscriber")
+            {
+                using (TwitchDbContext db = new())
+                {
+                    Subscription sub = db.Subscriptions.OrderBy(x => x.CreationDateTime).FirstOrDefault();
+                    if (sub != null)
+                    {
+                        Viewer viewer = db.Viewers.Where(x => x.Id == sub.Owner).FirstOrDefault();
+                        if (viewer != null)
                         {
-                            value += " / " + _settings.UpdateButtonsFunction.SubscriptionGoal;
+                            return viewer.DisplayName;
                         }
-                        return value;
                     }
-                    else if (name == "last_subscriber")
-                    {
-                        return subscribers[subscribers.Count - 2].UserName;
-                    }
-                    else if (name == "last_subscription_gifter")
-                    {
-                        subscribers = subscribers.Where(x => x.IsGift == true).ToList();
-                        return subscribers[subscribers.Count - 1].GifterName;
-                    }
-                    return "";
                 }
                 return "";
+            }
+            else if (name == "last_subscription_gifter")
+            {
+                using(TwitchDbContext db = new())
+                {
+                    Subscription subgift = db.Subscriptions.Where(x => x.IsGift == true).OrderBy(x => x.CreationDateTime).FirstOrDefault();
+                    if (subgift != null)
+                    {
+                        Viewer viewer = db.Viewers.Where(x => x.Id == subgift.GifterId).FirstOrDefault();
+                        if (viewer != null)
+                        {
+                            return viewer.DisplayName;
+						}
+					}
+				}
+                return "";
+            }
+            else if (name == "top_subscription_gifter_daily" || name == "top_subscription_gifter_monthly" || name == "top_subscription_gifter_total")
+            {
+                using (TwitchDbContext db = new())
+                {
+                    DateTime limit = DateTime.MinValue;
+                    if (name == "top_subscription_gifter_daily" || name == "top_subscription_gifter_monthly")
+                    {
+                        DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                        if (name == "top_subscription_gifter_daily")
+                        {
+                            limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+                        }
+                        else if (name == "top_subscription_gifter_monthly")
+                        {
+                            limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
+                        }
+                    }
+                    var subGifters = db.Subscriptions.Where(x => x.IsGift == true && x.CreationDateTime >= limit).GroupBy(x => x.GifterId).Select(g => new { GifterId = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).ToList();
+                    Viewer viewer = db.Viewers.Where(x => x.Id == subGifters[0].GifterId).FirstOrDefault();
+                    if (viewer != null)
+                    {
+                        return viewer.DisplayName;
+					}
+                    return "";
+				}
+            }
+            else if (name == "longest_subscriber")
+            {
+                using (TwitchDbContext db = new())
+                {
+                    var subers = db.Subscriptions.Where(x => x.Owner != _settings.StreamerTwitchId).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).ToList();
+                    Viewer viewer = db.Viewers.Where(x => x.Id == subers[0].Owner).FirstOrDefault();
+                    if (viewer != null)
+                    {
+                        return viewer.DisplayName;
+					}
+				}
             }
             return "";
         }
@@ -281,6 +332,18 @@ namespace WebApp.Controllers
                     break;
                 case "last_subscription_gifter":
                     value = "Dernier sub gifter";
+                    break;
+                case "top_subscription_gifter_daily":
+                    value = "Meilleur subgifter (jour)";
+                    break;
+                case "top_subscription_gifter_monthly":
+                    value = "Meilleur subgifter (mois)";
+                    break;
+                case "top_subscription_gifter_total":
+                    value = "Meilleur subgifter (total)";
+                    break;
+                case "longest_subscriber":
+                    value = "Plus long subscriber";
                     break;
             }
             return value;
