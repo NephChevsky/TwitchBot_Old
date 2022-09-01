@@ -15,17 +15,15 @@ namespace WebApp.Controllers
 	{
 		private readonly ILogger<StatisticsController> _logger;
 		private Settings _settings;
-		private Api _api;
 
 		public StatisticsController(ILogger<StatisticsController> logger, IConfiguration configuration, Api api)
 		{
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
-			_api = api;
 		}
 
 		[HttpGet]
-		public async Task<ActionResult<List<UserStatsResponse>>> Get()
+		public ActionResult<List<UserStatsResponse>> Get()
 		{
 			List<UserStatsResponse> response = new();
 			using (TwitchDbContext db = new())
