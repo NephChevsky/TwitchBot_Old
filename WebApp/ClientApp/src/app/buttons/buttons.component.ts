@@ -54,7 +54,7 @@ export class ButtonsComponent implements OnInit
 			value: data.value
 		}
 		var element = document.getElementById("button" + index);
-		if (this.buttons[index - 1].value.length > 23)
+		if (this.buttons[index - 1].value.length > 22)
 		{
 			element?.classList.add("scroll-text");
 		}
