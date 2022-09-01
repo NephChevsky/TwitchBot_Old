@@ -2,8 +2,6 @@
 using Microsoft.Extensions.Logging;
 using ModelsDll.DTO;
 using ModelsDll;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json;
 using TwitchLib.Api;
 using TwitchLib.Api.Auth;
 using TwitchLib.Api.Core.Models.Undocumented.Chatters;
@@ -17,7 +15,6 @@ using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
 using TwitchLib.Api.Helix.Models.Streams.GetStreams;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 using TwitchLib.Api.Helix.Models.Users.GetUsers;
-using TwitchLib.Api.Helix.Models.EventSub;
 using TwitchLib.Api.Helix.Models.ChannelPoints.CreateCustomReward;
 using ModelsDll.Db;
 using TwitchLib.Api.Helix.Models.ChannelPoints.UpdateCustomReward;
