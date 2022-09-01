@@ -279,6 +279,21 @@ namespace WebApp.Controllers
 					}
 				}
             }
+            else if (name == "last_cheer")
+            {
+                using (TwitchDbContext db = new())
+                {
+                    var lastCheer = db.Cheers.Where(x => x.Owner != _settings.StreamerTwitchId).OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
+                    if (lastCheer != null)
+                    {
+                        Viewer viewer = db.Viewers.Where(x => x.Id == lastCheer.Owner).FirstOrDefault();
+                        if (viewer != null)
+                        {
+                            return $"{viewer.DisplayName} ({lastCheer.Amount})";
+                        }
+                    }
+                }
+            }
             return "";
         }
 
@@ -352,6 +367,9 @@ namespace WebApp.Controllers
                     break;
                 case "longest_subscriber":
                     value = "Plus long subscriber";
+                    break;
+                case "last_cheer":
+                    value = "Dernier Bits";
                     break;
             }
             return value;
