@@ -170,19 +170,30 @@ namespace WebApp.Controllers
             }
             else if (name == "top_cheers_daily" || name == "top_cheers_monthly" || name == "top_cheers_total")
             {
-                BitsLeaderboardPeriodEnum period = BitsLeaderboardPeriodEnum.All;
-                if (name == "top_cheers_daily")
+                using (TwitchDbContext db = new())
                 {
-                    period = BitsLeaderboardPeriodEnum.Day;
-                }
-                else if (name == "top_cheers_monthly")
-                {
-                    period = BitsLeaderboardPeriodEnum.Month;
-                }
-                List<Listing> cheers = await _api.GetBitsLeaderBoard(1, period);
-                if (cheers.Count != 0)
-                {
-                    return cheers[0].UserName + " (" + cheers[0].Score + ")";
+                    DateTime limit = DateTime.MinValue;
+                    if (name == "top_cheers_daily" || name == "top_cheers_monthly")
+                    {
+                        DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                        if (name == "top_cheers_daily")
+                        {
+                            limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+                        }
+                        else if (name == "top_cheers_monthly")
+                        {
+                            limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
+                        }
+                    }
+                    var topCheerer = db.Cheers.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Amount) }).OrderByDescending(g => g.Sum).FirstOrDefault();
+                    if (topCheerer != null)
+                    {
+                        Viewer viewer = db.Viewers.Where(x => x.Id == topCheerer.Owner).FirstOrDefault();
+                        if (viewer != null)
+                        {
+                            return $"{viewer.DisplayName} ({topCheerer.Sum})";
+                        }
+                    }
                 }
             }
             else if (name == "subscriber_count" || name == "subscriber_goal")
@@ -245,13 +256,13 @@ namespace WebApp.Controllers
                             limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
                         }
                     }
-                    var subGifters = db.Subscriptions.Where(x => x.IsGift == true && x.CreationDateTime >= limit).GroupBy(x => x.GifterId).Select(g => new { GifterId = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).ToList();
-                    if (subGifters.Count() > 0)
+                    var topSubGifter = db.Subscriptions.Where(x => x.IsGift == true && x.CreationDateTime >= limit).GroupBy(x => x.GifterId).Select(g => new { GifterId = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).FirstOrDefault();
+                    if (topSubGifter != null)
                     {
-                        Viewer viewer = db.Viewers.Where(x => x.Id == subGifters[0].GifterId).FirstOrDefault();
+                        Viewer viewer = db.Viewers.Where(x => x.Id == topSubGifter.GifterId).FirstOrDefault();
                         if (viewer != null)
                         {
-                            return $"{viewer.DisplayName} ({subGifters.Count})";
+                            return $"{viewer.DisplayName} ({topSubGifter.Count})";
                         }
                     }
 				}
