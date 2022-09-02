@@ -15,6 +15,8 @@ export class StatsComponent implements OnInit
 	dataSource: any;
 	displayedColumns: string[] = ['position', 'name', 'presence', 'seen', 'uptime', 'messageCount', 'bits', 'subs', 'subGifts', 'firstFollowDateTime'];
 	minDate: string = "0001-01-01T00:00:00";
+	currentSortColumn: string = "";
+	currentSortDirection: string = "";
 
 	@ViewChild(MatSort) sort!: MatSort;
 
@@ -62,6 +64,13 @@ export class StatsComponent implements OnInit
 				case "firstFollowDateTime":
 					a = new Date(a[sort.active]);
 					b = new Date(b[sort.active]);
+					return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+				case "uptime":
+				case "messageCount":
+				case "bits":
+				case "subGifts":
+					a = a[sort.active + "Total"];
+					b = b[sort.active + "Total"];
 					return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 				default:
 					return (a[sort.active] < b[sort.active] ? -1 : 1) * (isAsc ? 1 : -1);
