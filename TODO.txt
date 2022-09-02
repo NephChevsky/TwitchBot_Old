@@ -5,7 +5,7 @@ add timeout count
 chat overlay
 make sure alerts are displayed until the end before processing the next one
 Replace Emote in alert messages
-Ajouter la possibilité d'ordonner les stats
+improve sort in stats page
 
 ===============
 Commands

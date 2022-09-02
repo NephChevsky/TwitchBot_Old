@@ -8,7 +8,8 @@ namespace ModelsDll.DTO
 		public string Id { get; set; }
 		public string Name { get; set; }
 		public int Seen { get; set; } = 0;
-		public string Presence { get; set; } = "";
+		public DateTime FirstPresence { get; set; }
+		public DateTime LastPresence { get; set; }
 		public string UptimeTotal { get; set; } = "00h00";
 		public string UptimeMonth { get; set; } = "00h00";
 		public string UptimeDay { get; set; } = "00h00";
@@ -33,7 +34,8 @@ namespace ModelsDll.DTO
 			Id = viewer.Id;
 			Name = viewer.DisplayName;
 			Seen = viewer.Seen;
-			Presence = $"{viewer.CreationDateTime.ToString("dd/MM/yyyy")} - {viewer.LastViewedDateTime.ToString("dd/MM/yyyy")}";
+			FirstPresence = viewer.CreationDateTime;
+			LastPresence = viewer.LastViewedDateTime;
 			string hours = Math.Floor( (double) viewer.Uptime / 3600).ToString();
 			string minutes = Math.Floor((double) (viewer.Uptime % 3600) / 60).ToString();
 			UptimeTotal = $"{hours.PadLeft(2, '0')}h{minutes.PadLeft(2, '0')}";
