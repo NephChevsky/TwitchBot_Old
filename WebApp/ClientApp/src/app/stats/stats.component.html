@@ -49,7 +49,7 @@
 
 		<ng-container matColumnDef="firstFollowDateTime">
 			<th mat-header-cell *matHeaderCellDef> Follow</th>
-			<td mat-cell ngClass *matCellDef="let element"> {{ element.IsFollow ? formatDate(element.firstFollowDateTime) : ""}}</td>
+			<td mat-cell ngClass *matCellDef="let element"> {{ element.isFollower ? formatDate(element.firstFollowDateTime) : ""}}</td>
 		</ng-container>
 
 		<tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
