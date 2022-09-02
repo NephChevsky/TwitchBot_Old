@@ -1,4 +1,5 @@
 ﻿using ApiDll;
+using ChatDll;
 using DbDll;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Data.SqlClient;
@@ -18,7 +19,7 @@ using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
 using TwitchLib.Client.Events;
 using WindowsInput;
 
-namespace ChatDll
+namespace Bot.Workers
 {
     public class ChatBot : IHostedService
     {

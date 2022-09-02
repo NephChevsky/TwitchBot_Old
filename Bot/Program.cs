@@ -38,7 +38,6 @@ namespace Bot
                 services.AddSingleton<BasicChat>();
                 services.AddSingleton<Spotify>();
                 services.AddHostedService<ChatBot>();
-                services.AddHostedService<CheckChannelRewards>();
             })
             .Build();
 
