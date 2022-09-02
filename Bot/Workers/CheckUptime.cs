@@ -46,69 +46,76 @@ namespace Bot.Workers
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
-                List<ChatterFormatted> chatters = await _api.GetChatters();
-                bool genericWelcome = false;
-                DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
-                foreach (ChatterFormatted chatter in chatters)
+                if (await _api.IsStreamerLive())
                 {
-                    using (TwitchDbContext db = new())
+                    List<ChatterFormatted> chatters = await _api.GetChatters();
+                    bool genericWelcome = false;
+                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                    foreach (ChatterFormatted chatter in chatters)
                     {
-                        Viewer dbViewer = _api.GetOrCreateUserByUsername(chatter.Username);
-                        db.Viewers.Attach(dbViewer);
-                        if (dbViewer != null)
+                        using (TwitchDbContext db = new())
                         {
-                            if (dbViewer.Seen == 0)
+                            Viewer dbViewer = _api.GetOrCreateUserByUsername(chatter.Username);
+                            db.Viewers.Attach(dbViewer);
+                            if (dbViewer != null)
                             {
-                                if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin && !dbViewer.IsBot)
+                                if (dbViewer.Seen == 0)
                                 {
-                                    _logger.LogInformation($"Show commands when a new viewer is here");
-                                    _chat.SendMessage($"Bienvenue sur le stream {dbViewer.DisplayName}. Tu peux venir rigoler avec nous ou bien taper ton meilleur lurk ;)");
-                                }
-                                if (_settings.CheckUptimeFunction.GenericWelcome && !dbViewer.IsBot)
-                                {
-                                    genericWelcome = true;
-                                }
-                                dbViewer.Seen++;
-                            }
-                            else if(!CurrentChatters.Select(x => x.Username).ToList().Contains(chatter.Username, StringComparer.OrdinalIgnoreCase))
-                            {
-                                if (dbViewer.LastViewedDateTime < now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer))
-                                {
-                                    dbViewer.Seen++;
-                                    if (_settings.CheckUptimeFunction.WelcomeOnReJoin && !dbViewer.IsBot)
+                                    if (_settings.CheckUptimeFunction.WelcomeOnFirstJoin && !dbViewer.IsBot)
                                     {
-                                        _logger.LogInformation($"Say hi to known viewer {dbViewer.Username}");
-                                        _chat.SendMessage($"Salut {dbViewer.DisplayName} ! Bon retour sur le stream !");
+                                        _logger.LogInformation($"Show commands when a new viewer is here");
+                                        _chat.SendMessage($"Bienvenue sur le stream {dbViewer.DisplayName}. Tu peux venir rigoler avec nous ou bien taper ton meilleur lurk ;)");
                                     }
+                                    if (_settings.CheckUptimeFunction.GenericWelcome && !dbViewer.IsBot)
+                                    {
+                                        genericWelcome = true;
+                                    }
+                                    dbViewer.Seen++;
                                 }
-                            }
-                            else
-                            {
-                                int uptime = (int)(now - dbViewer.LastViewedDateTime).TotalSeconds;
-                                dbViewer.Uptime += uptime;
-                                Uptime dbUptime = db.Uptimes.Where(x => x.CreationDateTime >= now.AddDays(-1)).FirstOrDefault();
-                                if (dbUptime != null)
+                                else if (!CurrentChatters.Select(x => x.Username).ToList().Contains(chatter.Username, StringComparer.OrdinalIgnoreCase))
                                 {
-                                    dbUptime.Sum += uptime;
+                                    if (dbViewer.LastViewedDateTime < now.AddSeconds(-_settings.CheckUptimeFunction.WelcomeOnJoinTimer))
+                                    {
+                                        dbViewer.Seen++;
+                                        if (_settings.CheckUptimeFunction.WelcomeOnReJoin && !dbViewer.IsBot)
+                                        {
+                                            _logger.LogInformation($"Say hi to known viewer {dbViewer.Username}");
+                                            _chat.SendMessage($"Salut {dbViewer.DisplayName} ! Bon retour sur le stream !");
+                                        }
+                                    }
                                 }
                                 else
                                 {
-                                    dbUptime = new();
-                                    dbUptime.Sum = uptime;
-                                    dbUptime.Owner = dbViewer.Id;
-                                    db.Uptimes.Add(dbUptime);
+                                    int uptime = (int)(now - dbViewer.LastViewedDateTime).TotalSeconds;
+                                    dbViewer.Uptime += uptime;
+                                    Uptime dbUptime = db.Uptimes.Where(x => x.CreationDateTime >= now.AddDays(-1)).FirstOrDefault();
+                                    if (dbUptime != null)
+                                    {
+                                        dbUptime.Sum += uptime;
+                                    }
+                                    else
+                                    {
+                                        dbUptime = new();
+                                        dbUptime.Sum = uptime;
+                                        dbUptime.Owner = dbViewer.Id;
+                                        db.Uptimes.Add(dbUptime);
+                                    }
                                 }
+                                dbViewer.LastViewedDateTime = now;
+                                db.SaveChanges();
                             }
-                            dbViewer.LastViewedDateTime = now;
-                            db.SaveChanges();
                         }
                     }
+                    if (_settings.CheckUptimeFunction.GenericWelcome && genericWelcome)
+                    {
+                        _chat.SendMessage($"Je développe un bot Twitch pour créer des intéractions entre le chat, mon stream et mon gameplay. Teste le en tapant !bot pour voir les commandes disponibles ;)");
+                    }
+                    CurrentChatters = chatters;
                 }
-                if (_settings.CheckUptimeFunction.GenericWelcome && genericWelcome)
+                else
                 {
-                    _chat.SendMessage($"Je développe un bot Twitch pour créer des intéractions entre le chat, mon stream et mon gameplay. Teste le en tapant !bot pour voir les commandes disponibles ;)");
-                }
-                CurrentChatters = chatters;
+                    CurrentChatters = new List<ChatterFormatted>();
+				}
 
                 await Task.Delay(TimeSpan.FromSeconds(_settings.CheckUptimeFunction.Timer), stoppingToken);
             }

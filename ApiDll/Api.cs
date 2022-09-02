@@ -344,6 +344,16 @@ namespace ApiDll
             }
         }
 
+        public async Task<bool> IsStreamerLive()
+        {
+            GetStreamsResponse response = await api.Helix.Streams.GetStreamsAsync(null, null, 1, null, null, "all", new List<string>() { _settings.StreamerTwitchId });
+            if (response != null && response.Streams.Count() != 0)
+            {
+                return true;
+			}
+            return false;
+		}
+
         public void Dispose()
         {
             _logger.LogInformation($"Disposing of ApiDll");
