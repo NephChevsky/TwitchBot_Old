@@ -18,6 +18,10 @@ namespace ModelsDll.DTO
 		public int BitsTotal { get; set; }
 		public int BitsMonth { get; set; }
 		public int BitsDay { get; set; }
+		public int Subs { get; set; }
+		public int SubGiftsTotal { get; set; }
+		public int SubGiftsMonth { get; set; }
+		public int SubGiftsDay { get; set; }
 
 		public UserStatsResponse(Viewer viewer)
 		{

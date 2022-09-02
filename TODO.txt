@@ -6,7 +6,6 @@ chat overlay
 make sure alerts are displayed until the end before processing the next one
 Afficher les couleurs VIP/Modérateurs/Subs dans les stats
 Replace Emote in alert messages
-Rajouter les subs et les cheers dans les stats
 Ajouter la possibilité d'ordonner les stats
 Déplacer le worker CheckUptime côté serveur
 

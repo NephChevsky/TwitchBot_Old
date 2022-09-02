@@ -116,6 +116,48 @@ namespace WebApp.Controllers
 						viewer.BitsDay = cheer.Sum;
 					}
 				}
+
+				var subs = db.Subscriptions.GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).ToList();
+				foreach (var sub in subs)
+				{
+					UserStatsResponse viewer = response.Where(x => x.Id == sub.Owner).FirstOrDefault();
+					if (viewer != null)
+					{
+						viewer.Subs = sub.Count;
+					}
+				}
+
+				var subgifts = db.Subscriptions.Where(x => x.IsGift == true).GroupBy(x => x.GifterId).Select(g => new { GifterId = g.Key, Count = g.Count() }).ToList();
+				foreach (var subgift in subgifts)
+				{
+					UserStatsResponse viewer = response.Where(x => x.Id == subgift.GifterId).FirstOrDefault();
+					if (viewer != null)
+					{
+						viewer.SubGiftsTotal = subgift.Count;
+					}
+				}
+
+				limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
+				subgifts = db.Subscriptions.Where(x => x.IsGift == true && x.CreationDateTime >= limit).GroupBy(x => x.GifterId).Select(g => new { GifterId = g.Key, Count = g.Count() }).ToList();
+				foreach (var subgift in subgifts)
+				{
+					UserStatsResponse viewer = response.Where(x => x.Id == subgift.GifterId).FirstOrDefault();
+					if (viewer != null)
+					{
+						viewer.SubGiftsMonth = subgift.Count;
+					}
+				}
+
+				limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+				subgifts = db.Subscriptions.Where(x => x.IsGift == true && x.CreationDateTime >= limit).GroupBy(x => x.GifterId).Select(g => new { GifterId = g.Key, Count = g.Count() }).ToList();
+				foreach (var subgift in subgifts)
+				{
+					UserStatsResponse viewer = response.Where(x => x.Id == subgift.GifterId).FirstOrDefault();
+					if (viewer != null)
+					{
+						viewer.SubGiftsDay = subgift.Count;
+					}
+				}
 			}
 			return Ok(response);
 		}

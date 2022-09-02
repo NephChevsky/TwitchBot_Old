@@ -11,7 +11,7 @@ import { environment } from '../../environments/environment';
 export class StatsComponent implements OnInit
 {
 	dataSource: any = [];
-	displayedColumns: string[] = ['position', 'name', 'presence', 'seen', 'uptime', 'messageCount', 'bits'];
+	displayedColumns: string[] = ['position', 'name', 'presence', 'seen', 'uptime', 'messageCount', 'bits', 'subs', 'subGifts'];
 
 	constructor(public http: HttpClient)
 	{
