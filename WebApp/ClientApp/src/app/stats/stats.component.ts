@@ -13,7 +13,7 @@ export class StatsComponent implements OnInit
 {
 	originalSource: any;
 	dataSource: any;
-	displayedColumns: string[] = ['position', 'name', 'presence', 'seen', 'uptime', 'messageCount', 'bits', 'subs', 'subGifts', 'firstFollowDateTime'];
+	displayedColumns: string[] = ['name', 'presence', 'seen', 'uptime', 'messageCount', 'bits', 'subs', 'subGifts', 'firstFollowDateTime'];
 	minDate: string = "0001-01-01T00:00:00";
 	currentSortColumn: string = "";
 	currentSortDirection: string = "";
@@ -48,8 +48,8 @@ export class StatsComponent implements OnInit
 		const newData = this.dataSource.slice();
 		if (!sort.active || sort.direction === '')
 		{
-			this.dataSource = this.originalSource;
-			return;
+			sort.active = 'position';
+			sort.direction = 'asc';
 		}
 
 		this.dataSource = newData.sort((a: any, b: any) =>
@@ -62,6 +62,10 @@ export class StatsComponent implements OnInit
 					b = isAsc ? b['firstPresence'] : b['lastPresence'];
 					return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 				case "firstFollowDateTime":
+					if (a[sort.active] == this.minDate)
+						return 1;
+					if (b[sort.active] == this.minDate)
+						return -1;
 					a = new Date(a[sort.active]);
 					b = new Date(b[sort.active]);
 					return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
