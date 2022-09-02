@@ -22,49 +22,19 @@
 			<td mat-cell *matCellDef="let element"> {{element.presence}} </td>
 		</ng-container>
 
-		<ng-container matColumnDef="uptimeTotal">
-			<th mat-header-cell *matHeaderCellDef> Uptime (total) </th>
-			<td mat-cell *matCellDef="let element"> {{element.uptimeTotal}} </td>
+		<ng-container matColumnDef="uptime">
+			<th mat-header-cell *matHeaderCellDef> Uptime (total / mois / jour) </th>
+			<td mat-cell *matCellDef="let element"> {{element.uptimeTotal}} / {{element.uptimeMonth}} / {{element.uptimeDay}} </td>
 		</ng-container>
 
-		<ng-container matColumnDef="uptimeMonth">
-			<th mat-header-cell *matHeaderCellDef> Uptime (mois) </th>
-			<td mat-cell *matCellDef="let element"> {{element.uptimeMonth}} </td>
+		<ng-container matColumnDef="messageCount">
+			<th mat-header-cell *matHeaderCellDef> Messages (total / mois / jour) </th>
+			<td mat-cell *matCellDef="let element"> {{element.messageCountTotal}} / {{element.messageCountMonth}} / {{element.messageCountDay}}</td>
 		</ng-container>
 
-		<ng-container matColumnDef="uptimeDay">
-			<th mat-header-cell *matHeaderCellDef> Uptime (jour) </th>
-			<td mat-cell *matCellDef="let element"> {{element.uptimeDay}} </td>
-		</ng-container>
-
-		<ng-container matColumnDef="messageCountTotal">
-			<th mat-header-cell *matHeaderCellDef> Messages (total) </th>
-			<td mat-cell *matCellDef="let element"> {{element.messageCountTotal}} </td>
-		</ng-container>
-
-		<ng-container matColumnDef="messageCountMonth">
-			<th mat-header-cell *matHeaderCellDef> Messages (mois) </th>
-			<td mat-cell *matCellDef="let element"> {{element.messageCountMonth}} </td>
-		</ng-container>
-
-		<ng-container matColumnDef="messageCountDay">
-			<th mat-header-cell *matHeaderCellDef> Messages (jour) </th>
-			<td mat-cell *matCellDef="let element"> {{element.messageCountDay}} </td>
-		</ng-container>
-
-		<ng-container matColumnDef="bitsTotal">
-			<th mat-header-cell *matHeaderCellDef> Bits (total) </th>
-			<td mat-cell *matCellDef="let element"> {{element.bitsTotal}} </td>
-		</ng-container>
-
-		<ng-container matColumnDef="bitsMonth">
-			<th mat-header-cell *matHeaderCellDef> Bits (mois) </th>
-			<td mat-cell *matCellDef="let element"> {{element.bitsMonth}} </td>
-		</ng-container>
-
-		<ng-container matColumnDef="bitsDay">
-			<th mat-header-cell *matHeaderCellDef> Bits (jour) </th>
-			<td mat-cell *matCellDef="let element"> {{element.bitsDay}} </td>
+		<ng-container matColumnDef="bits">
+			<th mat-header-cell *matHeaderCellDef> Bits (total / mois / jour) </th>
+			<td mat-cell *matCellDef="let element"> {{element.bitsTotal}} / {{element.bitsMonth}} / {{element.bitsDay}}</td>
 		</ng-container>
 
 		<tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

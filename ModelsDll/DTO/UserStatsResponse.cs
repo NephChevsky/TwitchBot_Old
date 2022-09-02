@@ -28,6 +28,8 @@ namespace ModelsDll.DTO
 			string hours = Math.Floor( (double) viewer.Uptime / 3600).ToString();
 			string minutes = Math.Floor((double) (viewer.Uptime % 3600) / 60).ToString();
 			UptimeTotal = $"{hours.PadLeft(2, '0')}h{minutes.PadLeft(2, '0')}";
+			UptimeMonth = "00h00";
+			UptimeDay = "00h00";
 			MessageCountTotal = viewer.MessageCount;
 		}
 	}
