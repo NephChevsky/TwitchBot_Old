@@ -3,22 +3,26 @@
   <br />
   <h3>General</h3>
   <table>
-    <tr>
-      <th>Nom</th>
-      <th>Description</th>
-    </tr>
-    <tr>
-      <td>!bot</td>
-      <td>Montre la liste des commandes</td>
-    </tr>
-    <tr *ngIf="options.computeUpTime">
-      <td>!uptime ({{"{"}}username{{"}"}})</td>
-      <td>Affiche votre uptime sur le stream. Vous pouvez ajouter un autre nom d'utilisateur en paramètre pour voir son uptime</td>
-    </tr>
-    <tr>
-      <td>!song</td>
-      <td>Affiche l'artiste et le titre de la chanson en cours</td>
-    </tr>
+      <tr>
+          <th>Nom</th>
+          <th>Description</th>
+      </tr>
+      <tr>
+          <td>!bot</td>
+          <td>Montre la liste des commandes</td>
+      </tr>
+      <tr>
+          <td>!stats</td>
+          <td>Affiche les statistiques des viewers</td>
+      </tr>
+      <tr *ngIf="options.computeUpTime">
+          <td>!uptime ({{"{"}}username{{"}"}})</td>
+          <td>Affiche votre uptime sur le stream. Vous pouvez ajouter un autre nom d'utilisateur en paramètre pour voir son uptime</td>
+      </tr>
+      <tr>
+          <td>!song</td>
+          <td>Affiche l'artiste et le titre de la chanson en cours</td>
+      </tr>
   </table>
   <br />
   <br />
