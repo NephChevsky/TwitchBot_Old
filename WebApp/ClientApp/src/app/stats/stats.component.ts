@@ -11,12 +11,18 @@ import { environment } from '../../environments/environment';
 export class StatsComponent implements OnInit
 {
 	dataSource: any = [];
-	displayedColumns: string[] = ['position', 'name', 'presence', 'seen', 'uptime', 'messageCount', 'bits', 'subs', 'subGifts'];
+	displayedColumns: string[] = ['position', 'name', 'presence', 'seen', 'uptime', 'messageCount', 'bits', 'subs', 'subGifts', 'firstFollowDateTime'];
 
 	constructor(public http: HttpClient)
 	{
 
 	}
+
+	formatDate(date: Date)
+	{
+		return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds()
+	}
+
 
 	ngOnInit(): void
 	{

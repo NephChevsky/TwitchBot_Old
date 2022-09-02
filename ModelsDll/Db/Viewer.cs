@@ -12,6 +12,11 @@ namespace ModelsDll.Db
         public DateTime LastViewedDateTime { get; set; }
         public long Uptime { get; set; }
         public int MessageCount { get; set; }
+        public bool IsFollower { get; set; } = false;
+        public bool IsSub { get; set; } = false;
+        public bool IsMod { get; set; } = false;
+        public bool IsVIP { get; set; } = false;
+        public DateTime FirstFollowDateTime { get; set; }
 
         // IDateTimeTrackable
         public DateTime CreationDateTime { get; set; }

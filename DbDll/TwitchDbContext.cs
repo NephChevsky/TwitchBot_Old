@@ -76,6 +76,24 @@ namespace DbDll
                     .IsRequired()
                     .HasDefaultValue(0);
 
+                entity.Property(e => e.IsFollower)
+                    .IsRequired()
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.IsSub)
+                    .IsRequired()
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.IsMod)
+                    .IsRequired()
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.IsVIP)
+                    .IsRequired()
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.FirstFollowDateTime);
+
                 AddGenericFields<Viewer>(entity);
             });
             modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Id }).IsUnique(true);

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ModelsDll;
 using ModelsDll.Db;
 using ModelsDll.DTO;
+using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 
 namespace WebApp.Controllers
 {
@@ -14,7 +15,7 @@ namespace WebApp.Controllers
 		private readonly ILogger<StatisticsController> _logger;
 		private Settings _settings;
 
-		public StatisticsController(ILogger<StatisticsController> logger, IConfiguration configuration, Api api)
+		public StatisticsController(ILogger<StatisticsController> logger, IConfiguration configuration)
 		{
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();

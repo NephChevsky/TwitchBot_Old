@@ -7,21 +7,26 @@ namespace ModelsDll.DTO
 		public int Position { get; set; }
 		public string Id { get; set; }
 		public string Name { get; set; }
-		public int Seen { get; set; }
-		public string Presence { get; set; }
-		public string UptimeTotal { get; set; }
-		public string UptimeMonth { get; set; }
-		public string UptimeDay { get; set; }
-		public int MessageCountTotal { get; set; }
-		public int MessageCountMonth { get; set; }
-		public int MessageCountDay { get; set; }
-		public int BitsTotal { get; set; }
-		public int BitsMonth { get; set; }
-		public int BitsDay { get; set; }
-		public int Subs { get; set; }
-		public int SubGiftsTotal { get; set; }
-		public int SubGiftsMonth { get; set; }
-		public int SubGiftsDay { get; set; }
+		public int Seen { get; set; } = 0;
+		public string Presence { get; set; } = "";
+		public string UptimeTotal { get; set; } = "00h00";
+		public string UptimeMonth { get; set; } = "00h00";
+		public string UptimeDay { get; set; } = "00h00";
+		public int MessageCountTotal { get; set; } = 0;
+		public int MessageCountMonth { get; set; } = 0;
+		public int MessageCountDay { get; set; } = 0;
+		public int BitsTotal { get; set; } = 0;
+		public int BitsMonth { get; set; } = 0;
+		public int BitsDay { get; set; } = 0;
+		public int Subs { get; set; } = 0;
+		public int SubGiftsTotal { get; set; } = 0;
+		public int SubGiftsMonth { get; set; } = 0;
+		public int SubGiftsDay { get; set; } = 0;
+		public bool IsFollower { get; set; } = false;
+		public bool IsSub { get; set; } = false;
+		public bool IsMod { get; set; } = false;
+		public bool IsVIP { get; set; } = false;
+		public DateTime FirstFollowDateTime { get; set; }
 
 		public UserStatsResponse(Viewer viewer)
 		{
@@ -32,9 +37,12 @@ namespace ModelsDll.DTO
 			string hours = Math.Floor( (double) viewer.Uptime / 3600).ToString();
 			string minutes = Math.Floor((double) (viewer.Uptime % 3600) / 60).ToString();
 			UptimeTotal = $"{hours.PadLeft(2, '0')}h{minutes.PadLeft(2, '0')}";
-			UptimeMonth = "00h00";
-			UptimeDay = "00h00";
 			MessageCountTotal = viewer.MessageCount;
+			IsMod = viewer.IsMod;
+			IsVIP = viewer.IsVIP;
+			IsSub = viewer.IsSub;
+			IsFollower = viewer.IsFollower;
+			FirstFollowDateTime = viewer.FirstFollowDateTime;
 		}
 	}
 }

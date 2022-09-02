@@ -19,6 +19,7 @@ namespace WebApp
 			builder.Configuration.SetBasePath(Directory.GetCurrentDirectory())
 					.AddJsonFile("appsettings.json", false)
 					.AddJsonFile(path, false)
+					.AddJsonFile("bots.json", false)
 					.Build();
 
 			builder.Services.AddControllers();

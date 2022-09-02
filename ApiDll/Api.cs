@@ -252,13 +252,19 @@ namespace ApiDll
 
         public async Task AddVIP(string userId)
         {
-            GetChannelVIPsResponse vips = await api.Helix.Channels.GetVIPsAsync(_settings.StreamerTwitchId);
-            if (vips.Data.Count() >= _settings.ChatFunction.MaxVIPs)
+            List<ChannelVIPsResponseModel> vips = await GetVIPs();
+            if (vips.Count() >= _settings.ChatFunction.MaxVIPs)
             {
-                await api.Helix.Channels.RemoveChannelVIPAsync(_settings.StreamerTwitchId, vips.Data[0].UserId);
+                await api.Helix.Channels.RemoveChannelVIPAsync(_settings.StreamerTwitchId, vips[0].UserId);
 			}
             await api.Helix.Channels.AddChannelVIPAsync(_settings.StreamerTwitchId, userId);
 		}
+
+        public async Task<List<ChannelVIPsResponseModel>> GetVIPs()
+        {
+            GetChannelVIPsResponse vips = await api.Helix.Channels.GetVIPsAsync(_settings.StreamerTwitchId);
+            return vips.Data.ToList();
+        }
 
         public async Task<List<Listing>> GetBitsLeaderBoard(int count, BitsLeaderboardPeriodEnum period)
         {

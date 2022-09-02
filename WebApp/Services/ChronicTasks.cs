@@ -4,6 +4,9 @@ using ModelsDll;
 using ModelsDll.Db;
 using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Helix.Models.Bits;
+using TwitchLib.Api.Helix.Models.Channels.GetChannelVIPs;
+using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
+using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 
 namespace WebApp.Services
 {
@@ -26,12 +29,16 @@ namespace WebApp.Services
 			{
 				_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
+				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+
 				using (TwitchDbContext db = new())
 				{
 					List<TwitchLib.Api.Helix.Models.Subscriptions.Subscription> subs = await _api.GetSubscribers();
-					DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
 					foreach (TwitchLib.Api.Helix.Models.Subscriptions.Subscription sub in subs)
 					{
+						Viewer viewer = _api.GetOrCreateUserById(sub.UserId);
+						db.Viewers.Attach(viewer);
+						viewer.IsSub = true;
 						Subscription tmp = db.Subscriptions.Where(x => x.Owner == sub.UserId && x.CreationDateTime >= now.AddMonths(-1)).FirstOrDefault();
 						if (tmp == null)
 						{
@@ -46,9 +53,11 @@ namespace WebApp.Services
 						}
 					}
 					db.SaveChanges();
+				}
 
+				using (TwitchDbContext db = new())
+				{
 					Cheer lastCheer = db.Cheers.OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
-					
 					if (lastCheer != null)
 					{
 						List<Listing> cheers = await _api.GetBitsLeaderBoard(10, BitsLeaderboardPeriodEnum.Day);
@@ -79,6 +88,47 @@ namespace WebApp.Services
 					}
 					db.SaveChanges();
 				}
+
+				using (TwitchDbContext db = new())
+				{
+					List<Follow> followers = await _api.GetFollowers();
+					foreach (var follow in followers)
+					{
+						Viewer viewer = _api.GetOrCreateUserById(follow.FromUserId);
+						db.Viewers.Attach(viewer);
+						viewer.IsFollower = true;
+						if (viewer.FirstFollowDateTime == DateTime.MinValue)
+						{
+							viewer.FirstFollowDateTime = follow.FollowedAt;
+						}
+					}
+					db.SaveChanges();
+				}
+
+				using (TwitchDbContext db = new())
+				{
+					List<Moderator> mods = await _api.GetModerators();
+					foreach (var mod in mods)
+					{
+						Viewer viewer = _api.GetOrCreateUserById(mod.UserId);
+						db.Viewers.Attach(viewer);
+						viewer.IsMod = true;
+					}
+					db.SaveChanges();
+				}
+
+				/* wait for fix in TwitchLib api
+				using (TwitchDbContext db = new())
+				{
+					List<ChannelVIPsResponseModel> vips = await _api.GetVIPs();
+					foreach (var vip in vips)
+					{
+						Viewer viewer = _api.GetOrCreateUserById(vip.UserId);
+						db.Viewers.Attach(viewer);
+						viewer.IsVIP = true;
+					}
+					db.SaveChanges();
+				}*/
 
 				await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
 			}

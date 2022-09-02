@@ -4,6 +4,7 @@ using DbDll;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DbDll.Migrations
 {
     [DbContext(typeof(TwitchDbContext))]
-    partial class TwitchDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220902083648_Roles")]
+    partial class Roles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -352,9 +354,6 @@ namespace DbDll.Migrations
                         .IsRequired()
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
-
-                    b.Property<DateTime>("FirstFollowDateTime")
-                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsBot")
                         .ValueGeneratedOnAdd()

@@ -10,3 +10,23 @@ th.mat-header-cell, td.mat-cell {
 	padding-left:10px;
 	padding-right:10px;
 }
+
+.mod {
+	background-color: #39cc60;
+}
+
+.vip {
+	background-color: #f77ee9;
+}
+
+.sub {
+	background-color: #fab13c;
+}
+
+.follower {
+	background-color: #f7ddb2;
+}
+
+.none {
+	background-color: none;
+}
