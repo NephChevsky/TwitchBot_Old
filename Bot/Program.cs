@@ -29,6 +29,11 @@ namespace Bot
             })
             .ConfigureServices(services =>
             {
+                services.Configure<HostOptions>(hostOptions =>
+                {
+                    hostOptions.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+                });
+
                 services.AddSingleton<Api>();
                 services.AddSingleton<BasicChat>();
                 services.AddSingleton<Spotify>();

@@ -39,6 +39,11 @@ namespace WebApp
 				config.Secret = builder.Configuration.GetSection("Settings").Get<Settings>().Secret;
 			});
 
+			builder.Services.Configure<HostOptions>(hostOptions =>
+			{
+				hostOptions.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+			});
+
 			builder.Services.AddSingleton<Api>();
 			builder.Services.AddSingleton<Spotify>();
 			builder.Services.AddSingleton<DiscordDll.Discord>();
