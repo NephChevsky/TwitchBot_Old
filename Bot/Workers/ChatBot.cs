@@ -240,21 +240,6 @@ namespace Bot.Workers
                     db.SaveChanges();
                 }
 			}
-
-            Task.Run(async () =>
-            {
-                using (TwitchDbContext db = new())
-                {
-                    List<ChannelVIPsResponseModel> vips = await _api.GetVIPs();
-                    foreach (var vip in vips)
-                    {
-                        Viewer viewer = _api.GetOrCreateUserById(vip.UserId);
-                        db.Viewers.Attach(viewer);
-                        viewer.IsVIP = true;
-                    }
-                    db.SaveChanges();
-                }
-            }).Wait();
         }
 
         private async Task OnTriggerReward(object sender, Dictionary<string, string> e)
