@@ -1,16 +1,12 @@
 ﻿using ApiDll;
 using ChatDll;
 using DbDll;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using ModelsDll;
 using ModelsDll.Db;
 using TwitchLib.Api;
 using TwitchLib.Api.Core.Models.Undocumented.Chatters;
-using TwitchLib.Api.Helix.Models.Users.GetUsers;
 
-namespace Bot.Workers
+namespace WebApp.Services
 {
     public class CheckUptime : BackgroundService
     {

@@ -6,8 +6,7 @@ chat overlay
 make sure alerts are displayed until the end before processing the next one
 Replace Emote in alert messages
 Ajouter la possibilité d'ordonner les stats
-Tracker l'uptime seulement si le stream est live
-Déplacer le worker CheckUptime côté serveur
+Deplacer CheckChannelRewards côté serveur
 
 ===============
 Commands

@@ -63,6 +63,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\ChatDll\ChatDll.csproj" />
 		<ProjectReference Include="..\ModelsDll\ModelsDll.csproj" />
 		<ProjectReference Include="..\ApiDll\ApiDll.csproj" />
 		<ProjectReference Include="..\SpotifyDll\SpotifyDll.csproj" />

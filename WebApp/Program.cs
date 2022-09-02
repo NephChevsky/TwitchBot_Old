@@ -1,4 +1,5 @@
 using ApiDll;
+using ChatDll;
 using ModelsDll;
 using SpotifyDll;
 using TwitchLib.EventSub.Webhooks.Extensions;
@@ -46,11 +47,13 @@ namespace WebApp
 			});
 
 			builder.Services.AddSingleton<Api>();
+			builder.Services.AddSingleton<BasicChat>();
 			builder.Services.AddSingleton<Spotify>();
 			builder.Services.AddSingleton<DiscordDll.Discord>();
 			builder.Services.AddHostedService<EventSubService>();
 			builder.Services.AddHostedService<DailyTasks>();
 			builder.Services.AddHostedService<ChronicTasks>();
+			builder.Services.AddHostedService<CheckUptime>();
 
 			builder.Logging.ClearProviders();
 			builder.Logging.AddAzureWebAppDiagnostics();
