@@ -54,6 +54,7 @@ namespace WebApp
 			builder.Services.AddHostedService<DailyTasks>();
 			builder.Services.AddHostedService<ChronicTasks>();
 			builder.Services.AddHostedService<CheckUptime>();
+			builder.Services.AddHostedService<CheckChannelRewards>();
 
 			builder.Logging.ClearProviders();
 			builder.Logging.AddAzureWebAppDiagnostics();
