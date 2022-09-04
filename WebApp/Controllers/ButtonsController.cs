@@ -201,7 +201,7 @@ namespace WebApp.Controllers
                 using (TwitchDbContext db = new())
                 {
                     DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
-                    string value = db.Subscriptions.Where(x => x.Owner != _settings.StreamerTwitchId && x.CreationDateTime >= now.AddMonths(-1)).Count().ToString();
+                    string value = db.Subscriptions.Where(x => x.Owner != _settings.StreamerTwitchId && x.EndDateTime >= now).Count().ToString();
                     if (name == "subscriber_goal")
                     {
                         value += " / " + _settings.UpdateButtonsFunction.SubscriptionGoal;
