@@ -215,6 +215,9 @@ namespace DbDll
                 entity.Property(e => e.Tier)
                     .HasMaxLength(10);
 
+                entity.Property(e => e.EndDateTime)
+                    .IsRequired();
+
                 AddGenericFields<Subscription>(entity);
             });
             modelBuilder.Entity<Subscription>().HasIndex(t => new { t.Id }).IsUnique(true);

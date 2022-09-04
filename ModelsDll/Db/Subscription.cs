@@ -13,6 +13,7 @@ namespace ModelsDll.Db
 		public string Tier { get; set; }
 		public bool IsGift { get; set; }
 		public string GifterId { get; set; }
+		public DateTime EndDateTime { get; set; }
 
 		// IOwnable
 		public string Owner { get; set; }
