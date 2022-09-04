@@ -122,99 +122,126 @@ namespace WebApp.Services
 
         private void OnChannelFollow(object sender, ChannelFollowArgs e)
         {
-            _logger.LogInformation($"{e.Notification.Event.UserName} followed {e.Notification.Event.BroadcasterUserName}");
-            Dictionary<string, object> alert = new Dictionary<string, object>();
-            alert.Add("type", "channel.follow");
-            alert.Add("username", e.Notification.Event.UserName);
-            _hub.Clients.All.SendAsync("TriggerAlert", alert);
-            HandledEvents.Add(e.Notification.Subscription.Id);
+            if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
+            {
+                _logger.LogInformation($"{e.Notification.Event.UserName} followed {e.Notification.Event.BroadcasterUserName}");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "channel.follow");
+                alert.Add("username", e.Notification.Event.UserName);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
+            }
         }
 
         private void OnChannelSubscribe(object sender, ChannelSubscribeArgs e)
         {
-            _logger.LogInformation($"{e.Notification.Event.UserName} subscribed to {e.Notification.Event.BroadcasterUserName}");
-            Dictionary<string, object> alert = new Dictionary<string, object>();
-            alert.Add("type", "channel.subscribe");
-            alert.Add("username", e.Notification.Event.UserName);
-            alert.Add("isGift", e.Notification.Event.IsGift);
-            alert.Add("tier", e.Notification.Event.Tier);
-            _hub.Clients.All.SendAsync("TriggerAlert", alert);
-            HandledEvents.Add(e.Notification.Subscription.Id);
+            if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
+            {
+                _logger.LogInformation($"{e.Notification.Event.UserName} subscribed to {e.Notification.Event.BroadcasterUserName}");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "channel.subscribe");
+                alert.Add("username", e.Notification.Event.UserName);
+                alert.Add("isGift", e.Notification.Event.IsGift);
+                alert.Add("tier", e.Notification.Event.Tier);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
+            }
         }
 
         private void OnChannelSubscriptionGift(object sender, ChannelSubscriptionGiftArgs e)
         {
-            _logger.LogInformation($"{e.Notification.Event.UserName} gifted a subscription to {e.Notification.Event.BroadcasterUserName}");
-            Dictionary<string, object> alert = new Dictionary<string, object>();
-            alert.Add("type", "channel.subscription.gift");
-            alert.Add("username", e.Notification.Event.UserName);
-            alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
-            alert.Add("tier", e.Notification.Event.Tier);
-            alert.Add("total", e.Notification.Event.Total);
-            alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
-            _hub.Clients.All.SendAsync("TriggerAlert", alert);
-            HandledEvents.Add(e.Notification.Subscription.Id);
+            if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
+            {
+                _logger.LogInformation($"{e.Notification.Event.UserName} gifted a subscription to {e.Notification.Event.BroadcasterUserName}");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "channel.subscription.gift");
+                alert.Add("username", e.Notification.Event.UserName);
+                alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
+                alert.Add("tier", e.Notification.Event.Tier);
+                alert.Add("total", e.Notification.Event.Total);
+                alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
+            }
         }
 
         private void OnChannelSubscriptionMessage(object sender, ChannelSubscriptionMessageArgs e)
         {
-            _logger.LogInformation($"{e.Notification.Event.UserName} re-subscribed to {e.Notification.Event.BroadcasterUserName}");
-            Dictionary<string, object> alert = new Dictionary<string, object>();
-            alert.Add("type", "channel.subscription.message");
-            alert.Add("username", e.Notification.Event.UserName);
-            alert.Add("message", e.Notification.Event.Message.Text);
-            alert.Add("tier", e.Notification.Event.Tier);
-            alert.Add("durationMonths", e.Notification.Event.DurationMonths);
-            alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
-            _hub.Clients.All.SendAsync("TriggerAlert", alert);
-            HandledEvents.Add(e.Notification.Subscription.Id);
+            if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
+            {
+                _logger.LogInformation($"{e.Notification.Event.UserName} re-subscribed to {e.Notification.Event.BroadcasterUserName}");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "channel.subscription.message");
+                alert.Add("username", e.Notification.Event.UserName);
+                alert.Add("message", e.Notification.Event.Message.Text);
+                alert.Add("tier", e.Notification.Event.Tier);
+                alert.Add("durationMonths", e.Notification.Event.DurationMonths);
+                alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
+            }
         }
 
         private void OnChannelSubscriptionEnd(object send, ChannelSubscriptionEndArgs e)
         {
-            using (TwitchDbContext db = new())
+            if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
             {
-                DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
-                Subscription sub = db.Subscriptions.Where(x => x.Owner == e.Notification.Event.UserId).OrderByDescending(x => x.EndDateTime).FirstOrDefault();
-                sub.EndDateTime = now;
-                db.SaveChanges();
+                using (TwitchDbContext db = new())
+                {
+                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                    Subscription sub = db.Subscriptions.Where(x => x.Owner == e.Notification.Event.UserId).OrderByDescending(x => x.EndDateTime).FirstOrDefault();
+                    sub.EndDateTime = now;
+                    db.SaveChanges();
+                }
+                HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
             }
         }
 
         private void OnChannelCheer(object sender, ChannelCheerArgs e)
         {
-            _logger.LogInformation($"{e.Notification.Event.UserName} gifted {e.Notification.Event.Bits} cheers");
-            Dictionary<string, object> alert = new Dictionary<string, object>();
-            alert.Add("type", "channel.cheer");
-            alert.Add("username", e.Notification.Event.UserName);
-            alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
-            alert.Add("bits", e.Notification.Event.Bits);
-            alert.Add("message", e.Notification.Event.Message);
-            _hub.Clients.All.SendAsync("TriggerAlert", alert);
-            HandledEvents.Add(e.Notification.Subscription.Id);
+            if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
+            {
+                _logger.LogInformation($"{e.Notification.Event.UserName} gifted {e.Notification.Event.Bits} cheers");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "channel.cheer");
+                alert.Add("username", e.Notification.Event.UserName);
+                alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
+                alert.Add("bits", e.Notification.Event.Bits);
+                alert.Add("message", e.Notification.Event.Message);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
+            }
         }
 
         private void OnChannelRaid(object sender, ChannelRaidArgs e)
         {
-            _logger.LogInformation($"{e.Notification.Event.FromBroadcasterUserName} raided {e.Notification.Event.ToBroadcasterUserName} with {e.Notification.Event.Viewers} viewers");
-            Dictionary<string, object> alert = new Dictionary<string, object>();
-            alert.Add("type", "channel.raid");
-            alert.Add("username", e.Notification.Event.FromBroadcasterUserName);
-            alert.Add("viewers", e.Notification.Event.Viewers);
-            _hub.Clients.All.SendAsync("TriggerAlert", alert);
+            if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
+            {
+                _logger.LogInformation($"{e.Notification.Event.FromBroadcasterUserName} raided {e.Notification.Event.ToBroadcasterUserName} with {e.Notification.Event.Viewers} viewers");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "channel.raid");
+                alert.Add("username", e.Notification.Event.FromBroadcasterUserName);
+                alert.Add("viewers", e.Notification.Event.Viewers);
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
+            }
         }
 
         private void OnChannelHypeTrainBegin(object sender, ChannelHypeTrainBeginArgs e)
         {
-            _logger.LogInformation($"Hype train started");
-            Dictionary<string, object> alert = new Dictionary<string, object>();
-            alert.Add("type", "channel.hype_train.begin");
-            _hub.Clients.All.SendAsync("TriggerAlert", alert);
+            if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
+            {
+                _logger.LogInformation($"Hype train started");
+                Dictionary<string, object> alert = new Dictionary<string, object>();
+                alert.Add("type", "channel.hype_train.begin");
+                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
+            }
         }
 
         private void OnChannelPointsCustomRewardRedemptionAdd(object sender, ChannelPointsCustomRewardRedemptionArgs e)
         {
-            if (!HandledEvents.Contains(e.Notification.Event.Id))
+            if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
             {
                 _logger.LogInformation($"{e.Notification.Event.UserLogin} redeemed channel point reward {e.Notification.Event.Reward.Title}");
                 Dictionary<string, object> reward = new Dictionary<string, object>();
@@ -228,16 +255,16 @@ namespace WebApp.Services
                     reward.Add("user-input", e.Notification.Event.UserInput);
                 }
                 _hub.Clients.All.SendAsync("TriggerReward", reward);
-                HandledEvents.Add(e.Notification.Event.Id);
+                HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
             }
         }
 
         private void OnStreamOnline(object sender, StreamOnlineArgs e)
         {
-            if (!HandledEvents.Contains(e.Notification.Event.Id))
+            if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
             {
                 _discord.SendMessage(_settings.DiscordFunction.NewsChannelId, "@everyone Neph a lancé un live. Viens foutre le bordel avec nous sur https://www.twitch.tv/nephchevsky !").Wait();
-                HandledEvents.Add(e.Notification.Event.Id);
+                HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
             }
         }
 
