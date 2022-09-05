@@ -18,7 +18,7 @@ namespace DbDll
                 .AddJsonFile(path, false)
                 .Build();
 
-            var connectionString = configuration.GetConnectionString("AzureDb");
+            var connectionString = configuration.GetConnectionString(configuration.GetConnectionString("DbKey"));
             var builder = new DbContextOptionsBuilder<TwitchDbContext>();
             builder.UseSqlServer(connectionString);
             return new TwitchDbContext(builder.Options);

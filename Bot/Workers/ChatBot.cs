@@ -40,7 +40,7 @@ namespace Bot.Workers
             _api = api;
             _spotify = spotify;
             _chat = chat;
-            _connection = new HubConnectionBuilder().WithUrl("https://bot-neph.azurewebsites.net/hub").WithAutomaticReconnect().Build();
+            _connection = new HubConnectionBuilder().WithUrl(_settings.SignalRUrl).WithAutomaticReconnect().Build();
             _connection.On<Dictionary<string, string>>("TriggerReward", (reward) => OnTriggerReward(null, reward));
         }
 

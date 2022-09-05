@@ -7,6 +7,7 @@ make sure alerts are displayed until the end before processing the next one
 Replace Emote in alert messages
 improve sort in stats page
 Ajouter un end screen qui liste tout les subs/cheers follow et les valeurs des boutons
+FIX: les boucles de most_**_daily/monthly ne fonctionnent pas
 
 ===============
 Commands

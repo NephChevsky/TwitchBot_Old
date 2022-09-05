@@ -41,7 +41,7 @@ namespace DbDll
                 .AddJsonFile(path, false)
                 .Build();
 
-            var connectionString = configuration.GetConnectionString("AzureDb");
+            var connectionString = configuration.GetConnectionString(configuration.GetConnectionString("DbKey"));
             optionsBuilder.UseSqlServer(connectionString);
         }
 

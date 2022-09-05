@@ -95,7 +95,7 @@ namespace WebApp.Controllers
                             dbViewer = _api.GetOrCreateUserById(uptime[0].Owner);
                             uptime.RemoveAt(0);
                         } while (uptime.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
-                        if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
+                        if (dbViewer != null) // TODO: need to fix this. This is dumb and it doesn't work
                         {
                             return dbViewer.DisplayName;
                         }

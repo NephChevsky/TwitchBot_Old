@@ -9,6 +9,7 @@
         public string ClientId { get; set; }
         public string Secret { get; set; }
         public string EventSubUrl { get; set; }
+        public string SignalRUrl { get; set; }
 
         public ChatFunction ChatFunction { get; set; }
         public CheckUptimeFunction CheckUptimeFunction { get; set; }
