@@ -21,6 +21,8 @@ namespace WebApp.Services
         private TwitchAPI _api;
         private List<EventSubSubscription> Subscriptions;
         private List<string> HandledEvents = new List<string>();
+        private int BitsCounter = 0;
+        private Timer BitsCounterTimer;
 
         public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord)
         {
@@ -51,6 +53,8 @@ namespace WebApp.Services
                 Subscriptions.Add(await CreateEventSubSubscription("stream.online"));
                 Subscriptions.Add(await CreateEventSubSubscription("stream.offline"));
             }).Wait();
+
+            BitsCounterTimer = new Timer(BitsCounterReset, null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
         }
 
         private async Task<EventSubSubscription> CreateEventSubSubscription(string type)
@@ -201,14 +205,19 @@ namespace WebApp.Services
         {
             if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
             {
+                
                 _logger.LogInformation($"{e.Notification.Event.UserName} gifted {e.Notification.Event.Bits} cheers");
-                Dictionary<string, object> alert = new Dictionary<string, object>();
-                alert.Add("type", "channel.cheer");
-                alert.Add("username", e.Notification.Event.UserName);
-                alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
-                alert.Add("bits", e.Notification.Event.Bits);
-                alert.Add("message", e.Notification.Event.Message);
-                _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                if (e.Notification.Event.Bits > BitsCounter)
+                {
+                    Dictionary<string, object> alert = new Dictionary<string, object>();
+                    alert.Add("type", "channel.cheer");
+                    alert.Add("username", e.Notification.Event.UserName);
+                    alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
+                    alert.Add("bits", e.Notification.Event.Bits);
+                    alert.Add("message", e.Notification.Event.Message);
+                    _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                    BitsCounter++;
+                }
                 HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
             }
         }
@@ -267,6 +276,14 @@ namespace WebApp.Services
                 HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
             }
         }
+
+        private void BitsCounterReset(object sender)
+        {
+            if (BitsCounter>0)
+            {
+                BitsCounter--;
+            }
+		}
 
         private void OnError(object sender, OnErrorArgs e)
         {
