@@ -1,6 +1,7 @@
 using ApiDll;
 using ChatDll;
 using ModelsDll;
+using NLog.Extensions.Logging;
 using SpotifyDll;
 using TwitchLib.EventSub.Webhooks.Extensions;
 using WebApp.Services;
@@ -57,7 +58,7 @@ namespace WebApp
 			builder.Services.AddHostedService<CheckChannelRewards>();
 
 			builder.Logging.ClearProviders();
-			builder.Logging.AddAzureWebAppDiagnostics();
+			builder.Logging.AddNLog("nlog.config");
 
 			var app = builder.Build();
 
