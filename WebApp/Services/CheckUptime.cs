@@ -84,7 +84,8 @@ namespace WebApp.Services
                                 {
                                     int uptime = (int)(now - dbViewer.LastViewedDateTime).TotalSeconds;
                                     dbViewer.Uptime += uptime;
-                                    Uptime dbUptime = db.Uptimes.Where(x => x.CreationDateTime >= now.AddDays(-1)).FirstOrDefault();
+                                    DateTime limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+                                    Uptime dbUptime = db.Uptimes.Where(x => x.CreationDateTime >= limit).FirstOrDefault();
                                     if (dbUptime != null)
                                     {
                                         dbUptime.Sum += uptime;
