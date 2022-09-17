@@ -106,7 +106,7 @@ export class AlertsComponent implements OnInit
 		}
 		audio.play();
 		this.toggle(true);
-		setTimeout(this.toggle, 5000);
+		setTimeout(this.toggle, 10 * 1000);
 	}
 
 }
