@@ -9,6 +9,7 @@ Ajouter un end screen qui liste tout les subs/cheers follow et les valeurs des b
 implementer le text to speech pour les cheer > 100 (Rajouter un quick bind pour skip et pour arrêter le tts)
 remplacer les emotes dans les messages des alertes
 ouvrir une popup pour taper le titre, la notif et le jeu quand on utilise les hotkey pour démarrer le stream
+déplacer tout ce qui est déplacable de ChatBot.cs à ChatService.cs et EventSubService.cs (client => serveur)
 
 ===============
 Commands
