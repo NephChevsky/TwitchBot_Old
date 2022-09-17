@@ -1,0 +1,42 @@
+﻿table {
+	table-layout: fixed;
+}
+
+tr {
+	width: 500px;
+}
+
+.chatbox {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 20px;
+}
+
+.title {
+	min-width: 200px;
+	vertical-align: top;
+	font-weight: bold;
+	text-align: right;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	display: block;
+	overflow: hidden;
+	text-shadow: -1px -1px 0 #000, 0 -1px 0 #000, 1px -1px 0 #000, 1px 0 0 #000, 1px 1px 0 #000, 0 1px 0 #000, -1px 1px 0 #000, -1px 0 0 #000;
+}
+
+.message {
+	width: 300px;
+	padding-left: 10px;
+	vertical-align: top;
+	color: #ffffff;
+	overflow-wrap: break-word;
+	text-shadow: -1px -1px 0 #000, 0 -1px 0 #000, 1px -1px 0 #000, 1px 0 0 #000, 1px 1px 0 #000, 0 1px 0 #000, -1px 1px 0 #000, -1px 0 0 #000;
+}
+
+.userbadge {
+	margin: 1px;
+}
+
+.userbadges {
+	position: relative;
+	top: -2px;
+}

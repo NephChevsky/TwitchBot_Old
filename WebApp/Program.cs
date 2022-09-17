@@ -13,15 +13,20 @@ namespace WebApp
 		public static void Main(string[] args)
 		{
 			WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-			string path = "config.json";
-			if (!File.Exists(path))
+			string pathConfig = "config.json";
+			if (!File.Exists(pathConfig))
 			{
-				path = Path.Combine(@"D:\Dev\Twitch", path);
+				pathConfig = Path.Combine(@"D:\Dev\Twitch", pathConfig);
+			}
+			string pathBots = "bots.json";
+			if (!File.Exists(pathBots))
+			{
+				pathBots = Path.Combine(@"D:\Dev\Twitch", pathBots);
 			}
 			builder.Configuration.SetBasePath(Directory.GetCurrentDirectory())
 					.AddJsonFile("appsettings.json", false)
-					.AddJsonFile(path, false)
-					.AddJsonFile("bots.json", false)
+					.AddJsonFile(pathConfig, false)
+					.AddJsonFile(pathBots, false)
 					.Build();
 
 			builder.Services.AddControllers();
@@ -56,6 +61,7 @@ namespace WebApp
 			builder.Services.AddHostedService<ChronicTasks>();
 			builder.Services.AddHostedService<CheckUptime>();
 			builder.Services.AddHostedService<CheckChannelRewards>();
+			builder.Services.AddHostedService<ChatService>();
 
 			builder.Logging.ClearProviders();
 			builder.Logging.AddNLog("nlog.config");

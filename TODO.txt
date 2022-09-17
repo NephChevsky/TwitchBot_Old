@@ -2,11 +2,12 @@
 General
 ===============
 add timeout count
-chat overlay
 make sure alerts are displayed until the end before processing the next one
 Replace Emote in alert messages
 improve sort in stats page
 Ajouter un end screen qui liste tout les subs/cheers follow et les valeurs des boutons
+implementer le text to speech pour les cheer > 100 (Rajouter un quick bind pour skip et pour arrêter le tts)
+remplacer les emotes dans les messages des alertes
 
 ===============
 Commands

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
 	templateUrl: './commands-list.component.html',
 	styleUrls: ['./commands-list.component.css']
 })
-export class CommandsListComponent implements OnInit
+export class CommandsListComponent implements OnInit, OnDestroy
 {
 
 	public options: any = {};

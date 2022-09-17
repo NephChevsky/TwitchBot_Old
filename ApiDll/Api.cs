@@ -24,6 +24,9 @@ using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Helix.Models.Channels.GetChannelVIPs;
 using TwitchLib.Api.Helix.Models.Bits;
 using DbDll;
+using TwitchLib.Api.Helix.Models.Chat.Badges.GetChannelChatBadges;
+using TwitchLib.Api.Helix.Models.Chat.Badges;
+using TwitchLib.Api.Helix.Models.Chat.Badges.GetGlobalChatBadges;
 
 namespace ApiDll
 {
@@ -352,6 +355,17 @@ namespace ApiDll
                 return true;
 			}
             return false;
+		}
+
+        public async Task<Dictionary<string, string>> GetBadges()
+        {
+            Dictionary<string, string> badges = new Dictionary<string, string>();
+            GetGlobalChatBadgesResponse response = await api.Helix.Chat.GetGlobalChatBadgesAsync();
+            foreach (BadgeEmoteSet badge in response.EmoteSet)
+            {
+                badges.Add(badge.SetId, badge.Versions[0].ImageUrl1x);
+			}
+            return badges;
 		}
 
         public void Dispose()

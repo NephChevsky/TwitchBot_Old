@@ -10,6 +10,6 @@ namespace WebApp.Services
 		public SignalService(ILogger<SignalService> logger)
 		{
 			_logger = logger;
-		}
+		} 
 	}
 }

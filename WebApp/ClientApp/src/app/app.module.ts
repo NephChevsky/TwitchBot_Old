@@ -12,6 +12,7 @@ import { AlertsComponent } from './alerts/alerts.component';
 import { ButtonsComponent } from './buttons/buttons.component';
 import { CommandsListComponent } from './commands-list/commands-list.component';
 import { StatsComponent } from './stats/stats.component';
+import { ChatComponent } from './chat/chat.component';
 
 @NgModule({
 	declarations: [
@@ -20,7 +21,8 @@ import { StatsComponent } from './stats/stats.component';
 		AlertsComponent,
 		ButtonsComponent,
 		CommandsListComponent,
-		StatsComponent
+		StatsComponent,
+		ChatComponent
 	],
 	imports: [
 		BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -33,7 +35,8 @@ import { StatsComponent } from './stats/stats.component';
 			{ path: 'alerts', component: AlertsComponent },
 			{ path: 'buttons', component: ButtonsComponent },
 			{ path: 'commands-list', component: CommandsListComponent },
-			{ path: 'stats', component: StatsComponent }
+			{ path: 'stats', component: StatsComponent },
+			{ path: 'chat', component: ChatComponent }
 		])
 	],
 	providers: [],

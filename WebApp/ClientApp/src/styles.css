@@ -2,3 +2,7 @@
   font-family: "myriad-pro";
   src: local("myriad-pro"), url(./assets/fonts/MYRIADPRO-REGULAR.OTF) format("opentype");
 }
+
+body {
+	background-color: rgba(0,0,0,0);
+}

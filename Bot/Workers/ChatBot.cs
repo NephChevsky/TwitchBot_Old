@@ -51,7 +51,6 @@ namespace Bot.Workers
                 Task.Delay(20).Wait();
 			}
             _chat._client.OnChatCommandReceived += Client_OnChatCommandReceived;
-            _chat._client.OnMessageReceived += Client_OnMessageReceived;
             _connection.StartAsync().Wait();
 
             return Task.CompletedTask;
@@ -229,22 +228,6 @@ namespace Bot.Workers
                     }
 				}
             }
-        }
-
-        private void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
-        {
-            using (TwitchDbContext db = new())
-            {
-                Viewer dbViewer = _api.GetOrCreateUserByUsername(e.ChatMessage.Username);
-                if (dbViewer != null)
-                {
-                    dbViewer.MessageCount++;
-                    ChatMessage message = new(dbViewer.Id, e.ChatMessage.Message);
-                    db.Messages.Add(message);
-                    db.Viewers.Attach(dbViewer);
-                    db.SaveChanges();
-                }
-			}
         }
 
         private async Task OnTriggerReward(object sender, Dictionary<string, string> e)

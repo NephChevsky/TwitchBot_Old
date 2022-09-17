@@ -1,0 +1,15 @@
+<table class="chatbox" id="chatbox">
+	<tr *ngFor="let item of messages">
+		<td class="title">
+			<span class="userbadges">
+				<img *ngIf="item.badges.length > 0" [src]="item.badges[0]" class="userbadge" />
+				<img *ngIf="item.badges.length > 1" [src]="item.badges[1]" class="userbadge" />
+				<img *ngIf="item.badges.length > 2" [src]="item.badges[2]" class="userbadge" />
+			</span>
+			<span style="color:{{item.userColor}}">
+				{{item.username}}
+			</span>
+		</td>
+		<td [innerHtml]="item.message" class="message"></td>
+	</tr>
+</table>
