@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using ModelsDll;
 using ModelsDll.Db;
 using ModelsDll.DTO;
+using ObsDll;
 using SpotifyAPI.Web;
 using SpotifyDll;
 using System.Media;
@@ -29,17 +30,19 @@ namespace Bot.Workers
         public BasicChat _chat;
         private Api _api;
         private Spotify _spotify;
+        private Obs _obs;
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
         private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
         private HubConnection _connection;
 
-        public ChatBot(ILogger<ChatBot> logger, IConfiguration configuration, BasicChat chat, Api api, Spotify spotify)
+        public ChatBot(ILogger<ChatBot> logger, IConfiguration configuration, BasicChat chat, Api api, Spotify spotify, Obs obs)
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
             _api = api;
             _spotify = spotify;
             _chat = chat;
+            _obs = obs;
             _connection = new HubConnectionBuilder().WithUrl(_settings.SignalRUrl).WithAutomaticReconnect().Build();
             _connection.On<Dictionary<string, string>>("TriggerReward", (reward) => OnTriggerReward(null, reward));
         }

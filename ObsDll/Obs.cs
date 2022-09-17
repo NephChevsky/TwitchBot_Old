@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using ModelsDll;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Communication;
+using OBSWebsocketDotNet.Types;
 
 namespace ObsDll
 {
@@ -22,6 +23,12 @@ namespace ObsDll
 			_obs.Disconnected += Disconnected;
 
 			_obs.Connect(_settings.ObsFunction.Url, _settings.ObsFunction.Password);
+		}
+
+		public void ToggleMic()
+		{
+			bool muted = _obs.GetInputMute("Mic/Aux");
+			_obs.SetInputMute("Mic/Aux", !muted);
 		}
 
 		private void Connect(object sender, EventArgs e)

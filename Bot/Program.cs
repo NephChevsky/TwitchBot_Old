@@ -4,6 +4,7 @@ using ChatDll;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ObsDll;
 using SpotifyDll;
 using System.Diagnostics;
 
@@ -37,6 +38,7 @@ namespace Bot
                 services.AddSingleton<Api>();
                 services.AddSingleton<BasicChat>();
                 services.AddSingleton<Spotify>();
+                services.AddSingleton<Obs>();
                 services.AddHostedService<ChatBot>();
             })
             .Build();

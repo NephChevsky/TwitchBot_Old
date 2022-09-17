@@ -18,6 +18,7 @@
 		<ProjectReference Include="..\ApiDll\ApiDll.csproj" />
 		<ProjectReference Include="..\DbDll\DbDll.csproj" />
 		<ProjectReference Include="..\ChatDll\ChatDll.csproj" />
+		<ProjectReference Include="..\ObsDll\ObsDll.csproj" />
 		<ProjectReference Include="..\SpotifyDll\SpotifyDll.csproj" />
 	</ItemGroup>
 
