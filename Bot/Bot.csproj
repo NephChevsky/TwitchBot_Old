@@ -21,6 +21,7 @@
 		<ProjectReference Include="..\ChatDll\ChatDll.csproj" />
 		<ProjectReference Include="..\ObsDll\ObsDll.csproj" />
 		<ProjectReference Include="..\SpotifyDll\SpotifyDll.csproj" />
+		<ProjectReference Include="..\HotKeyManager\HotKeyManager.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

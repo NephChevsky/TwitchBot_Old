@@ -1,6 +1,7 @@
 ﻿using ApiDll;
 using ChatDll;
 using DbDll;
+using HotKeyManager;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +46,9 @@ namespace Bot.Workers
             _obs = obs;
             _connection = new HubConnectionBuilder().WithUrl(_settings.SignalRUrl).WithAutomaticReconnect().Build();
             _connection.On<Dictionary<string, string>>("TriggerReward", (reward) => OnTriggerReward(null, reward));
+
+            HotKeyHandler.RegisterHotKey(Keys.NumPad0, KeyModifiers.Alt);
+            HotKeyHandler.HotKeyPressed += new EventHandler<HotKeyEventArgs>(ToggleMic);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -514,5 +518,10 @@ namespace Bot.Workers
             }
             return ret;
         }
-	}
+
+        public void ToggleMic(object sender, HotKeyEventArgs e)
+        {
+            _obs.ToggleMic();
+        }
+    }
 }
