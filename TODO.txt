@@ -8,6 +8,8 @@ improve sort in stats page
 Ajouter un end screen qui liste tout les subs/cheers follow et les valeurs des boutons
 implementer le text to speech pour les cheer > 100 (Rajouter un quick bind pour skip et pour arrêter le tts)
 remplacer les emotes dans les messages des alertes
+passer le projet bot en application desktop pour pouvoir chopper les actions clavier
+faire marcher les websockets discord
 
 ===============
 Commands
