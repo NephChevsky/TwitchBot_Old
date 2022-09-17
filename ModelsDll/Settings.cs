@@ -54,6 +54,7 @@
         public string ClientSecret { get; set; }
         public string Playlist { get; set; }
         public string LocalCallbackUrl { get; set; }
+        public string ExePath { get; set; }
     }
 
     public class CheckChannelRewardsFunction
@@ -72,6 +73,7 @@
     {
         public string Url { get; set; }
         public string Password { get; set; }
+        public string ExePath { get; set; }
     }
 
     public class Tags

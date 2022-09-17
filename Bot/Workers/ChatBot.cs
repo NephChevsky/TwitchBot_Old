@@ -14,6 +14,7 @@ using ModelsDll.DTO;
 using ObsDll;
 using SpotifyAPI.Web;
 using SpotifyDll;
+using System.Diagnostics;
 using System.Media;
 using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Helix.Models.Channels.GetChannelVIPs;
@@ -48,11 +49,41 @@ namespace Bot.Workers
             _connection.On<Dictionary<string, string>>("TriggerReward", (reward) => OnTriggerReward(null, reward));
 
             HotKeyHandler.RegisterHotKey(Keys.NumPad0, KeyModifiers.Alt);
-            HotKeyHandler.HotKeyPressed += new EventHandler<HotKeyEventArgs>(ToggleMic);
+            HotKeyHandler.RegisterHotKey(Keys.Subtract, KeyModifiers.Alt);
+            HotKeyHandler.RegisterHotKey(Keys.End, KeyModifiers.Alt);
+            HotKeyHandler.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HandleHotKeys);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            bool waitForStart = false;
+            if (Process.GetProcessesByName("Spotify").Length == 0)
+            {
+                Process.Start(_settings.SpotifyFunction.ExePath);
+                waitForStart = true;
+            }
+
+            if (Process.GetProcessesByName("obs64").Length == 0)
+            {
+                ProcessStartInfo info = new ProcessStartInfo();
+                info.UseShellExecute = true;
+                info.WorkingDirectory = Path.GetDirectoryName(_settings.ObsFunction.ExePath);
+                info.FileName = _settings.ObsFunction.ExePath;
+                Process.Start(info);
+                waitForStart = true;
+            }
+
+            if (waitForStart)
+            {
+                Task.Delay(TimeSpan.FromSeconds(5)).Wait();
+            }
+
+            if (!_obs.IsConnected)
+            {
+                _obs.Connect();
+            }
+            Console.Beep();
+
             while (!_chat.IsConnected)
             {
                 Task.Delay(20).Wait();
@@ -519,9 +550,25 @@ namespace Bot.Workers
             return ret;
         }
 
-        public void ToggleMic(object sender, HotKeyEventArgs e)
+        public void HandleHotKeys(object sender, HotKeyEventArgs e)
         {
-            _obs.ToggleMic();
+            if (e.Modifiers == KeyModifiers.Alt)
+            {
+                if (e.Key == Keys.NumPad0 && e.Modifiers == KeyModifiers.Alt)
+                {
+                    _obs.ToggleMic();
+                }
+                else if (e.Key == Keys.Subtract)
+                {
+                    Task.Run(async () => await _spotify.StartPlaylist(_settings.SpotifyFunction.Playlist)).Wait();
+                    _obs.StartSteam();
+				}
+                else if (e.Key == Keys.End)
+                {
+                    _obs.StopStream();
+                    Task.Run(async () => await _spotify.StopPlayback()).Wait();
+				}
+            }
         }
     }
 }
