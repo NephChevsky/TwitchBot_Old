@@ -99,6 +99,14 @@ namespace ChatDll
 			}
 		}
 
+		public void WaitForConnection()
+		{
+			while (!_client.IsConnected)
+			{
+				Task.Delay(20).Wait();
+			}
+		}
+
 		private void Client_OnLog(object sender, OnLogArgs e)
 		{
 			_logger.LogInformation($"{e.DateTime.ToString()}: {e.BotUsername} - {e.Data}");

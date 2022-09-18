@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ObsDll;
 using SpotifyDll;
-using System.Diagnostics;
 
 namespace Bot
 {

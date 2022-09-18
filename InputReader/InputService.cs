@@ -48,6 +48,9 @@ namespace InputReader
                     throw new Exception("Couldn't find process " + Application);
 				}
             }
+
+            _chat.WaitForConnection();
+
             return Task.CompletedTask;
         }
 

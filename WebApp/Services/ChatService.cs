@@ -1,10 +1,15 @@
 ﻿using ApiDll;
 using ChatDll;
 using DbDll;
+using HelpersDll;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using ModelsDll;
 using ModelsDll.Db;
 using ModelsDll.DTO;
+using SpotifyAPI.Web;
+using SpotifyDll;
 using TwitchLib.Client.Enums;
 using TwitchLib.Client.Events;
 
@@ -17,22 +22,27 @@ namespace WebApp.Services
 		private Settings _settings;
 		private BasicChat _chat;
 		private Api _api;
+		private Spotify _spotify;
+
 		private Dictionary<string, string> BadgesCache;
 		private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
 
-		public ChatService(ILogger<EventSubService> logger, IConfiguration configuration, IHubContext<SignalService> hub, BasicChat chat, Api api)
+		public ChatService(ILogger<EventSubService> logger, IConfiguration configuration, IHubContext<SignalService> hub, BasicChat chat, Api api, Spotify spotify)
 		{
 			_logger = logger;
 			_hub = hub;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
 			_chat = chat;
 			_api = api;
+			_spotify = spotify;
 		}
 
 		public Task StartAsync(CancellationToken stoppingToken)
 		{
 			_logger.LogInformation($"Service starting");
 			Task.Run(async () => BadgesCache = await _api.GetBadges()).Wait();
+
+			_chat.WaitForConnection();
 			_chat._client.OnMessageReceived += Client_OnMessageReceived;
 			_chat._client.OnGiftedSubscription += Client_OnGiftedSubscription;
 			_chat._client.OnChatCommandReceived += Client_OnChatCommandReceived;
@@ -176,6 +186,69 @@ namespace WebApp.Services
 					else
 					{
 						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ton jeu de merde");
+					}
+				}
+				else if (_settings.ChatFunction.AddCustomCommands && string.Equals(e.Command.CommandText, "addcmd", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+				{
+					if (e.Command.ArgumentsAsList.Count >= 2)
+					{
+						Helpers.AddCommand(_chat, e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ArgumentsAsString.Substring(e.Command.ArgumentsAsList[0].Length + 1), e.Command.ChatMessage.UserId, e.Command.ChatMessage.DisplayName);
+					}
+					else
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : T'es bourré?");
+					}
+					return;
+				}
+				else if (_settings.ChatFunction.AddCustomCommands && string.Equals(e.Command.CommandText, "delcmd", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+				{
+					if (e.Command.ArgumentsAsList.Count == 1)
+					{
+						Helpers.DeleteCommand(_chat, e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ChatMessage.DisplayName);
+					}
+					else
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : T'es bourré?");
+					}
+				}
+				if (string.Equals(e.Command.CommandText, "song", StringComparison.InvariantCultureIgnoreCase))
+				{
+					FullTrack song = await _spotify.GetCurrentSong();
+					if (song != null)
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : SingsNote {song.Artists[0].Name} - {song.Name} SingsNote");
+					}
+					else
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : On écoute pas de musique bouffon");
+					}
+					updateTimer = true;
+				}
+				else if (string.Equals(e.Command.CommandText, "nextsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+				{
+					await Helpers.SkipSong(_spotify, _chat, e.Command.ChatMessage.DisplayName);
+				}
+				else if (string.Equals(e.Command.CommandText, "addsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+				{
+					await Helpers.AddSong(_spotify, _chat, e.Command.ArgumentsAsString, e.Command.ChatMessage.DisplayName);
+				}
+				else if (string.Equals(e.Command.CommandText, "delsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+				{
+					await Helpers.RemoveSong(_spotify, _chat, e.Command.ChatMessage.DisplayName);
+				}
+				else if (_settings.ChatFunction.AddCustomCommands && string.IsNullOrEmpty(e.Command.ChatMessage.CustomRewardId))
+				{
+					using (TwitchDbContext db = new())
+					{
+						Command dbCmd = db.Commands.Where(x => x.Name == e.Command.CommandText).FirstOrDefault();
+						if (dbCmd != null)
+						{
+							dbCmd.Value++;
+							string message = dbCmd.Message.Replace("{0}", dbCmd.Value.ToString());
+							_chat.SendMessage($"{message}");
+							db.SaveChanges();
+							updateTimer = true;
+						}
 					}
 				}
 

@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscordDll", "DiscordDll\Di
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObsDll", "ObsDll\ObsDll.csproj", "{95697975-5B23-4A84-B376-4A534E31DDAB}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelpersDll", "HelpersDll\HelpersDll.csproj", "{496B8C9B-AA45-45F0-9EA1-494169C56AE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,14 @@ Global
 		{95697975-5B23-4A84-B376-4A534E31DDAB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{95697975-5B23-4A84-B376-4A534E31DDAB}.Release|x64.ActiveCfg = Release|Any CPU
 		{95697975-5B23-4A84-B376-4A534E31DDAB}.Release|x64.Build.0 = Release|Any CPU
+		{496B8C9B-AA45-45F0-9EA1-494169C56AE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{496B8C9B-AA45-45F0-9EA1-494169C56AE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{496B8C9B-AA45-45F0-9EA1-494169C56AE4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{496B8C9B-AA45-45F0-9EA1-494169C56AE4}.Debug|x64.Build.0 = Debug|Any CPU
+		{496B8C9B-AA45-45F0-9EA1-494169C56AE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{496B8C9B-AA45-45F0-9EA1-494169C56AE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{496B8C9B-AA45-45F0-9EA1-494169C56AE4}.Release|x64.ActiveCfg = Release|Any CPU
+		{496B8C9B-AA45-45F0-9EA1-494169C56AE4}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

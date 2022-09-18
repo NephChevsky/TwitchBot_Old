@@ -1,4 +1,6 @@
-﻿using DbDll;
+﻿using ChatDll;
+using DbDll;
+using HelpersDll;
 using Microsoft.AspNetCore.SignalR;
 using ModelsDll;
 using ModelsDll.Db;
@@ -19,6 +21,7 @@ namespace WebApp.Services
         private Settings _settings;
         private DiscordDll.Discord _discord;
         private TwitchAPI _api;
+
         private List<EventSubSubscription> Subscriptions;
         private List<string> HandledEvents = new List<string>();
         private int BitsCounter = 0;
@@ -278,16 +281,19 @@ namespace WebApp.Services
             if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
             {
                 _logger.LogInformation($"{e.Notification.Event.UserLogin} redeemed channel point reward {e.Notification.Event.Reward.Title}");
+                
                 Dictionary<string, object> reward = new Dictionary<string, object>();
                 reward.Add("type", e.Notification.Event.Reward.Title);
                 reward.Add("username", e.Notification.Event.UserName);
                 reward.Add("user-id", e.Notification.Event.UserId);
                 reward.Add("reward-id", e.Notification.Event.Reward.Id);
                 reward.Add("event-id", e.Notification.Event.Id);
+
                 if (!string.IsNullOrEmpty(e.Notification.Event.UserInput))
                 {
                     reward.Add("user-input", e.Notification.Event.UserInput);
                 }
+
                 _hub.Clients.All.SendAsync("TriggerReward", reward);
                 HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
             }

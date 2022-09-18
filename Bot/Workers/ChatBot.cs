@@ -1,6 +1,7 @@
 ﻿using ApiDll;
 using ChatDll;
 using DbDll;
+using HelpersDll;
 using HotKeyManager;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Data.SqlClient;
@@ -84,11 +85,8 @@ namespace Bot.Workers
             }
             Console.Beep();
 
-            while (!_chat.IsConnected)
-            {
-                Task.Delay(20).Wait();
-			}
-            _chat._client.OnChatCommandReceived += Client_OnChatCommandReceived;
+            _chat.WaitForConnection();
+
             _connection.StartAsync().Wait();
 
             return Task.CompletedTask;
@@ -97,90 +95,6 @@ namespace Bot.Workers
         public Task StopAsync(CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
-        }
-
-        private async void Client_OnChatCommandReceived(object sender, OnChatCommandReceivedArgs e)
-        {
-            DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
-            if (!AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) || (AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) && AntiSpamTimer[e.Command.CommandText.ToLower()].AddSeconds(60) < now))
-            {
-                bool updateTimer = false;
-                if (_settings.ChatFunction.AddCustomCommands && string.Equals(e.Command.CommandText, "addcmd", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
-                {
-                    if (e.Command.ArgumentsAsList.Count >= 2)
-                    {
-                        AddCommand(e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ArgumentsAsString.Substring(e.Command.ArgumentsAsList[0].Length + 1), e.Command.ChatMessage.UserId, e.Command.ChatMessage.DisplayName);
-                    }
-                    else
-                    {
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : T'es bourré?");
-                    }
-                    return;
-                }
-                else if (_settings.ChatFunction.AddCustomCommands && string.Equals(e.Command.CommandText, "delcmd", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
-                {
-                    if (e.Command.ArgumentsAsList.Count == 1)
-                    {
-                        DeleteCommand(e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ChatMessage.DisplayName);
-                    }
-                    else
-                    {
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : T'es bourré?");
-                    }
-                }
-                else if (string.Equals(e.Command.CommandText, "song", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    FullTrack song = await _spotify.GetCurrentSong();
-                    if (song != null)
-                    {
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : SingsNote {song.Artists[0].Name} - {song.Name} SingsNote");
-                    }
-                    else
-                    {
-                        _chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : On écoute pas de musique bouffon");
-                    }
-                    updateTimer = true;
-                }
-                else if (string.Equals(e.Command.CommandText, "nextsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
-                {
-                    await SkipSong(e.Command.ChatMessage.DisplayName);
-                }
-                else if (string.Equals(e.Command.CommandText, "addsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
-                {
-                    await AddSong(e.Command.ArgumentsAsString, e.Command.ChatMessage.DisplayName);
-                }
-                else if (string.Equals(e.Command.CommandText, "delsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
-                {
-                    await RemoveSong(e.Command.ChatMessage.DisplayName);
-                }
-                else if (_settings.ChatFunction.AddCustomCommands && string.IsNullOrEmpty(e.Command.ChatMessage.CustomRewardId))
-                {
-                    using (TwitchDbContext db = new())
-                    {
-                        Command dbCmd = db.Commands.Where(x => x.Name == e.Command.CommandText).FirstOrDefault();
-                        if (dbCmd != null)
-                        {
-                            dbCmd.Value++;
-                            string message = dbCmd.Message.Replace("{0}", dbCmd.Value.ToString());
-                            _chat.SendMessage($"{message}");
-                            db.SaveChanges();
-                            updateTimer = true;
-                        }
-                    }
-                }
-
-                if (updateTimer)
-                {
-                    if (AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()))
-                    {
-                        AntiSpamTimer[e.Command.CommandText.ToLower()] = now;
-					}
-                    else
-                    {
-                        AntiSpamTimer.Add(e.Command.CommandText.ToLower(), now);
-                    }
-				}
-            }
         }
 
         private async Task OnTriggerReward(object sender, Dictionary<string, string> e)
@@ -252,37 +166,15 @@ namespace Bot.Workers
             }
             else if (string.Equals(e["type"], "Passer à la musique suivante", StringComparison.InvariantCultureIgnoreCase))
             {
-                if (await _spotify.SkipSong())
-                {
-                    success = true;
-                }
-                else
-                {
-                    _chat.SendMessage($"{e["username"]} : On écoute pas de musique bouffon");
-                }
-                
+                success = await Helpers.SkipSong(_spotify, _chat, e["username"]);
             }
             else if (string.Equals(e["type"], "Ajouter une musique", StringComparison.InvariantCultureIgnoreCase))
             {
-                success = await AddSong(e["user-input"], e["username"]) == 1;
+                success = await Helpers.AddSong(_spotify, _chat, e["user-input"], e["username"]) == 1;
             }
             else if (string.Equals(e["type"], "Supprimer une musique", StringComparison.InvariantCultureIgnoreCase))
             {
-                success = await RemoveSong(e["username"]);
-            }
-            else if (string.Equals(e["type"], "Ajouter une commande", StringComparison.InvariantCultureIgnoreCase))
-            {
-                int offset = e["user-input"].IndexOf(" ");
-                if (offset > -1)
-                {
-                    string commandName = e["user-input"].Substring(0, offset).Replace("!", "");
-                    string commandMessage = e["user-input"].Substring(offset + 1);
-                    success = AddCommand(commandName, commandMessage, e["user-id"], e["username"]);
-                }
-            }
-            else if (string.Equals(e["type"], "Supprimer une commande", StringComparison.InvariantCultureIgnoreCase))
-            {
-                success = DeleteCommand(e["user-input"].Replace("!", ""), e["username"]);
+                success = await Helpers.RemoveSong(_spotify, _chat, e["username"]);
             }
             else if (string.Equals(e["type"], "Timeout un viewer", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -375,94 +267,11 @@ namespace Bot.Workers
                         db.SaveChanges();
                     }
                 }
-			}
+            }
             else
             {
                 await _api.UpdateRedemptionStatus(e["reward-id"], e["event-id"], CustomRewardRedemptionStatus.CANCELED);
             }
-        }
-
-        public bool AddCommand(string commandName, string commandMessage, string userId, string displayName)
-        {
-            Command cmd = new();
-            cmd.Name = commandName;
-            cmd.Message = commandMessage;
-            cmd.Owner = userId;
-            using (TwitchDbContext db = new())
-            {
-                db.Commands.Add(cmd);
-                try
-                {
-                    db.SaveChanges();
-                }
-                catch (DbUpdateException ex)
-                when ((ex.InnerException as SqlException)?.Number == 2601 || (ex.InnerException as SqlException)?.Number == 2627)
-                {
-                    _chat.SendMessage($"{displayName} : Une commande du même nom existe déja");
-                    return false;
-                }
-                _chat.SendMessage($"{displayName} : Command {commandName} créée");
-                return true;
-            }
-        }
-
-        public bool DeleteCommand(string commandName, string displayName)
-        {
-            using (TwitchDbContext db = new())
-            {
-                Command dbCmd = db.Commands.Where(x => x.Name == commandName).FirstOrDefault();
-                if (dbCmd != null)
-                {
-                    db.Remove(dbCmd);
-                    db.SaveChanges();
-                    _chat.SendMessage($"{displayName} : Command {commandName} supprimée");
-                    return true;
-                }
-                else
-                {
-                    _chat.SendMessage($"{displayName} : Commande inconnue");
-                    return false;
-                }
-            }
-        }
-        public async Task SkipSong(string displayName)
-        {
-            if (!(await _spotify.SkipSong()))
-            {
-                _chat.SendMessage($"{displayName} : On écoute pas de musique bouffon");
-            }
-        }
-
-        public async Task<int> AddSong(string song, string displayName)
-        {
-            int ret = await _spotify.AddSong(song);
-            if (ret == 1)
-            {
-                _chat.SendMessage($"{displayName} : La musique a été ajoutée à la playlist");
-            }
-            else if (ret == 2)
-            {
-                _chat.SendMessage($"{displayName} : La musique est déjà dans la playlist");
-            }
-            else
-            {
-                _chat.SendMessage($"{displayName} : La musique n'a pas pu être ajoutée à la playlist");
-            }
-            return ret;
-        }
-
-        public async Task<bool> RemoveSong(string displayName)
-        {
-            bool ret = await _spotify.RemoveSong();
-            if (ret)
-            {
-                _chat.SendMessage($"{displayName} : La musique a été supprimée de la playlist");
-            }
-            else
-            {
-                _chat.SendMessage($"{displayName} : La musique n'a pas pu être supprimée de la playlist");
-            }
-            return ret;
         }
 
         public void HandleHotKeys(object sender, HotKeyEventArgs e)
