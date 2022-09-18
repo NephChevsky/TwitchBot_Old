@@ -25,3 +25,8 @@ Discord
 Channel Rewards
 ===============
 
+===============
+Stream Deck
+===============
+Mute desktop audio when starting streaming
+Mettre la scene playing sur Alt + 1

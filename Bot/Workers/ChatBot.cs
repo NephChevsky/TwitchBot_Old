@@ -190,7 +190,9 @@ namespace Bot.Workers
 				}
                 else if (e.Key == Keys.End)
                 {
+                    Task.Delay(5 * 1000).Wait();
                     _obs.StopStream();
+                    Task.Delay(5 * 1000).Wait();
                     Task.Run(async () => await _spotify.StopPlayback()).Wait();
 				}
             }
