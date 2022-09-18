@@ -360,7 +360,7 @@ namespace ApiDll
             {
                 badges.Add(badge.SetId, badge.Versions[0].ImageUrl1x);
 			}
-            GetChannelChatBadgesResponse channelBadges = await api.Helix.Chat.GetChannelChatBadgesAsync(_settings.Streamer);
+            GetChannelChatBadgesResponse channelBadges = await api.Helix.Chat.GetChannelChatBadgesAsync(_settings.StreamerTwitchId);
             foreach (BadgeEmoteSet badge in channelBadges.EmoteSet)
             {
                 badges.Add(badge.SetId, badge.Versions[0].ImageUrl1x);
