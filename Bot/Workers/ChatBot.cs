@@ -176,6 +176,20 @@ namespace Bot.Workers
             {
                 success = await Helpers.RemoveSong(_spotify, _chat, e["username"]);
             }
+            else if (string.Equals(e["type"], "Ajouter une commande", StringComparison.InvariantCultureIgnoreCase))
+            {
+                int offset = e["user-input"].IndexOf(" ");
+                if (offset > -1)
+                {
+                    string commandName = e["user-input"].Substring(0, offset).Replace("!", "");
+                    string commandMessage = e["user-input"].Substring(offset + 1);
+                    success = Helpers.AddCommand(_chat, commandName, commandMessage, e["user-id"], e["username"]);
+                }
+            }
+            else if (string.Equals(e["type"], "Supprimer une commande", StringComparison.InvariantCultureIgnoreCase))
+            {
+                success = Helpers.DeleteCommand(_chat, e["user-input"].Replace("!", ""), e["username"]);
+            }
             else if (string.Equals(e["type"], "Timeout un viewer", StringComparison.InvariantCultureIgnoreCase))
             {
                 e["user-input"] = e["user-input"].Replace("@", "").Split(" ")[0];
