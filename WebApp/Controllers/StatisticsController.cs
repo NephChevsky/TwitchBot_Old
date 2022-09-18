@@ -1,10 +1,8 @@
-﻿using ApiDll;
-using DbDll;
+﻿using DbDll;
 using Microsoft.AspNetCore.Mvc;
 using ModelsDll;
 using ModelsDll.Db;
 using ModelsDll.DTO;
-using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 
 namespace WebApp.Controllers
 {

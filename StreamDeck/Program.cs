@@ -1,13 +1,13 @@
 ﻿using ApiDll;
-using Bot.Workers;
 using ChatDll;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ObsDll;
 using SpotifyDll;
+using StreamDeck.Workers;
 
-namespace Bot
+namespace StreamDeck
 {
 	public class Program
 	{

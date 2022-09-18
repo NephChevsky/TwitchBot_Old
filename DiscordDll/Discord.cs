@@ -1,9 +1,7 @@
 ﻿using DbDll;
 using Discord;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ModelsDll;
 using ModelsDll.Db;
 
 namespace DiscordDll

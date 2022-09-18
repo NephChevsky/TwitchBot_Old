@@ -1,29 +1,19 @@
 ﻿using ApiDll;
 using ChatDll;
-using DbDll;
 using HelpersDll;
 using HotKeyManager;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelsDll;
-using ModelsDll.Db;
-using ModelsDll.DTO;
 using ObsDll;
-using SpotifyAPI.Web;
 using SpotifyDll;
 using System.Diagnostics;
 using System.Media;
-using TwitchLib.Api.Core.Enums;
-using TwitchLib.Api.Helix.Models.Channels.GetChannelVIPs;
-using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
-using TwitchLib.Client.Events;
 using WindowsInput;
 
-namespace Bot.Workers
+namespace StreamDeck.Workers
 {
     public class ChatBot : IHostedService
     {

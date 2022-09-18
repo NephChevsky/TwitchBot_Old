@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using ModelsDll;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Communication;
-using OBSWebsocketDotNet.Types;
 
 namespace ObsDll
 {

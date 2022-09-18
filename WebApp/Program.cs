@@ -1,6 +1,5 @@
 using ApiDll;
 using ChatDll;
-using HelpersDll;
 using ModelsDll;
 using NLog.Extensions.Logging;
 using SpotifyDll;

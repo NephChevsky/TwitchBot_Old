@@ -1,11 +1,4 @@
-﻿using ModelsDll.Db;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ModelsDll.DTO
+﻿namespace ModelsDll.DTO
 {
 	public class ChatMessageResponse
 	{

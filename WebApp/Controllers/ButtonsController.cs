@@ -1,14 +1,11 @@
 ﻿using ApiDll;
 using DbDll;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ModelsDll;
 using ModelsDll.Db;
 using ModelsDll.DTO;
 using SpotifyAPI.Web;
 using SpotifyDll;
-using TwitchLib.Api.Core.Enums;
-using TwitchLib.Api.Helix.Models.Bits;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 
 namespace WebApp.Controllers

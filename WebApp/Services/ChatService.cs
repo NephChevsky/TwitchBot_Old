@@ -1,16 +1,12 @@
 ﻿using ApiDll;
 using ChatDll;
 using DbDll;
-using HelpersDll;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using ModelsDll;
 using ModelsDll.Db;
 using ModelsDll.DTO;
 using SpotifyAPI.Web;
 using SpotifyDll;
-using TwitchLib.Client.Enums;
 using TwitchLib.Client.Events;
 
 namespace WebApp.Services

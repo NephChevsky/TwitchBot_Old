@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DbDll;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ModelsDll.DTO;
 using ModelsDll;
+using ModelsDll.Db;
 using TwitchLib.Api;
 using TwitchLib.Api.Auth;
 using TwitchLib.Api.Core.Models.Undocumented.Chatters;
@@ -16,16 +18,14 @@ using TwitchLib.Api.Helix.Models.Streams.GetStreams;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
 using TwitchLib.Api.Helix.Models.Users.GetUsers;
 using TwitchLib.Api.Helix.Models.ChannelPoints.CreateCustomReward;
-using ModelsDll.Db;
 using TwitchLib.Api.Helix.Models.ChannelPoints.UpdateCustomReward;
 using TwitchLib.Api.Helix.Models.Subscriptions;
 using TwitchLib.Api.Helix.Models.ChannelPoints.UpdateCustomRewardRedemptionStatus;
 using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Helix.Models.Channels.GetChannelVIPs;
 using TwitchLib.Api.Helix.Models.Bits;
-using DbDll;
-using TwitchLib.Api.Helix.Models.Chat.Badges.GetChannelChatBadges;
 using TwitchLib.Api.Helix.Models.Chat.Badges;
+using TwitchLib.Api.Helix.Models.Chat.Badges.GetChannelChatBadges;
 using TwitchLib.Api.Helix.Models.Chat.Badges.GetGlobalChatBadges;
 
 namespace ApiDll
@@ -355,11 +355,16 @@ namespace ApiDll
         public async Task<Dictionary<string, string>> GetBadges()
         {
             Dictionary<string, string> badges = new Dictionary<string, string>();
-            GetGlobalChatBadgesResponse response = await api.Helix.Chat.GetGlobalChatBadgesAsync();
-            foreach (BadgeEmoteSet badge in response.EmoteSet)
+            GetGlobalChatBadgesResponse globalBadges = await api.Helix.Chat.GetGlobalChatBadgesAsync();
+            foreach (BadgeEmoteSet badge in globalBadges.EmoteSet)
             {
                 badges.Add(badge.SetId, badge.Versions[0].ImageUrl1x);
 			}
+            GetChannelChatBadgesResponse channelBadges = await api.Helix.Chat.GetChannelChatBadgesAsync(_settings.Streamer);
+            foreach (BadgeEmoteSet badge in channelBadges.EmoteSet)
+            {
+                badges.Add(badge.SetId, badge.Versions[0].ImageUrl1x);
+            }
             return badges;
 		}
 
