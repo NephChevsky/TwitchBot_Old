@@ -86,7 +86,7 @@ namespace WebApp.Services
 			}
 		}
 
-		private void Client_OnChatCommandReceived(object send, OnChatCommandReceivedArgs e)
+		private async void Client_OnChatCommandReceived(object send, OnChatCommandReceivedArgs e)
 		{
 			DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
 
@@ -102,6 +102,81 @@ namespace WebApp.Services
 				{
 					_chat.SendMessage("Statistiques des viewers: https://bit.ly/3LqsFe8");
 					updateTimer = true;
+				}
+				else if (_settings.CheckUptimeFunction.ComputeUptime && string.Equals(e.Command.CommandText, "uptime", StringComparison.InvariantCultureIgnoreCase))
+				{
+					using (TwitchDbContext db = new())
+					{
+						string username = e.Command.ArgumentsAsList.Count > 0 ? e.Command.ArgumentsAsList[0] : e.Command.ChatMessage.Username;
+						Viewer viewer = _api.GetOrCreateUserByUsername(username);
+						if (viewer != null)
+						{
+							int hours = (int)Math.Floor((decimal)viewer.Uptime / 3600);
+							int minutes = (int)Math.Floor((decimal)(viewer.Uptime % 3600) / 60);
+							_chat.SendMessage($"@{viewer.DisplayName} a regardé le stream pendant {hours} heures et {minutes.ToString().PadLeft(2, '0')} minutes. Il est passé {viewer.Seen} fois sur le stream.");
+							updateTimer = true;
+						}
+						else
+						{
+							_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ce con");
+						}
+					}
+				}
+				else if ((string.Equals(e.Command.CommandText, "timeout", StringComparison.InvariantCultureIgnoreCase) || string.Equals(e.Command.CommandText, "to", StringComparison.InvariantCultureIgnoreCase)))
+				{
+					if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
+					{
+						if (e.Command.ArgumentsAsList.Count > 0)
+						{
+							string username = e.Command.ArgumentsAsList[0].Replace("@", "");
+							if (e.Command.ArgumentsAsList.Count > 1)
+							{
+								_api.BanUser(username, int.Parse(e.Command.ArgumentsAsList[1]));
+							}
+							else
+							{
+								_api.BanUser(username);
+							}
+						}
+						else if (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator)
+						{
+							_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : T'es bourré?");
+						}
+					}
+					else
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Idiot!");
+						_api.BanUser(e.Command.ChatMessage.Username);
+					}
+				}
+				else if (string.Equals(e.Command.CommandText, "so", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+				{
+					_chat.SendMessage($"Saviez vous que @{e.Command.ArgumentsAsList[0]} stream? Ca claque des culs alors allez lui lacher votre meilleur follow sur only f... Pardon, c'est sur Twitch: https://www.twitch.tv/{e.Command.ArgumentsAsList[0]} <3 <3 <3");
+					_chat.SendMessage($"https://www.twitch.tv/{e.Command.ArgumentsAsList[0]}");
+					_chat.SendMessage($"https://www.twitch.tv/{e.Command.ArgumentsAsList[0]}");
+					_chat.SendMessage($"https://www.twitch.tv/{e.Command.ArgumentsAsList[0]}");
+				}
+				else if (string.Equals(e.Command.CommandText, "settitle", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+				{
+					string title = e.Command.ArgumentsAsString;
+					if (_settings.ChatFunction.AddBotSuffixInTitle && !title.Contains("!bot", StringComparison.InvariantCultureIgnoreCase))
+					{
+						title += " !bot";
+					}
+					await _api.ModifyChannelInformation(title, null);
+					_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : le titre du stream a été changé en: {title}");
+				}
+				else if (string.Equals(e.Command.CommandText, "setgame", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+				{
+					ModifyChannelInformationResponse response = await _api.ModifyChannelInformation(null, e.Command.ArgumentsAsString);
+					if (response != null)
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : le jeu du stream a été changé en: {response.Game}");
+					}
+					else
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ton jeu de merde");
+					}
 				}
 
 				if (updateTimer)
