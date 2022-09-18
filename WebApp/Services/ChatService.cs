@@ -42,7 +42,6 @@ namespace WebApp.Services
 			_logger.LogInformation($"Service starting");
 			BadgesCache = await _api.GetBadges();
 
-			_chat.WaitForConnection();
 			_chat._client.OnMessageReceived += Client_OnMessageReceived;
 			_chat._client.OnGiftedSubscription += Client_OnGiftedSubscription;
 			_chat._client.OnChatCommandReceived += Client_OnChatCommandReceived;

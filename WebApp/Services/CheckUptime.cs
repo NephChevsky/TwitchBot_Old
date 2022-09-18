@@ -25,8 +25,6 @@ namespace WebApp.Services
             _settings = configuration.GetSection("Settings").Get<Settings>();
             _chat = chat;
             _api = api;
-
-            _chat.WaitForConnection();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

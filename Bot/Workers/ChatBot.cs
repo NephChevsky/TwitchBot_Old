@@ -55,7 +55,7 @@ namespace Bot.Workers
             HotKeyHandler.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HandleHotKeys);
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
             bool waitForStart = false;
             if (Process.GetProcessesByName("Spotify").Length == 0)
@@ -85,13 +85,9 @@ namespace Bot.Workers
             }
             Console.Beep();
 
-            _chat.WaitForConnection();
-
             _connection.StartAsync().Wait();
 
-            List<ChannelVIPsResponseModel> vips = await _api.GetVIPs();
-
-            //return Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

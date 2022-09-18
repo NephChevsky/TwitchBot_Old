@@ -35,8 +35,9 @@ namespace ApiDll
         private Settings _settings;
         private ILogger<Api> _logger;
         private TwitchAPI api;
-        private Timer RefreshTokenTimer;
         private List<string> _bots;
+
+        private Timer RefreshTokenTimer;
 
         public Api(IConfiguration configuration, ILogger<Api> logger)
         {
@@ -44,37 +45,38 @@ namespace ApiDll
             _bots = configuration.GetSection("TwitchBotList").Get<List<string>>();
             _logger = logger;
 
-            TimeSpan firstRefresh = TimeSpan.FromSeconds(4 * 60 * 60 - 600);
-
             api = new TwitchAPI();
             api.Settings.ClientId = _settings.ClientId;
             api.Settings.Secret = _settings.Secret;
 
-            Task.Run(async () =>
+            CheckAndUpdateTokenStatus().GetAwaiter().GetResult();
+        }
+
+        public async Task CheckAndUpdateTokenStatus()
+        {
+            TimeSpan firstRefresh = TimeSpan.FromSeconds(4 * 60 * 60 - 600);
+            using (TwitchDbContext db = new())
             {
-                using (TwitchDbContext db = new())
+                Token accessToken = db.Tokens.Where(x => x.Name == "StreamerAccessToken").FirstOrDefault();
+                if (accessToken != null)
                 {
-                    Token accessToken = db.Tokens.Where(x => x.Name == "StreamerAccessToken").FirstOrDefault();
-                    if (accessToken != null)
+                    api.Settings.AccessToken = accessToken.Value;
+                    ValidateAccessTokenResponse response = await api.Auth.ValidateAccessTokenAsync();
+                    if (response == null)
                     {
-                        api.Settings.AccessToken = accessToken.Value;
-                        ValidateAccessTokenResponse response = await api.Auth.ValidateAccessTokenAsync();
-                        if (response == null)
-                        {
-                            await RefreshTokenAsync();
-                        }
-                        else
-                        {
-                            firstRefresh = TimeSpan.FromSeconds(Math.Max(0, response.ExpiresIn - 600));
-						}
+                        await RefreshTokenAsync();
                     }
                     else
                     {
-                        // https://github.com/swiftyspiffy/Twitch-Auth-Example/tree/main/TwitchAuthExample
-                        throw new Exception("Implement auth flow for api");
+                        firstRefresh = TimeSpan.FromSeconds(Math.Max(0, response.ExpiresIn - 600));
                     }
                 }
-            }).Wait();
+                else
+                {
+                    // https://github.com/swiftyspiffy/Twitch-Auth-Example/tree/main/TwitchAuthExample
+                    throw new Exception("Implement auth flow for api");
+                }
+            }
 
             RefreshTokenTimer = new Timer(RefreshToken, null, firstRefresh, TimeSpan.FromSeconds(4 * 60 * 60 - 600));
         }
@@ -103,7 +105,7 @@ namespace ApiDll
 
         public async void RefreshToken(object state = null)
         {
-            await Task.Run(async () => await RefreshTokenAsync());
+            await RefreshTokenAsync();
         }
 
         public async Task<ModifyChannelInformationResponse> ModifyChannelInformation(string title = null, string game=null)

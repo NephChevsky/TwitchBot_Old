@@ -49,8 +49,6 @@ namespace InputReader
 				}
             }
 
-            _chat.WaitForConnection();
-
             return Task.CompletedTask;
         }
 

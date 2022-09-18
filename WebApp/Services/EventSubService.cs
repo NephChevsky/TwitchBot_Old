@@ -45,33 +45,33 @@ namespace WebApp.Services
             _chat = chat;
             _spotify = spotify;
 
-            _chat.WaitForConnection();
-
             _eventSubApi = new();
 			_eventSubApi.Settings.ClientId = _settings.ClientId;
 			_eventSubApi.Settings.Secret = _settings.Secret;
 
-			Task.Run(async () =>
-			{
-				_eventSubApi.Settings.AccessToken = await _eventSubApi.Auth.GetAccessTokenAsync();
-				Subscriptions = new();
-				List<EventSubSubscription> subs = await GetEventSubSubscription();
-				DeleteEventSubSubscription(subs);
-				Subscriptions.Add(await CreateEventSubSubscription("channel.follow"));
-				Subscriptions.Add(await CreateEventSubSubscription("channel.subscribe"));
-				Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.gift"));
-				Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.message"));
-				Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.end"));
-				Subscriptions.Add(await CreateEventSubSubscription("channel.cheer"));
-				Subscriptions.Add(await CreateEventSubSubscription("channel.raid"));
-				Subscriptions.Add(await CreateEventSubSubscription("channel.hype_train.begin"));
-				Subscriptions.Add(await CreateEventSubSubscription("channel.channel_points_custom_reward_redemption.add"));
-				Subscriptions.Add(await CreateEventSubSubscription("stream.online"));
-				Subscriptions.Add(await CreateEventSubSubscription("stream.offline"));
-			}).Wait();
+            Start().GetAwaiter().GetResult();
 
-			BitsCounterTimer = new Timer(BitsCounterReset, null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
+            BitsCounterTimer = new Timer(BitsCounterReset, null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
 		}
+
+        public async Task Start()
+        {
+            _eventSubApi.Settings.AccessToken = await _eventSubApi.Auth.GetAccessTokenAsync();
+            Subscriptions = new();
+            List<EventSubSubscription> subs = await GetEventSubSubscription();
+            DeleteEventSubSubscription(subs);
+            Subscriptions.Add(await CreateEventSubSubscription("channel.follow"));
+            Subscriptions.Add(await CreateEventSubSubscription("channel.subscribe"));
+            Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.gift"));
+            Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.message"));
+            Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.end"));
+            Subscriptions.Add(await CreateEventSubSubscription("channel.cheer"));
+            Subscriptions.Add(await CreateEventSubSubscription("channel.raid"));
+            Subscriptions.Add(await CreateEventSubSubscription("channel.hype_train.begin"));
+            Subscriptions.Add(await CreateEventSubSubscription("channel.channel_points_custom_reward_redemption.add"));
+            Subscriptions.Add(await CreateEventSubSubscription("stream.online"));
+            Subscriptions.Add(await CreateEventSubSubscription("stream.offline"));
+        }
 
 		private async Task<EventSubSubscription> CreateEventSubSubscription(string type)
         {

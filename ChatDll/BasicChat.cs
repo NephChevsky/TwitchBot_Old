@@ -26,40 +26,7 @@ namespace ChatDll
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
 
-			Task.Run(async () => {
-				TwitchAPI api = new();
-				api.Settings.ClientId = _settings.ClientId;
-				api.Settings.Secret = _settings.Secret;
-				using (TwitchDbContext db = new())
-				{
-					Token accessToken = db.Tokens.Where(x => x.Name == "BotAccessToken").FirstOrDefault();
-					if (accessToken != null)
-					{
-						ValidateAccessTokenResponse response = await api.Auth.ValidateAccessTokenAsync(accessToken.Value);
-						if (response == null)
-						{
-							Token refreshToken = db.Tokens.Where(x => x.Name == "BotRefreshToken").FirstOrDefault();
-							if (refreshToken != null)
-							{
-								RefreshResponse newToken = await api.Auth.RefreshAuthTokenAsync(refreshToken.Value, _settings.Secret);
-								accessToken.Value = newToken.AccessToken;
-								refreshToken.Value = newToken.RefreshToken;
-								db.SaveChanges();
-							}
-							else
-							{
-								// https://github.com/swiftyspiffy/Twitch-Auth-Example/tree/main/TwitchAuthExample
-								throw new Exception("Implement auth flow for chat bot");
-							}
-						}
-					}
-					else
-					{
-						// https://github.com/swiftyspiffy/Twitch-Auth-Example/tree/main/TwitchAuthExample
-						throw new Exception("Implement auth flow for chat bot");
-					}
-				}
-			}).Wait();
+			CheckAndUpdateTokenStatus().GetAwaiter().GetResult();
 
 			var clientOptions = new ClientOptions
 			{
@@ -89,21 +56,46 @@ namespace ChatDll
 			{
 				_logger.LogError("Couldn't connect IRC client");
 			}
-		}
 
-		public bool IsConnected
-		{
-			get
-			{
-				return _client != null ? _client.IsConnected : false;
-			}
-		}
-
-		public void WaitForConnection()
-		{
 			while (!_client.IsConnected)
 			{
 				Task.Delay(20).Wait();
+			}
+		}
+
+		public async Task CheckAndUpdateTokenStatus()
+		{
+			TwitchAPI api = new();
+			api.Settings.ClientId = _settings.ClientId;
+			api.Settings.Secret = _settings.Secret;
+			using (TwitchDbContext db = new())
+			{
+				Token accessToken = db.Tokens.Where(x => x.Name == "BotAccessToken").FirstOrDefault();
+				if (accessToken != null)
+				{
+					ValidateAccessTokenResponse response = await api.Auth.ValidateAccessTokenAsync(accessToken.Value);
+					if (response == null)
+					{
+						Token refreshToken = db.Tokens.Where(x => x.Name == "BotRefreshToken").FirstOrDefault();
+						if (refreshToken != null)
+						{
+							RefreshResponse newToken = await api.Auth.RefreshAuthTokenAsync(refreshToken.Value, _settings.Secret);
+							accessToken.Value = newToken.AccessToken;
+							refreshToken.Value = newToken.RefreshToken;
+							db.SaveChanges();
+						}
+						else
+						{
+							// https://github.com/swiftyspiffy/Twitch-Auth-Example/tree/main/TwitchAuthExample
+							throw new Exception("Implement auth flow for chat bot");
+						}
+					}
+				}
+				else
+				{
+					// https://github.com/swiftyspiffy/Twitch-Auth-Example/tree/main/TwitchAuthExample
+					throw new Exception("Implement auth flow for chat bot");
+				}
 			}
 		}
 

@@ -37,7 +37,7 @@ namespace SpotifyDll
 					DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
 					if (accessToken.LastModificationDateTime < now.AddMinutes(-55))
 					{
-						Task.Run(async () => await RefreshTokenAsync()).Wait();
+						RefreshTokenAsync().GetAwaiter().GetResult();
 					}
 					else
 					{
@@ -115,7 +115,7 @@ namespace SpotifyDll
 
 		private async void RefreshToken(object state = null)
 		{
-			await Task.Run(async () => await RefreshTokenAsync());
+			await RefreshTokenAsync();
 		}
 
 		private async Task RefreshTokenAsync() 
