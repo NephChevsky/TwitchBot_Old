@@ -42,7 +42,7 @@ namespace WebApp.Services
 					List<TwitchLib.Api.Helix.Models.Subscriptions.Subscription> subs = await _api.GetSubscribers();
 					foreach (TwitchLib.Api.Helix.Models.Subscriptions.Subscription sub in subs)
 					{
-						Viewer viewer = _api.GetOrCreateUserById(sub.UserId);
+						Viewer viewer = await _api.GetOrCreateUserById(sub.UserId);
 						db.Viewers.Attach(viewer);
 						viewer.IsSub = true;
 						Subscription tmp = db.Subscriptions.Where(x => x.Owner == sub.UserId && x.CreationDateTime >= now.AddMonths(-1)).FirstOrDefault();

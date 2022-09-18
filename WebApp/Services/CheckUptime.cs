@@ -50,7 +50,7 @@ namespace WebApp.Services
                     {
                         using (TwitchDbContext db = new())
                         {
-                            Viewer dbViewer = _api.GetOrCreateUserByUsername(chatter.Username);
+                            Viewer dbViewer = await _api.GetOrCreateUserByUsername(chatter.Username);
                             db.Viewers.Attach(dbViewer);
                             if (dbViewer != null)
                             {

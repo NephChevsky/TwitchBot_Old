@@ -55,7 +55,7 @@ namespace Bot.Workers
             HotKeyHandler.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HandleHotKeys);
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
             bool waitForStart = false;
             if (Process.GetProcessesByName("Spotify").Length == 0)
@@ -89,7 +89,9 @@ namespace Bot.Workers
 
             _connection.StartAsync().Wait();
 
-            return Task.CompletedTask;
+            List<ChannelVIPsResponseModel> vips = await _api.GetVIPs();
+
+            //return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -175,7 +177,7 @@ namespace Bot.Workers
             }
         }
 
-        public void HandleHotKeys(object sender, HotKeyEventArgs e)
+        public async void HandleHotKeys(object sender, HotKeyEventArgs e)
         {
             if (e.Modifiers == KeyModifiers.Alt)
             {
@@ -185,7 +187,7 @@ namespace Bot.Workers
                 }
                 else if (e.Key == Keys.Subtract)
                 {
-                    Task.Run(async () => await _spotify.StartPlaylist(_settings.SpotifyFunction.Playlist)).Wait();
+                    await _spotify.StartPlaylist(_settings.SpotifyFunction.Playlist);
                     _obs.StartSteam();
 				}
                 else if (e.Key == Keys.End)
@@ -193,7 +195,7 @@ namespace Bot.Workers
                     Task.Delay(5 * 1000).Wait();
                     _obs.StopStream();
                     Task.Delay(5 * 1000).Wait();
-                    Task.Run(async () => await _spotify.StopPlayback()).Wait();
+                    await _spotify.StopPlayback();
 				}
             }
         }

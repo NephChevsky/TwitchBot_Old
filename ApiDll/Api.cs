@@ -277,18 +277,14 @@ namespace ApiDll
             return response.Listings.ToList();
 		}
 
-        public Viewer GetOrCreateUserById(string id)
+        public async Task<Viewer> GetOrCreateUserById(string id)
         {
             using (TwitchDbContext db = new())
             {
                 Viewer viewer = db.Viewers.Where(x => x.Id == id).FirstOrDefault();
                 if (viewer == null)
                 {
-                    Task<GetUsersResponse> query = Task.Run(async () => {
-                        return await api.Helix.Users.GetUsersAsync(new List<string>() { id });
-                    });
-                    query.Wait();
-                    GetUsersResponse response = query.Result;
+                    GetUsersResponse response = await api.Helix.Users.GetUsersAsync(new List<string>() { id });
                     if (response != null && response.Users.Count() != 0)
                     {
                         viewer = new(response.Users[0].Id, response.Users[0].Login, response.Users[0].DisplayName);
@@ -308,18 +304,14 @@ namespace ApiDll
 			}
 		}
 
-        public Viewer GetOrCreateUserByUsername(string username)
+        public async Task<Viewer> GetOrCreateUserByUsername(string username)
         {
             using (TwitchDbContext db = new())
             {
                 Viewer viewer = db.Viewers.Where(x => x.Username == username).FirstOrDefault();
                 if (viewer == null)
                 {
-                    Task<GetUsersResponse> query = Task.Run(async () => {
-                        return await api.Helix.Users.GetUsersAsync(null, new List<string>() { username });
-                    });
-                    query.Wait();
-                    GetUsersResponse response = query.Result;
+                    GetUsersResponse response = await api.Helix.Users.GetUsersAsync(null, new List<string>() { username });
                     if (response != null && response.Users.Count() != 0)
                     {
                         viewer = db.Viewers.Where(x => x.Id == response.Users[0].Id).FirstOrDefault();

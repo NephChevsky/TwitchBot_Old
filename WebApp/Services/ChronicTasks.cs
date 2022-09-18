@@ -70,7 +70,7 @@ namespace WebApp.Services
 					List<Follow> followers = await _api.GetFollowers();
 					foreach (var follow in followers)
 					{
-						Viewer viewer = _api.GetOrCreateUserById(follow.FromUserId);
+						Viewer viewer = await _api.GetOrCreateUserById(follow.FromUserId);
 						db.Viewers.Attach(viewer);
 						viewer.IsFollower = true;
 						if (viewer.FirstFollowDateTime == DateTime.MinValue)
@@ -86,7 +86,7 @@ namespace WebApp.Services
 					List<Moderator> mods = await _api.GetModerators();
 					foreach (var mod in mods)
 					{
-						Viewer viewer = _api.GetOrCreateUserById(mod.UserId);
+						Viewer viewer = await _api.GetOrCreateUserById(mod.UserId);
 						db.Viewers.Attach(viewer);
 						viewer.IsMod = true;
 					}

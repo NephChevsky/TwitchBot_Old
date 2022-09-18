@@ -369,8 +369,8 @@ namespace WebApp.Services
                         Viewer firstViewer, secondViewer;
                         using (TwitchDbContext db = new())
                         {
-                            firstViewer = _api.GetOrCreateUserByUsername(e.Notification.Event.UserName);
-                            secondViewer = _api.GetOrCreateUserByUsername(e.Notification.Event.UserInput);
+                            firstViewer = await _api.GetOrCreateUserByUsername(e.Notification.Event.UserName);
+                            secondViewer = await _api.GetOrCreateUserByUsername(e.Notification.Event.UserInput);
                         }
                         if (firstViewer != null && secondViewer != null)
                         {

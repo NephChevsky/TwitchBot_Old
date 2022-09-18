@@ -60,11 +60,11 @@ namespace WebApp.Services
 		}
 
 
-		private void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
+		private async void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
 		{
 			using (TwitchDbContext db = new())
 			{
-				Viewer dbViewer = _api.GetOrCreateUserByUsername(e.ChatMessage.Username);
+				Viewer dbViewer = await _api.GetOrCreateUserByUsername(e.ChatMessage.Username);
 				if (dbViewer != null)
 				{
 					dbViewer.MessageCount++;
@@ -75,7 +75,7 @@ namespace WebApp.Services
 				}
 				ChatMessageResponse data = new (e.ChatMessage);
 				data.Badges = UpdateBadges(data.Badges);
-				_hub.Clients.All.SendAsync("ChatOverlay", data);
+				await _hub.Clients.All.SendAsync("ChatOverlay", data);
 			}
 		}
 
@@ -117,7 +117,7 @@ namespace WebApp.Services
 					using (TwitchDbContext db = new())
 					{
 						string username = e.Command.ArgumentsAsList.Count > 0 ? e.Command.ArgumentsAsList[0] : e.Command.ChatMessage.Username;
-						Viewer viewer = _api.GetOrCreateUserByUsername(username);
+						Viewer viewer = await _api.GetOrCreateUserByUsername(username);
 						if (viewer != null)
 						{
 							int hours = (int)Math.Floor((decimal)viewer.Uptime / 3600);
