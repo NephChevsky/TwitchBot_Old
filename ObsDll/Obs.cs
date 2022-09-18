@@ -35,6 +35,7 @@ namespace ObsDll
 
 		public void StartSteam()
 		{
+			_obs.SetInputMute("Desktop Audio", true);
 			_obs.SetInputMute("Mic/Aux", true);
 			_obs.SetCurrentProgramScene("Playing");
 			Task.Delay(500).Wait();

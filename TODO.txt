@@ -1,7 +1,6 @@
 ===============
 General
 ===============
-add timeout count
 make sure alerts are displayed until the end before processing the next one
 Replace Emote in alert messages
 improve sort in stats page
@@ -26,7 +25,6 @@ Channel Rewards
 ===============
 Stream Deck
 ===============
-Mute desktop audio when starting streaming
 Mettre la scene playing sur Alt + 1
 
 ===============
