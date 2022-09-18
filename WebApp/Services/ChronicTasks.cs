@@ -33,30 +33,6 @@ namespace WebApp.Services
 
 				using (TwitchDbContext db = new())
 				{
-					List<TwitchLib.Api.Helix.Models.Subscriptions.Subscription> subs = await _api.GetSubscribers();
-					foreach (TwitchLib.Api.Helix.Models.Subscriptions.Subscription sub in subs)
-					{
-						Viewer viewer = _api.GetOrCreateUserById(sub.UserId);
-						db.Viewers.Attach(viewer);
-						viewer.IsSub = true;
-						Subscription tmp = db.Subscriptions.Where(x => x.Owner == sub.UserId && x.CreationDateTime >= now.AddMonths(-1)).FirstOrDefault();
-						if (tmp == null)
-						{
-							tmp = new();
-							tmp.Owner = sub.UserId;
-							tmp.Tier = sub.Tier;
-							tmp.IsGift = sub.IsGift;
-							tmp.GifterId = sub.GiftertId;
-							tmp.CreationDateTime = now;
-							tmp.LastModificationDateTime = now;
-							db.Subscriptions.Add(tmp);
-						}
-					}
-					db.SaveChanges();
-				}
-
-				using (TwitchDbContext db = new())
-				{
 					Cheer lastCheer = db.Cheers.OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
 					if (lastCheer != null)
 					{

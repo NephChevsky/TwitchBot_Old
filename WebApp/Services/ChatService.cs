@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 using ModelsDll;
 using ModelsDll.Db;
 using ModelsDll.DTO;
+using TwitchLib.Client.Enums;
 using TwitchLib.Client.Events;
 
 namespace WebApp.Services
@@ -32,6 +33,7 @@ namespace WebApp.Services
 			_logger.LogInformation($"Service starting");
 			Task.Run(async () => BadgesCache = await _api.GetBadges()).Wait();
 			_chat._client.OnMessageReceived += Client_OnMessageReceived;
+			_chat._client.OnGiftedSubscription += Client_OnGiftedSubscription;
 			_logger.LogInformation($"Service started");
 			return Task.CompletedTask;
 		}
@@ -61,6 +63,22 @@ namespace WebApp.Services
 				ChatMessageResponse data = new (e.ChatMessage);
 				data.Badges = UpdateBadges(data.Badges);
 				_hub.Clients.All.SendAsync("ChatOverlay", data);
+			}
+		}
+
+		private void Client_OnGiftedSubscription(object sender, OnGiftedSubscriptionArgs e)
+		{
+			using (TwitchDbContext db = new TwitchDbContext())
+			{
+				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				Subscription sub = new Subscription();
+				sub.Owner = e.GiftedSubscription.MsgParamRecipientId;
+				sub.Tier = e.GiftedSubscription.MsgParamSubPlan.ToString();
+				sub.IsGift = true;
+				sub.GifterId = e.GiftedSubscription.UserId;
+				sub.EndDateTime = now.AddMonths(1);
+				db.Subscriptions.Add(sub);
+				db.SaveChanges();
 			}
 		}
 
