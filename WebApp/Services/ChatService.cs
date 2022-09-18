@@ -18,6 +18,7 @@ namespace WebApp.Services
 		private BasicChat _chat;
 		private Api _api;
 		private Dictionary<string, string> BadgesCache;
+		private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
 
 		public ChatService(ILogger<EventSubService> logger, IConfiguration configuration, IHubContext<SignalService> hub, BasicChat chat, Api api)
 		{
@@ -34,6 +35,7 @@ namespace WebApp.Services
 			Task.Run(async () => BadgesCache = await _api.GetBadges()).Wait();
 			_chat._client.OnMessageReceived += Client_OnMessageReceived;
 			_chat._client.OnGiftedSubscription += Client_OnGiftedSubscription;
+			_chat._client.OnChatCommandReceived += Client_OnChatCommandReceived;
 			_logger.LogInformation($"Service started");
 			return Task.CompletedTask;
 		}
@@ -42,6 +44,8 @@ namespace WebApp.Services
 		{
 			_logger.LogInformation($"Service stopping");
 			_chat._client.OnMessageReceived -= Client_OnMessageReceived;
+			_chat._client.OnGiftedSubscription -= Client_OnGiftedSubscription;
+			_chat._client.OnChatCommandReceived -= Client_OnChatCommandReceived;
 			_logger.LogInformation($"Service stopped");
 			return Task.CompletedTask;
 		}
@@ -79,6 +83,38 @@ namespace WebApp.Services
 				sub.EndDateTime = now.AddMonths(1);
 				db.Subscriptions.Add(sub);
 				db.SaveChanges();
+			}
+		}
+
+		private void Client_OnChatCommandReceived(object send, OnChatCommandReceivedArgs e)
+		{
+			DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+
+			if (!AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) || (AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) && AntiSpamTimer[e.Command.CommandText.ToLower()].AddSeconds(60) < now))
+			{
+				bool updateTimer = false;
+				if (string.Equals(e.Command.CommandText, "bot", StringComparison.InvariantCultureIgnoreCase))
+				{
+					_chat.SendMessage("Commandes disponibles: https://bit.ly/3f30iXi");
+					updateTimer = true;
+				}
+				else if (string.Equals(e.Command.CommandText, "stats", StringComparison.InvariantCultureIgnoreCase))
+				{
+					_chat.SendMessage("Statistiques des viewers: https://bit.ly/3LqsFe8");
+					updateTimer = true;
+				}
+
+				if (updateTimer)
+				{
+					if (AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()))
+					{
+						AntiSpamTimer[e.Command.CommandText.ToLower()] = now;
+					}
+					else
+					{
+						AntiSpamTimer.Add(e.Command.CommandText.ToLower(), now);
+					}
+				}
 			}
 		}
 

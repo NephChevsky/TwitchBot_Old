@@ -105,17 +105,7 @@ namespace Bot.Workers
             if (!AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) || (AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) && AntiSpamTimer[e.Command.CommandText.ToLower()].AddSeconds(60) < now))
             {
                 bool updateTimer = false;
-                if (string.Equals(e.Command.CommandText, "bot", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    _chat.SendMessage("Commandes disponibles: https://bit.ly/3J4wUdP");
-                    updateTimer = true;
-                }
-                else if (string.Equals(e.Command.CommandText, "stats", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    _chat.SendMessage("Statistiques des viewers: https://bit.ly/3ALRGLx");
-                    updateTimer = true;
-                }
-                else if (_settings.CheckUptimeFunction.ComputeUptime && string.Equals(e.Command.CommandText, "uptime", StringComparison.InvariantCultureIgnoreCase))
+                if (_settings.CheckUptimeFunction.ComputeUptime && string.Equals(e.Command.CommandText, "uptime", StringComparison.InvariantCultureIgnoreCase))
                 {
                     using (TwitchDbContext db = new())
                     {
