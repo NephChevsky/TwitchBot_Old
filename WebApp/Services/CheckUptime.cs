@@ -4,6 +4,7 @@ using DbDll;
 using ModelsDll;
 using ModelsDll.Db;
 using TwitchLib.Api;
+using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Core.Models.Undocumented.Chatters;
 
 namespace WebApp.Services
@@ -45,6 +46,7 @@ namespace WebApp.Services
                 if (await _api.IsStreamerLive())
                 {
                     List<ChatterFormatted> chatters = await _api.GetChatters();
+                    chatters.Add(new ChatterFormatted(_settings.Streamer, UserType.Broadcaster));
                     bool genericWelcome = false;
                     DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                     foreach (ChatterFormatted chatter in chatters)
