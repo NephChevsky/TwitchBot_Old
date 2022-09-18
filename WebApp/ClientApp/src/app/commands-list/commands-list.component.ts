@@ -23,7 +23,7 @@ export class CommandsListComponent implements OnInit, OnDestroy
 	{
 		this.http.get(environment.baseUrl + "api/Commands").subscribe((data: any) =>
 		{
-			this.commands = data.customCommands;
+			this.commands = data.customCommands.sort((a: any, b: any) => a.key > b.key ? 1 : -1);
 			delete data.customCommands;
 			this.options = data;
 		}, error =>

@@ -10,8 +10,6 @@ implementer le text to speech pour les cheer > 100 (Rajouter un quick bind pour 
 remplacer les emotes dans les messages des alertes
 ouvrir une popup pour taper le titre, la notif et le jeu quand on utilise les hotkey pour démarrer le stream
 déplacer tout ce qui est déplacable de ChatBot.cs à ChatService.cs et EventSubService.cs (client => serveur)
-Ordonner les commandes customisables par ordre alphabétique
-fix sub tracking
 
 ===============
 Commands
