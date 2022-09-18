@@ -8,6 +8,7 @@ using ModelsDll.Db;
 using SpotifyDll;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.EventSub;
+using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
 using TwitchLib.EventSub.Webhooks.Core;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs.Channel;
@@ -31,6 +32,7 @@ namespace WebApp.Services
         private List<string> HandledEvents = new List<string>();
         private int BitsCounter = 0;
         private Timer BitsCounterTimer;
+        private Random Rng = new Random(Guid.NewGuid().GetHashCode());
 
         public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api , BasicChat chat, Spotify spotify)
 		{
@@ -353,6 +355,82 @@ namespace WebApp.Services
                     else
                     {
                         _chat.SendMessage($"{e.Notification.Event.UserName} : La musique n'a pas pu être supprimée de la playlist");
+                        cancel = true;
+                    }
+                }
+                else if (string.Equals(e.Notification.Event.Reward.Title, "Timeout un viewer", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    e.Notification.Event.UserInput = e.Notification.Event.UserInput.Replace("@", "").Split(" ")[0];
+                    List<Moderator> mods = await _api.GetModerators();
+                    Moderator firstmod = mods.Where(x => string.Equals(e.Notification.Event.UserInput, x.UserName)).FirstOrDefault();
+                    Moderator secondmod = mods.Where(x => string.Equals(e.Notification.Event.UserName, x.UserName)).FirstOrDefault();
+                    if (firstmod == null && secondmod == null)
+                    {
+                        Viewer firstViewer, secondViewer;
+                        using (TwitchDbContext db = new())
+                        {
+                            firstViewer = _api.GetOrCreateUserByUsername(e.Notification.Event.UserName);
+                            secondViewer = _api.GetOrCreateUserByUsername(e.Notification.Event.UserInput);
+                        }
+                        if (firstViewer != null && secondViewer != null)
+                        {
+                            int dice = Rng.Next(5);
+                            int timer = Rng.Next(300);
+                            if (dice == 0)
+                            {
+                                _chat.SendMessage($"Roll: {timer}/300. Dommage {firstViewer.DisplayName}! LUL");
+                                _api.BanUser(firstViewer.Username, timer);
+                            }
+                            else if (dice == 1 || dice == 2)
+                            {
+                                _chat.SendMessage($"Roll: {timer}/300. Désolé {secondViewer.DisplayName}! LUL");
+                                _api.BanUser(secondViewer.Username, timer);
+                            }
+                            else if (dice == 3)
+                            {
+                                _chat.SendMessage($"Roll: {timer}/300. Allez ça dégage {e.Notification.Event.UserName} et {secondViewer.DisplayName}! LUL");
+                                _api.BanUser(secondViewer.Username, timer);
+                                _api.BanUser(firstViewer.Username, timer);
+                            }
+                            else
+                            {
+                                _chat.SendMessage($"{firstViewer.DisplayName} : Non, pas envie aujourd'hui Kappa");
+                            }
+                            validate = true;
+                        }
+                        else
+                        {
+                            _chat.SendMessage($"{(firstViewer != null ? firstViewer.DisplayName : e.Notification.Event.UserName)} : Utilisateur inconnu");
+                            cancel = true;
+                        }
+                    }
+                    else
+                    {
+                        if (firstmod == null)
+                        {
+                            _chat.SendMessage($"{e.Notification.Event.UserName} : T'as cru t'allais timeout un modo?");
+                            _api.BanUser(e.Notification.Event.UserName);
+                            validate = true;
+                        }
+                        else
+                        {
+                            _chat.SendMessage($"{e.Notification.Event.UserName} : T'es un modo gros bouff'!");
+                            validate = true;
+                        }
+                    }
+                }
+                else if ((string.Equals(e.Notification.Event.Reward.Title, "VIP", StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    List<Moderator> mods = await _api.GetModerators();
+                    Moderator mod = mods.Where(x => string.Equals(e.Notification.Event.UserId, x.UserId)).FirstOrDefault();
+                    if (mod == null)
+                    {
+                        await _api.AddVIP(e.Notification.Event.UserId);
+                        validate = true;
+                    }
+                    else
+                    {
+                        _chat.SendMessage($"{e.Notification.Event.UserName} T'es modo ducon!");
                         cancel = true;
                     }
                 }

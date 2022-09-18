@@ -34,7 +34,7 @@ namespace Bot.Workers
         private Api _api;
         private Spotify _spotify;
         private Obs _obs;
-        private Random Rng = new Random(Guid.NewGuid().GetHashCode());
+        
         private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
         private HubConnection _connection;
 
@@ -164,82 +164,6 @@ namespace Bot.Workers
                 simulator.Mouse.LeftButtonUp();
                 success = true;
             }
-            else if (string.Equals(e["type"], "Timeout un viewer", StringComparison.InvariantCultureIgnoreCase))
-            {
-                e["user-input"] = e["user-input"].Replace("@", "").Split(" ")[0];
-                List<Moderator> mods = await _api.GetModerators();
-                Moderator firstmod = mods.Where(x => string.Equals(e["user-input"], x.UserName)).FirstOrDefault();
-                Moderator secondmod = mods.Where(x => string.Equals(e["username"], x.UserName)).FirstOrDefault();
-                if (firstmod == null && secondmod == null)
-                {
-                    Viewer firstViewer, secondViewer;
-                    using (TwitchDbContext db = new())
-                    {
-                        firstViewer = _api.GetOrCreateUserByUsername(e["username"]);
-                        secondViewer = _api.GetOrCreateUserByUsername(e["user-input"]);
-                    }
-                    if (firstViewer != null && secondViewer != null)
-                    {
-                        int dice = Rng.Next(5);
-                        int timer = Rng.Next(300);
-                        if (dice == 0)
-                        {
-                            _chat.SendMessage($"Roll: {timer}/300. Dommage {firstViewer.DisplayName}! LUL");
-                            _api.BanUser(firstViewer.Username, timer);
-                        }
-                        else if (dice == 1 || dice == 2)
-                        {
-                            _chat.SendMessage($"Roll: {timer}/300. Désolé {secondViewer.DisplayName}! LUL");
-                            _api.BanUser(secondViewer.Username, timer);
-                        }
-                        else if (dice == 3)
-                        {
-                            _chat.SendMessage($"Roll: {timer}/300. Allez ça dégage {e["username"]} et {secondViewer.DisplayName}! LUL");
-                            _api.BanUser(secondViewer.Username, timer);
-                            _api.BanUser(firstViewer.Username, timer);
-                        }
-                        else
-                        {
-                            _chat.SendMessage($"{firstViewer.DisplayName} : Non, pas envie aujourd'hui Kappa");
-                        }
-                        success = true;
-                    }
-                    else
-                    {
-                        _chat.SendMessage($"{(firstViewer != null ? firstViewer.DisplayName : e["username"])} : Utilisateur inconnu");
-                        success = false;
-                    }
-                }
-                else
-                {
-                    if (firstmod == null)
-                    {
-                        _chat.SendMessage($"{e["username"]} : T'as cru t'allais timeout un modo?");
-                        _api.BanUser(e["username"]);
-                        success = true;
-                    }
-                    else
-                    {
-                        _chat.SendMessage($"{e["username"]} : T'es un modo gros bouff'!");
-                        success = true;
-                    }
-                }
-            }
-            else if ((string.Equals(e["type"], "VIP", StringComparison.InvariantCultureIgnoreCase)))
-            {
-                List<Moderator> mods = await _api.GetModerators();
-                Moderator mod = mods.Where(x => string.Equals(e["user-id"], x.UserId)).FirstOrDefault();
-                if (mod == null)
-                {
-                    await _api.AddVIP(e["user-id"]);
-                    success = true;
-                }
-                else
-                {
-                    _chat.SendMessage($"{e["username"]} T'es modo ducon!");
-                    success = false;
-				}
-			}
 
             if (success)
             {

@@ -256,9 +256,10 @@ namespace ApiDll
         public async Task AddVIP(string userId)
         {
             List<ChannelVIPsResponseModel> vips = await GetVIPs();
-            if (vips.Count() >= _settings.ChatFunction.MaxVIPs)
+            while (vips.Count() >= _settings.ChatFunction.MaxVIPs)
             {
                 await api.Helix.Channels.RemoveChannelVIPAsync(_settings.StreamerTwitchId, vips[0].UserId);
+                vips.RemoveAt(0);
 			}
             await api.Helix.Channels.AddChannelVIPAsync(_settings.StreamerTwitchId, userId);
 		}
