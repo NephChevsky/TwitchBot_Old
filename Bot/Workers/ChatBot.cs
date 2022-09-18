@@ -164,18 +164,6 @@ namespace Bot.Workers
                 simulator.Mouse.LeftButtonUp();
                 success = true;
             }
-            else if (string.Equals(e["type"], "Passer à la musique suivante", StringComparison.InvariantCultureIgnoreCase))
-            {
-                success = await Helpers.SkipSong(_spotify, _chat, e["username"]);
-            }
-            else if (string.Equals(e["type"], "Ajouter une musique", StringComparison.InvariantCultureIgnoreCase))
-            {
-                success = await Helpers.AddSong(_spotify, _chat, e["user-input"], e["username"]) == 1;
-            }
-            else if (string.Equals(e["type"], "Supprimer une musique", StringComparison.InvariantCultureIgnoreCase))
-            {
-                success = await Helpers.RemoveSong(_spotify, _chat, e["username"]);
-            }
             else if (string.Equals(e["type"], "Timeout un viewer", StringComparison.InvariantCultureIgnoreCase))
             {
                 e["user-input"] = e["user-input"].Replace("@", "").Split(" ")[0];

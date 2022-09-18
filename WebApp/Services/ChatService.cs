@@ -225,15 +225,38 @@ namespace WebApp.Services
 				}
 				else if (string.Equals(e.Command.CommandText, "nextsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
 				{
-					await HelpersDll.Helpers.SkipSong(_spotify, _chat, e.Command.ChatMessage.DisplayName);
+					if (!await _spotify.SkipSong())
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : On n'écoute pas de musique bouffon");
+					}
 				}
 				else if (string.Equals(e.Command.CommandText, "addsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
 				{
-					await HelpersDll.Helpers.AddSong(_spotify, _chat, e.Command.ArgumentsAsString, e.Command.ChatMessage.DisplayName);
+					int ret = await _spotify.AddSong(e.Command.ArgumentsAsString);
+					if (ret == 1)
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été ajoutée à la playlist");
+					}
+					else if (ret == 2)
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique est déjà dans la playlist");
+					}
+					else
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être ajoutée à la playlist");
+					}
 				}
 				else if (string.Equals(e.Command.CommandText, "delsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
 				{
-					await HelpersDll.Helpers.RemoveSong(_spotify, _chat, e.Command.ChatMessage.DisplayName);
+					bool ret = await _spotify.RemoveSong();
+					if (ret)
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été supprimée de la playlist");
+					}
+					else
+					{
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être supprimée de la playlist");
+					}
 				}
 				else if (_settings.ChatFunction.AddCustomCommands && string.IsNullOrEmpty(e.Command.ChatMessage.CustomRewardId))
 				{

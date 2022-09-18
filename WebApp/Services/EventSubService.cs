@@ -5,6 +5,7 @@ using HelpersDll;
 using Microsoft.AspNetCore.SignalR;
 using ModelsDll;
 using ModelsDll.Db;
+using SpotifyDll;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.EventSub;
 using TwitchLib.EventSub.Webhooks.Core;
@@ -24,13 +25,14 @@ namespace WebApp.Services
         private TwitchAPI _eventSubApi;
         private Api _api;
         private BasicChat _chat;
+        private Spotify _spotify;
 
         private List<EventSubSubscription> Subscriptions;
         private List<string> HandledEvents = new List<string>();
         private int BitsCounter = 0;
         private Timer BitsCounterTimer;
 
-        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api , BasicChat chat)
+        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api , BasicChat chat, Spotify spotify)
 		{
 			_logger = logger;
 			_eventSubWebhooks = eventSubWebhooks;
@@ -39,6 +41,7 @@ namespace WebApp.Services
 			_discord = discord;
 			_api = api;
             _chat = chat;
+            _spotify = spotify;
 
             _chat.WaitForConnection();
 
@@ -307,6 +310,51 @@ namespace WebApp.Services
                 {
                     validate = Helpers.Commands.DeleteCommand(_chat, e.Notification.Event.UserInput.Replace("!", ""), e.Notification.Event.UserName);
                     cancel = !validate;
+                }
+                else if (string.Equals(e.Notification.Event.Reward.Title, "Passer à la musique suivante", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    if (await _spotify.SkipSong())
+                    {
+                        validate = true;
+                    }
+                    else
+                    {
+                        _chat.SendMessage($"{e.Notification.Event.UserName} : On n'écoute pas de musique bouffon");
+                        cancel = true;
+                    }
+                }
+                else if (string.Equals(e.Notification.Event.Reward.Title, "Ajouter une musique", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    int ret = await _spotify.AddSong(e.Notification.Event.UserInput);
+                    if (ret == 1)
+                    {
+                        _chat.SendMessage($"{e.Notification.Event.UserName} : La musique a été ajoutée à la playlist");
+                        validate = true;
+                    }
+                    else if (ret == 2)
+                    {
+                        _chat.SendMessage($"{e.Notification.Event.UserName} : La musique est déjà dans la playlist");
+                        cancel= true;
+                    }
+                    else
+                    {
+                        _chat.SendMessage($"{e.Notification.Event.UserName} : La musique n'a pas pu être ajoutée à la playlist");
+                        cancel = true;
+                    }
+                }
+                else if (string.Equals(e.Notification.Event.Reward.Title, "Supprimer une musique", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    bool ret = await _spotify.RemoveSong();
+                    if (ret)
+                    {
+                        _chat.SendMessage($"{e.Notification.Event.UserName} : La musique a été supprimée de la playlist");
+                        validate = true;
+                    }
+                    else
+                    {
+                        _chat.SendMessage($"{e.Notification.Event.UserName} : La musique n'a pas pu être supprimée de la playlist");
+                        cancel = true;
+                    }
                 }
                 else
                 {

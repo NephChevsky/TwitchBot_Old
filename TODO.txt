@@ -11,6 +11,7 @@ remplacer les emotes dans les messages des alertes
 ouvrir une popup pour taper le titre, la notif et le jeu quand on utilise les hotkey pour démarrer le stream
 déplacer tout ce qui est déplacable de ChatBot.cs à ChatService.cs et EventSubService.cs (client => serveur)
 Refacto des task run async
+Demander une confirmation quand on ajoute une musique à la playlist
 
 ===============
 Commands
