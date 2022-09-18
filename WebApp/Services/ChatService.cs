@@ -37,17 +37,16 @@ namespace WebApp.Services
 			_spotify = spotify;
 		}
 
-		public Task StartAsync(CancellationToken stoppingToken)
+		public async Task StartAsync(CancellationToken cancellationToken)
 		{
 			_logger.LogInformation($"Service starting");
-			Task.Run(async () => BadgesCache = await _api.GetBadges()).Wait();
+			BadgesCache = await _api.GetBadges();
 
 			_chat.WaitForConnection();
 			_chat._client.OnMessageReceived += Client_OnMessageReceived;
 			_chat._client.OnGiftedSubscription += Client_OnGiftedSubscription;
 			_chat._client.OnChatCommandReceived += Client_OnChatCommandReceived;
 			_logger.LogInformation($"Service started");
-			return Task.CompletedTask;
 		}
 
 		public Task StopAsync(CancellationToken cancellationToken)
@@ -192,7 +191,7 @@ namespace WebApp.Services
 				{
 					if (e.Command.ArgumentsAsList.Count >= 2)
 					{
-						Helpers.AddCommand(_chat, e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ArgumentsAsString.Substring(e.Command.ArgumentsAsList[0].Length + 1), e.Command.ChatMessage.UserId, e.Command.ChatMessage.DisplayName);
+						Helpers.Commands.AddCommand(_chat, e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ArgumentsAsString.Substring(e.Command.ArgumentsAsList[0].Length + 1), e.Command.ChatMessage.UserId, e.Command.ChatMessage.DisplayName);
 					}
 					else
 					{
@@ -204,7 +203,7 @@ namespace WebApp.Services
 				{
 					if (e.Command.ArgumentsAsList.Count == 1)
 					{
-						Helpers.DeleteCommand(_chat, e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ChatMessage.DisplayName);
+						Helpers.Commands.DeleteCommand(_chat, e.Command.ArgumentsAsList[0].Replace("!", ""), e.Command.ChatMessage.DisplayName);
 					}
 					else
 					{
@@ -226,15 +225,15 @@ namespace WebApp.Services
 				}
 				else if (string.Equals(e.Command.CommandText, "nextsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
 				{
-					await Helpers.SkipSong(_spotify, _chat, e.Command.ChatMessage.DisplayName);
+					await HelpersDll.Helpers.SkipSong(_spotify, _chat, e.Command.ChatMessage.DisplayName);
 				}
 				else if (string.Equals(e.Command.CommandText, "addsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
 				{
-					await Helpers.AddSong(_spotify, _chat, e.Command.ArgumentsAsString, e.Command.ChatMessage.DisplayName);
+					await HelpersDll.Helpers.AddSong(_spotify, _chat, e.Command.ArgumentsAsString, e.Command.ChatMessage.DisplayName);
 				}
 				else if (string.Equals(e.Command.CommandText, "delsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
 				{
-					await Helpers.RemoveSong(_spotify, _chat, e.Command.ChatMessage.DisplayName);
+					await HelpersDll.Helpers.RemoveSong(_spotify, _chat, e.Command.ChatMessage.DisplayName);
 				}
 				else if (_settings.ChatFunction.AddCustomCommands && string.IsNullOrEmpty(e.Command.ChatMessage.CustomRewardId))
 				{

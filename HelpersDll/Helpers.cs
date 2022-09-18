@@ -11,49 +11,6 @@ namespace HelpersDll
 {
 	public static class Helpers
 	{
-		public static bool AddCommand(BasicChat chat, string commandName, string commandMessage, string userId, string displayName)
-		{
-			Command cmd = new();
-			cmd.Name = commandName;
-			cmd.Message = commandMessage;
-			cmd.Owner = userId;
-			using (TwitchDbContext db = new())
-			{
-				db.Commands.Add(cmd);
-				try
-				{
-					db.SaveChanges();
-				}
-				catch (DbUpdateException ex)
-				when ((ex.InnerException as SqlException)?.Number == 2601 || (ex.InnerException as SqlException)?.Number == 2627)
-				{
-					chat.SendMessage($"{displayName} : Une commande du même nom existe déja");
-					return false;
-				}
-				chat.SendMessage($"{displayName} : Command {commandName} créée");
-				return true;
-			}
-		}
-
-		public static bool DeleteCommand(BasicChat chat, string commandName, string displayName)
-		{
-			using (TwitchDbContext db = new())
-			{
-				Command dbCmd = db.Commands.Where(x => x.Name == commandName).FirstOrDefault();
-				if (dbCmd != null)
-				{
-					db.Remove(dbCmd);
-					db.SaveChanges();
-					chat.SendMessage($"{displayName} : Command {commandName} supprimée");
-					return true;
-				}
-				else
-				{
-					chat.SendMessage($"{displayName} : Commande inconnue");
-					return false;
-				}
-			}
-		}
 
 		public static async Task<bool> SkipSong(Spotify spotify, BasicChat chat, string displayName)
 		{
@@ -95,6 +52,27 @@ namespace HelpersDll
 				chat.SendMessage($"{displayName} : La musique n'a pas pu être supprimée de la playlist");
 			}
 			return ret;
+		}
+
+		public static async Task ValidateRewardRedemption(Api api, string rewardType, string rewardId, string eventId)
+		{
+			await api.UpdateRedemptionStatus(rewardId, eventId, CustomRewardRedemptionStatus.FULFILLED);
+			using (TwitchDbContext db = new())
+			{
+				ChannelReward dbReward = db.ChannelRewards.Where(x => x.Name == rewardType).FirstOrDefault();
+				if (dbReward != null)
+				{
+					dbReward.CurrentCost += dbReward.CostIncreaseAmount;
+					dbReward.LastUsedDateTime = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time")); ;
+					await api.UpdateChannelReward(dbReward);
+					db.SaveChanges();
+				}
+			}
+		}
+
+		public static async Task CancelRewardRedemption(Api api, string rewardId, string eventId)
+		{
+			await api.UpdateRedemptionStatus(rewardId, eventId, CustomRewardRedemptionStatus.CANCELED);
 		}
 	}
 }

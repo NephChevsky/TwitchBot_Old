@@ -1,4 +1,5 @@
-﻿using ChatDll;
+﻿using ApiDll;
+using ChatDll;
 using DbDll;
 using HelpersDll;
 using Microsoft.AspNetCore.SignalR;
@@ -20,47 +21,54 @@ namespace WebApp.Services
         readonly IHubContext<SignalService> _hub;
         private Settings _settings;
         private DiscordDll.Discord _discord;
-        private TwitchAPI _api;
+        private TwitchAPI _eventSubApi;
+        private Api _api;
+        private BasicChat _chat;
 
         private List<EventSubSubscription> Subscriptions;
         private List<string> HandledEvents = new List<string>();
         private int BitsCounter = 0;
         private Timer BitsCounterTimer;
 
-        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord)
-        {
-            _logger = logger;
-            _eventSubWebhooks = eventSubWebhooks;
-            _hub = hub;
-            _settings = configuration.GetSection("Settings").Get<Settings>();
-            _discord = discord;
+        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api , BasicChat chat)
+		{
+			_logger = logger;
+			_eventSubWebhooks = eventSubWebhooks;
+			_hub = hub;
+			_settings = configuration.GetSection("Settings").Get<Settings>();
+			_discord = discord;
+			_api = api;
+            _chat = chat;
 
-            _api = new();
-            _api.Settings.ClientId = _settings.ClientId;
-            _api.Settings.Secret = _settings.Secret;
+            _chat.WaitForConnection();
 
-            Task.Run(async () => {
-                _api.Settings.AccessToken = await _api.Auth.GetAccessTokenAsync();
-                Subscriptions = new();
-                List<EventSubSubscription> subs = await GetEventSubSubscription();
-                DeleteEventSubSubscription(subs);
-                Subscriptions.Add(await CreateEventSubSubscription("channel.follow"));
-                Subscriptions.Add(await CreateEventSubSubscription("channel.subscribe"));
-                Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.gift"));
-                Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.message"));
-                Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.end"));
-                Subscriptions.Add(await CreateEventSubSubscription("channel.cheer"));
-                Subscriptions.Add(await CreateEventSubSubscription("channel.raid"));
-                Subscriptions.Add(await CreateEventSubSubscription("channel.hype_train.begin"));
-                Subscriptions.Add(await CreateEventSubSubscription("channel.channel_points_custom_reward_redemption.add"));
-                Subscriptions.Add(await CreateEventSubSubscription("stream.online"));
-                Subscriptions.Add(await CreateEventSubSubscription("stream.offline"));
-            }).Wait();
+            _eventSubApi = new();
+			_eventSubApi.Settings.ClientId = _settings.ClientId;
+			_eventSubApi.Settings.Secret = _settings.Secret;
 
-            BitsCounterTimer = new Timer(BitsCounterReset, null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
-        }
+			Task.Run(async () =>
+			{
+				_eventSubApi.Settings.AccessToken = await _eventSubApi.Auth.GetAccessTokenAsync();
+				Subscriptions = new();
+				List<EventSubSubscription> subs = await GetEventSubSubscription();
+				DeleteEventSubSubscription(subs);
+				Subscriptions.Add(await CreateEventSubSubscription("channel.follow"));
+				Subscriptions.Add(await CreateEventSubSubscription("channel.subscribe"));
+				Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.gift"));
+				Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.message"));
+				Subscriptions.Add(await CreateEventSubSubscription("channel.subscription.end"));
+				Subscriptions.Add(await CreateEventSubSubscription("channel.cheer"));
+				Subscriptions.Add(await CreateEventSubSubscription("channel.raid"));
+				Subscriptions.Add(await CreateEventSubSubscription("channel.hype_train.begin"));
+				Subscriptions.Add(await CreateEventSubSubscription("channel.channel_points_custom_reward_redemption.add"));
+				Subscriptions.Add(await CreateEventSubSubscription("stream.online"));
+				Subscriptions.Add(await CreateEventSubSubscription("stream.offline"));
+			}).Wait();
 
-        private async Task<EventSubSubscription> CreateEventSubSubscription(string type)
+			BitsCounterTimer = new Timer(BitsCounterReset, null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
+		}
+
+		private async Task<EventSubSubscription> CreateEventSubSubscription(string type)
         {
             Dictionary<string, string> conditions = new Dictionary<string, string>();
             switch (type)
@@ -72,7 +80,7 @@ namespace WebApp.Services
                     conditions.Add("broadcaster_user_id", _settings.StreamerTwitchId);
                     break;
             }
-            CreateEventSubSubscriptionResponse response = await _api.Helix.EventSub.CreateEventSubSubscriptionAsync(type, "1", conditions, "webhook", _settings.EventSubUrl, _settings.Secret);
+            CreateEventSubSubscriptionResponse response = await _eventSubApi.Helix.EventSub.CreateEventSubSubscriptionAsync(type, "1", conditions, "webhook", _settings.EventSubUrl, _settings.Secret);
             return response.Subscriptions[0];
         }
 
@@ -80,13 +88,13 @@ namespace WebApp.Services
         {
             subscriptions.ForEach(async x =>
             {
-                await _api.Helix.EventSub.DeleteEventSubSubscriptionAsync(x.Id);
+                await _eventSubApi.Helix.EventSub.DeleteEventSubSubscriptionAsync(x.Id);
             });
         }
 
         private async Task<List<EventSubSubscription>> GetEventSubSubscription()
         {
-            GetEventSubSubscriptionsResponse response = await _api.Helix.EventSub.GetEventSubSubscriptionsAsync();
+            GetEventSubSubscriptionsResponse response = await _eventSubApi.Helix.EventSub.GetEventSubSubscriptionsAsync();
             return response.Subscriptions.ToList();
         }
 
@@ -276,25 +284,57 @@ namespace WebApp.Services
             }
         }
 
-        private void OnChannelPointsCustomRewardRedemptionAdd(object sender, ChannelPointsCustomRewardRedemptionArgs e)
+        private async void OnChannelPointsCustomRewardRedemptionAdd(object sender, ChannelPointsCustomRewardRedemptionArgs e)
         {
             if (!HandledEvents.Contains(e.Headers["Twitch-Eventsub-Message-Id"]))
             {
                 _logger.LogInformation($"{e.Notification.Event.UserLogin} redeemed channel point reward {e.Notification.Event.Reward.Title}");
-                
-                Dictionary<string, object> reward = new Dictionary<string, object>();
-                reward.Add("type", e.Notification.Event.Reward.Title);
-                reward.Add("username", e.Notification.Event.UserName);
-                reward.Add("user-id", e.Notification.Event.UserId);
-                reward.Add("reward-id", e.Notification.Event.Reward.Id);
-                reward.Add("event-id", e.Notification.Event.Id);
 
-                if (!string.IsNullOrEmpty(e.Notification.Event.UserInput))
+                bool validate = false;
+                bool cancel = false;
+                if (string.Equals(e.Notification.Event.Reward.Title, "Ajouter une commande", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    reward.Add("user-input", e.Notification.Event.UserInput);
+                    int offset = e.Notification.Event.UserInput.IndexOf(" ");
+                    if (offset > -1)
+                    {
+                        string commandName = e.Notification.Event.UserInput.Substring(0, offset).Replace("!", "");
+                        string commandMessage = e.Notification.Event.UserInput.Substring(offset + 1);
+                        validate = Helpers.Commands.AddCommand(_chat, commandName, commandMessage, e.Notification.Event.UserId, e.Notification.Event.UserName);
+                        cancel = !validate;
+                    }
+                }
+                else if (string.Equals(e.Notification.Event.Reward.Title, "Supprimer une commande", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    validate = Helpers.Commands.DeleteCommand(_chat, e.Notification.Event.UserInput.Replace("!", ""), e.Notification.Event.UserName);
+                    cancel = !validate;
+                }
+                else
+                {
+                    Dictionary<string, object> reward = new Dictionary<string, object>();
+                    reward.Add("type", e.Notification.Event.Reward.Title);
+                    reward.Add("username", e.Notification.Event.UserName);
+                    reward.Add("user-id", e.Notification.Event.UserId);
+                    reward.Add("reward-id", e.Notification.Event.Reward.Id);
+                    reward.Add("event-id", e.Notification.Event.Id);
+
+                    if (!string.IsNullOrEmpty(e.Notification.Event.UserInput))
+                    {
+                        reward.Add("user-input", e.Notification.Event.UserInput);
+                    }
+
+                    await _hub.Clients.All.SendAsync("TriggerReward", reward);
                 }
 
-                _hub.Clients.All.SendAsync("TriggerReward", reward);
+                if (validate)
+                {
+                    await HelpersDll.Helpers.ValidateRewardRedemption(_api, e.Notification.Event.Reward.Title, e.Notification.Event.Reward.Id, e.Notification.Event.Id);
+				}
+
+                if (cancel)
+                {
+                    await HelpersDll.Helpers.CancelRewardRedemption(_api, e.Notification.Event.Reward.Id, e.Notification.Event.Id);
+                }
+                
                 HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
             }
         }
