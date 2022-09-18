@@ -108,7 +108,13 @@ namespace ApiDll
             await RefreshTokenAsync();
         }
 
-        public async Task<ModifyChannelInformationResponse> ModifyChannelInformation(string title = null, string game=null)
+        public async Task<ChannelInformation> GetChannelInformations()
+        {
+            GetChannelInformationResponse response = await api.Helix.Channels.GetChannelInformationAsync(_settings.StreamerTwitchId);
+            return response.Data[0];
+		}
+
+        public async Task<ModifyChannelInformationResponse> ModifyChannelInformations(string title = null, string game=null)
         {
             ModifyChannelInformationRequest request = new();
             ModifyChannelInformationResponse response = new();
@@ -188,12 +194,6 @@ namespace ApiDll
             UpdateCustomRewardResponse response = await api.Helix.ChannelPoints.UpdateCustomRewardAsync(_settings.StreamerTwitchId, channelReward.TwitchId.ToString(), request);
             return response.Data.Count() != 0;
 		}
-
-        public async Task<ChannelInformation> GetChannelInformation()
-        {
-            GetChannelInformationResponse channelInformation = await api.Helix.Channels.GetChannelInformationAsync(_settings.StreamerTwitchId);
-            return channelInformation.Data[0];
-        }
 
         public async void BanUser(string username, int duration = 300)
         {

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using ModelsDll;
 using ObsDll;
 using SpotifyDll;
+using StreamDeck.Forms;
 using System.Diagnostics;
 using System.Media;
 using WindowsInput;
@@ -173,9 +174,15 @@ namespace StreamDeck.Workers
                 }
                 else if (e.Key == Keys.Subtract)
                 {
-                    await _spotify.StartPlaylist(_settings.SpotifyFunction.Playlist);
-                    _obs.StartSteam();
-				}
+                    StartStream popup = new(_api);
+                    DialogResult dialogResult = popup.ShowDialog();
+                    if (dialogResult == DialogResult.OK)
+                    {
+                        await _spotify.StartPlaylist(_settings.SpotifyFunction.Playlist);
+                        _obs.StartSteam();
+                    }
+                    popup.Dispose();
+                }
                 else if (e.Key == Keys.End)
                 {
                     Task.Delay(5 * 1000).Wait();

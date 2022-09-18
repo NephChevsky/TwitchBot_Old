@@ -167,12 +167,12 @@ namespace WebApp.Services
 					{
 						title += " !bot";
 					}
-					await _api.ModifyChannelInformation(title, null);
+					await _api.ModifyChannelInformations(title, null);
 					_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : le titre du stream a été changé en: {title}");
 				}
 				else if (string.Equals(e.Command.CommandText, "setgame", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
 				{
-					ModifyChannelInformationResponse response = await _api.ModifyChannelInformation(null, e.Command.ArgumentsAsString);
+					ModifyChannelInformationResponse response = await _api.ModifyChannelInformations(null, e.Command.ArgumentsAsString);
 					if (response != null)
 					{
 						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : le jeu du stream a été changé en: {response.Game}");

@@ -8,7 +8,6 @@ improve sort in stats page
 Ajouter un end screen qui liste tout les subs/cheers follow et les valeurs des boutons
 implementer le text to speech pour les cheer > 100 (Rajouter un quick bind pour skip et pour arrêter le tts)
 remplacer les emotes dans les messages des alertes
-ouvrir une popup pour taper le titre, la notif et le jeu quand on utilise les hotkey pour démarrer le stream
 Demander une confirmation quand on ajoute une musique à la playlist
 
 ===============
@@ -29,3 +28,9 @@ Stream Deck
 ===============
 Mute desktop audio when starting streaming
 Mettre la scene playing sur Alt + 1
+
+===============
+Blocked
+===============
+Attendre que TwitchLib fix les requêtes GetVIPs
+Attendre que Twitch autorise a modifier les notifs Go Live
