@@ -33,6 +33,17 @@ namespace ObsDll
 			_obs.SetInputMute("Mic/Aux", !muted);
 		}
 
+		public void UnMuteAll()
+		{
+			_obs.SetInputMute("Desktop Audio", false);
+			_obs.SetInputMute("Mic/Aux", false);
+		}
+
+		public void SwitchScene(string name)
+		{
+			_obs.SetCurrentProgramScene(name);
+		}
+
 		public void StartSteam()
 		{
 			_obs.SetInputMute("Desktop Audio", true);

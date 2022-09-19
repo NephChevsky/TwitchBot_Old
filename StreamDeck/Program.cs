@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ObsDll;
 using SpotifyDll;
-using StreamDeck.Workers;
 
 namespace StreamDeck
 {
@@ -38,7 +37,7 @@ namespace StreamDeck
                 services.AddSingleton<BasicChat>();
                 services.AddSingleton<Spotify>();
                 services.AddSingleton<Obs>();
-                services.AddHostedService<ChatBot>();
+                services.AddHostedService<Workers.StreamDeck>();
             })
             .Build();
 

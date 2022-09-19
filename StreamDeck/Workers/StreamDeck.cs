@@ -16,10 +16,10 @@ using WindowsInput;
 
 namespace StreamDeck.Workers
 {
-    public class ChatBot : IHostedService
+    public class StreamDeck : IHostedService
     {
         private Settings _settings;
-        private readonly ILogger<ChatBot> _logger;
+        private readonly ILogger<StreamDeck> _logger;
 
         public BasicChat _chat;
         private Api _api;
@@ -29,7 +29,7 @@ namespace StreamDeck.Workers
         private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
         private HubConnection _connection;
 
-        public ChatBot(ILogger<ChatBot> logger, IConfiguration configuration, BasicChat chat, Api api, Spotify spotify, Obs obs)
+        public StreamDeck(ILogger<StreamDeck> logger, IConfiguration configuration, BasicChat chat, Api api, Spotify spotify, Obs obs)
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
@@ -43,6 +43,7 @@ namespace StreamDeck.Workers
             HotKeyHandler.RegisterHotKey(Keys.NumPad0, KeyModifiers.Alt);
             HotKeyHandler.RegisterHotKey(Keys.Subtract, KeyModifiers.Alt);
             HotKeyHandler.RegisterHotKey(Keys.End, KeyModifiers.Alt);
+            HotKeyHandler.RegisterHotKey(Keys.NumPad1, KeyModifiers.Alt);
             HotKeyHandler.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HandleHotKeys);
         }
 
@@ -91,7 +92,7 @@ namespace StreamDeck.Workers
             bool success = false;
             if (string.Equals(e["type"], "Do a barrel roll!", StringComparison.InvariantCultureIgnoreCase))
             {
-                SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\barrelroll.wav");
+                SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\StreamDeck\Assets\barrelroll.wav");
                 player.Play();
                 _chat.SendMessage("DO A BARREL ROLL!");
                 var simulator = new InputSimulator();
@@ -106,7 +107,7 @@ namespace StreamDeck.Workers
             }
             else if (string.Equals(e["type"], "This is Rocket League!", StringComparison.InvariantCultureIgnoreCase))
             {
-                SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\Bot\Assets\rocketleague.wav");
+                SoundPlayer player = new SoundPlayer(@"D:\Dev\Twitch\StreamDeck\Assets\rocketleague.wav");
                 player.Play();
                 _chat.SendMessage("THIS IS ROCKET LEAGUE!");
                 var simulator = new InputSimulator();
@@ -168,7 +169,7 @@ namespace StreamDeck.Workers
         {
             if (e.Modifiers == KeyModifiers.Alt)
             {
-                if (e.Key == Keys.NumPad0 && e.Modifiers == KeyModifiers.Alt)
+                if (e.Key == Keys.NumPad0)
                 {
                     _obs.ToggleMic();
                 }
@@ -189,6 +190,11 @@ namespace StreamDeck.Workers
                     _obs.StopStream();
                     Task.Delay(5 * 1000).Wait();
                     await _spotify.StopPlayback();
+				}
+                else if (e.Key == Keys.NumPad1)
+                {
+                    _obs.UnMuteAll();
+                    _obs.SwitchScene("Playing");
 				}
             }
         }
