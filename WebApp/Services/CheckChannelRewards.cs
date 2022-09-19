@@ -44,7 +44,7 @@ namespace WebApp.Services
                     {
                         List<ChannelReward> channelRewards = db.ChannelRewards.ToList();
                         List<CustomReward> customRewards = await _api.GetChannelRewards();
-                        ChannelInformation channelInfos = await _api.GetChannelInformation();
+                        ChannelInformation channelInfos = await _api.GetChannelInformations();
                         foreach (ChannelReward reward in channelRewards)
                         {
                             bool updateReward = false;
