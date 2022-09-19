@@ -83,21 +83,20 @@ namespace WebApp.Controllers
                     {
                         limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
                     }
-                    var uptime = db.Uptimes.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).OrderByDescending(g => g.Sum).ToList();
-                    if (uptime.Count != 0)
+                    var uptimes = db.Uptimes.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).OrderByDescending(g => g.Sum).ToList();
+                    Viewer dbViewer = null;
+                    for (int i = 0; i < uptimes.Count; i++)
                     {
-                        Viewer dbViewer;
-                        do
+                        dbViewer = await _api.GetOrCreateUserById(uptimes[0].Owner);
+                        if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
                         {
-                            dbViewer = await _api.GetOrCreateUserById(uptime[0].Owner);
-                            uptime.RemoveAt(0);
-                        } while (uptime.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
-                        if (dbViewer != null) // TODO: need to fix this. This is dumb and it doesn't work
-                        {
-                            return dbViewer.DisplayName;
+                            break;
                         }
                     }
-                    return "";
+                    if (dbViewer != null)
+                    {
+                        return dbViewer.DisplayName;
+                    }
                 }
             }
             else if (name == "most_present_viewer_total")
@@ -109,7 +108,6 @@ namespace WebApp.Controllers
                     {
                         return mostPresentViewer.Username;
                     }
-                    return "";
                 }
             }
             else if (name == "most_speaking_viewer_daily" || name == "most_speaking_viewer_monthly")
@@ -127,18 +125,18 @@ namespace WebApp.Controllers
                         limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
                     }
                     var messages = db.Messages.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).ToList();
-                    if (messages.Count != 0)
+                    Viewer dbViewer = null;
+                    for (int i = 0; i < messages.Count; i++)
                     {
-                        Viewer dbViewer;
-                        do
-                        {
-                            dbViewer = await _api.GetOrCreateUserById(messages[0].Owner);
-                            messages.RemoveAt(0);
-                        } while (messages.Count != 0 && dbViewer != null && (dbViewer.IsBot || dbViewer.Username == _settings.Streamer));
+                        dbViewer = await _api.GetOrCreateUserById(messages[0].Owner);
                         if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
                         {
-                            return dbViewer.DisplayName;
-                        }
+                            break;
+						}
+                    }
+                    if (dbViewer != null)
+                    {
+                        return dbViewer.DisplayName;
                     }
                 }
             }
