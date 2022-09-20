@@ -26,7 +26,6 @@ Channel Rewards
 Spotify
 ===============
 Demander une confirmation quand on ajoute une musique à la playlist
-Implementer polly pour eviter les randoms crash
 
 ===============
 Stream Deck

@@ -5,16 +5,32 @@ using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using DbDll;
 using ModelsDll.Db;
+using Polly;
+using Polly.Fallback;
 
 namespace SpotifyDll
 {
 	public class Spotify : IDisposable
 	{
 		private Settings _settings;
-		private readonly ILogger<Spotify> _logger;
+		private static ILogger<Spotify> _logger;
 		private SpotifyClient _client;
 		public EmbedIOAuthServer _server;
 		private Timer RefreshTokenTimer;
+
+		private readonly IAsyncPolicy<dynamic> _retryPolicy = Policy.WrapAsync(Policy<dynamic>.Handle<APIException>().FallbackAsync(fallbackValue: null, onFallbackAsync: (result, context) =>
+			{
+				_logger.LogWarning($"Spotify API failed again, return null");
+				return Task.CompletedTask;
+			}), Policy<dynamic>.Handle<APIException>()
+			.WaitAndRetryAsync(1, retry =>
+			{
+				return TimeSpan.FromMilliseconds(500);
+			}, (exception, timespan) =>
+			{
+				_logger.LogWarning($"Spotify API call failed: {exception.Exception.Message}");
+				_logger.LogWarning($"Retrying in {timespan.Milliseconds} ms");
+			}));
 
 		public Spotify(ILogger<Spotify> logger, IConfiguration configuration)
 		{
@@ -116,7 +132,7 @@ namespace SpotifyDll
 			await RefreshTokenAsync();
 		}
 
-		private async Task RefreshTokenAsync() 
+		private async Task RefreshTokenAsync()
 		{
 			using (TwitchDbContext db = new())
 			{
@@ -146,7 +162,10 @@ namespace SpotifyDll
 		{
 			if (_client != null)
 			{
-				CurrentlyPlaying song = await _client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+				CurrentlyPlaying song = await _retryPolicy.ExecuteAsync(async () =>
+				{
+					return await _client.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+				});
 				if (song != null)
 				{
 					return (FullTrack)song.Item;
@@ -200,7 +219,7 @@ namespace SpotifyDll
 									offset += playlistTracks.Items.Count;
 								}
 							} while (offset != 0);
-							
+
 							PlaylistAddItemsRequest addQuery = new(new List<string> { tracks.Tracks.Items[0].Uri });
 							SnapshotResponse response = await _client.Playlists.AddItems(playlist.Id, addQuery);
 							ret = (response != null && response.SnapshotId != null) ? 1 : 0;
@@ -208,7 +227,7 @@ namespace SpotifyDll
 					}
 				}
 			}
-			
+
 			return ret;
 		}
 
@@ -242,10 +261,10 @@ namespace SpotifyDll
 			Paging<SimplePlaylist> playlists = await _client.Playlists.CurrentUsers();
 			SimplePlaylist playlist = playlists.Items.Where(x => x.Name == name).FirstOrDefault();
 			DeviceResponse response = await _client.Player.GetAvailableDevices();
-			PlayerResumePlaybackRequest request = new ();
+			PlayerResumePlaybackRequest request = new();
 			request.ContextUri = playlist.Uri;
 			request.OffsetParam = new();
-			request.OffsetParam.Position = 0; 
+			request.OffsetParam.Position = 0;
 			string deviceId = response.Devices.Where(x => x.Name == "NEPH-DESKTOP").FirstOrDefault().Id;
 			request.DeviceId = deviceId;
 			await _client.Player.ResumePlayback(request);
