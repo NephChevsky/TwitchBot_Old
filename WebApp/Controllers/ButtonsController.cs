@@ -87,13 +87,13 @@ namespace WebApp.Controllers
                     Viewer dbViewer = null;
                     for (int i = 0; i < uptimes.Count; i++)
                     {
-                        dbViewer = await _api.GetOrCreateUserById(uptimes[0].Owner);
+                        dbViewer = await _api.GetOrCreateUserById(uptimes[i].Owner);
                         if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
                         {
                             break;
                         }
                     }
-                    if (dbViewer != null)
+                    if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
                     {
                         return dbViewer.DisplayName;
                     }
@@ -128,13 +128,13 @@ namespace WebApp.Controllers
                     Viewer dbViewer = null;
                     for (int i = 0; i < messages.Count; i++)
                     {
-                        dbViewer = await _api.GetOrCreateUserById(messages[0].Owner);
+                        dbViewer = await _api.GetOrCreateUserById(messages[i].Owner);
                         if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
                         {
                             break;
 						}
                     }
-                    if (dbViewer != null)
+                    if (dbViewer != null && !dbViewer.IsBot && dbViewer.Username != _settings.Streamer)
                     {
                         return dbViewer.DisplayName;
                     }
