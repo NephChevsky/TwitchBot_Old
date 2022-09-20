@@ -144,6 +144,9 @@ namespace StreamDeck.Workers
                 var simulator = new InputSimulator();
                 simulator.Keyboard.KeyPress(VirtualKeyCode.VK_4);
                 simulator.Keyboard.KeyPress(VirtualKeyCode.VK_3);
+                simulator.Keyboard.KeyDown(VirtualKeyCode.VK_S);
+                Task.Delay(200).Wait();
+                simulator.Keyboard.KeyUp(VirtualKeyCode.VK_S);
                 success = true;
             }
             else if (string.Equals(e["type"], "Vider mon chargeur", StringComparison.InvariantCultureIgnoreCase))

@@ -6,6 +6,8 @@ improve sort in stats page
 Ajouter un end screen qui liste tout les subs/cheers follow et les valeurs des boutons
 implementer le text to speech pour les cheer > 100 (Rajouter un quick bind pour skip et pour arrêter le tts)
 remplacer les emotes dans les messages des alertes
+Fix des cheers: implementer l'event sub pour enregistrer les bits donnés, et déplacer le control de la valeur de chronic task a daily task
+Prendre en compte la time zone PST pour les controles journalier des bits leaderboard
 
 ===============
 Commands
@@ -19,7 +21,6 @@ Discord
 ===============
 Channel Rewards
 ===============
-Freiner lors de la commande Faking
 
 ===============
 Spotify
@@ -30,7 +31,7 @@ Implementer polly pour eviter les randoms crash
 ===============
 Stream Deck
 ===============
-Mettre la scene playing sur Alt + 1
+
 
 ===============
 Blocked
