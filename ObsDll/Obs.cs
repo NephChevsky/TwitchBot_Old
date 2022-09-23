@@ -24,7 +24,7 @@ namespace ObsDll
 			_obs = new OBSWebsocket();
 			_obs.Connected += Connect;
 			_obs.Disconnected += Disconnected;
-			_obs.Connect(_settings.ObsFunction.Url, _settings.ObsFunction.Password);
+			_obs.ConnectAsync(_settings.ObsFunction.Url, _settings.ObsFunction.Password);
 		}
 
 		public void ToggleMic()

@@ -257,13 +257,12 @@ namespace ApiDll
 
         public async Task AddVIP(string userId)
         {
-            // Reactivate when TwitchLib GetVIPs is fixed
-            /*List<ChannelVIPsResponseModel> vips = await GetVIPs();
+            List<ChannelVIPsResponseModel> vips = await GetVIPs();
             while (vips.Count() >= _settings.ChatFunction.MaxVIPs)
             {
                 await api.Helix.Channels.RemoveChannelVIPAsync(_settings.StreamerTwitchId, vips[0].UserId);
                 vips.RemoveAt(0);
-			}*/
+			}
             await api.Helix.Channels.AddChannelVIPAsync(_settings.StreamerTwitchId, userId);
 		}
 

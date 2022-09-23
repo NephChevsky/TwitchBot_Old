@@ -33,5 +33,4 @@ Stream Deck
 ===============
 Blocked
 ===============
-Attendre que TwitchLib fix les requêtes GetVIPs
 Attendre que Twitch autorise a modifier les notifs Go Live

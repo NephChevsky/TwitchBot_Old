@@ -93,18 +93,17 @@ namespace WebApp.Services
 					db.SaveChanges();
 				}
 
-				/* wait for fix in TwitchLib api
 				using (TwitchDbContext db = new())
 				{
 					List<ChannelVIPsResponseModel> vips = await _api.GetVIPs();
 					foreach (var vip in vips)
 					{
-						Viewer viewer = _api.GetOrCreateUserById(vip.UserId);
+						Viewer viewer = await _api.GetOrCreateUserById(vip.UserId);
 						db.Viewers.Attach(viewer);
 						viewer.IsVIP = true;
 					}
 					db.SaveChanges();
-				}*/
+				}
 
 				await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
 			}
