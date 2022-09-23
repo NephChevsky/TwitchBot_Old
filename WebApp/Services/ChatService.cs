@@ -54,7 +54,6 @@ namespace WebApp.Services
 			return Task.CompletedTask;
 		}
 
-
 		private async void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
 		{
 			using (TwitchDbContext db = new())
@@ -227,18 +226,13 @@ namespace WebApp.Services
 				}
 				else if (string.Equals(e.Command.CommandText, "addsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
 				{
-					int ret = await _spotify.AddSong(e.Command.ArgumentsAsString);
-					if (ret == 1)
+					using (TwitchDbContext db = new())
 					{
-						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été ajoutée à la playlist");
-					}
-					else if (ret == 2)
-					{
-						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique est déjà dans la playlist");
-					}
-					else
-					{
-						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être ajoutée à la playlist");
+						FullTrack song = await _spotify.SearchSong(e.Command.ArgumentsAsString);
+						SongToAdd tmp = new SongToAdd(e.Command.ChatMessage.UserId, song.Uri);
+						db.SongsToAdd.Add(tmp);
+						db.SaveChanges();
+						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Ajouter \"{song.Artists[0].Name} - {song.Name}\" ? (!oui/!non)");
 					}
 				}
 				else if (string.Equals(e.Command.CommandText, "delsong", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
@@ -251,6 +245,60 @@ namespace WebApp.Services
 					else
 					{
 						_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être supprimée de la playlist");
+					}
+				}
+				else if (string.Equals(e.Command.CommandText, "oui", StringComparison.InvariantCultureIgnoreCase))
+				{
+					using (TwitchDbContext db = new())
+					{
+						SongToAdd song = db.SongsToAdd.Where(x => x.Owner == e.Command.ChatMessage.UserId).FirstOrDefault();
+						if (song != null)
+						{
+							int ret = await _spotify.AddSong(song.Uri);
+							if (ret == 1)
+							{
+								_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique a été ajoutée à la playlist");
+							}
+							else if (ret == 2)
+							{
+								_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique est déjà dans la playlist");
+							}
+							else
+							{
+								_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : La musique n'a pas pu être ajoutée à la playlist");
+							}
+
+							if (song.RewardId != null)
+							{
+								if (ret > 0)
+								{
+									await HelpersDll.Helpers.ValidateRewardRedemption(_api, "Ajouter une musique", song.RewardId, song.EventId);
+								}
+								else
+								{
+									await HelpersDll.Helpers.CancelRewardRedemption(_api, song.RewardId, song.EventId);
+								}
+							}
+
+							db.SongsToAdd.Remove(song);
+							db.SaveChanges();
+						}
+					}
+				}
+				else if (string.Equals(e.Command.CommandText, "non", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+				{
+					using (TwitchDbContext db = new())
+					{
+						SongToAdd song = db.SongsToAdd.Where(x => x.Owner == e.Command.ChatMessage.UserId).FirstOrDefault();
+						if (song != null)
+						{
+							if (song.RewardId != null)
+							{
+								await HelpersDll.Helpers.CancelRewardRedemption(_api, song.RewardId, song.EventId);
+							}
+							db.Remove(song);
+							db.SaveChanges();
+						}
 					}
 				}
 				else if (_settings.ChatFunction.AddCustomCommands && string.IsNullOrEmpty(e.Command.ChatMessage.CustomRewardId))

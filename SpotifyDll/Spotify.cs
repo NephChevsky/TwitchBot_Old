@@ -183,47 +183,48 @@ namespace SpotifyDll
 			return false;
 		}
 
-		public async Task<int> AddSong(string name)
+		public async Task<FullTrack> SearchSong(string name)
+		{
+			SearchRequest searchQuery = new(SearchRequest.Types.Track, name);
+			SearchResponse tracks = await _client.Search.Item(searchQuery);
+			return tracks.Tracks.Items[0];
+		}
+
+		public async Task<int> AddSong(string uri)
 		{
 			int ret = 0;
 			if (_client != null)
 			{
-				SearchRequest searchQuery = new(SearchRequest.Types.Track, name);
-				SearchResponse tracks = await _client.Search.Item(searchQuery);
-
-				if (tracks != null)
+				Paging<SimplePlaylist> playlists = await _client.Playlists.CurrentUsers();
+				if (playlists != null)
 				{
-					Paging<SimplePlaylist> playlists = await _client.Playlists.CurrentUsers();
-					if (playlists != null)
+					SimplePlaylist playlist = playlists.Items.Where(x => x.Name == _settings.SpotifyFunction.Playlist).FirstOrDefault();
+					if (playlist != null)
 					{
-						SimplePlaylist playlist = playlists.Items.Where(x => x.Name == _settings.SpotifyFunction.Playlist).FirstOrDefault();
-						if (playlist != null)
+						int offset = 0;
+						do
 						{
-							int offset = 0;
-							do
+							PlaylistGetItemsRequest query = new();
+							query.Offset = offset;
+							Paging<PlaylistTrack<IPlayableItem>> playlistTracks = await _client.Playlists.GetItems(playlist.Id, query);
+							PlaylistTrack<IPlayableItem> existingSong = playlistTracks.Items.Where(x => ((FullTrack)x.Track).Uri == uri).FirstOrDefault();
+							if (playlistTracks.Items.Count == 0)
 							{
-								PlaylistGetItemsRequest query = new();
-								query.Offset = offset;
-								Paging<PlaylistTrack<IPlayableItem>> playlistTracks = await _client.Playlists.GetItems(playlist.Id, query);
-								PlaylistTrack<IPlayableItem> existingSong = playlistTracks.Items.Where(x => ((FullTrack)x.Track).Uri == tracks.Tracks.Items[0].Uri).FirstOrDefault();
-								if (playlistTracks.Items.Count == 0)
-								{
-									offset = 0;
-								}
-								else if (existingSong != null)
-								{
-									return 2;
-								}
-								else
-								{
-									offset += playlistTracks.Items.Count;
-								}
-							} while (offset != 0);
+								offset = 0;
+							}
+							else if (existingSong != null)
+							{
+								return 2;
+							}
+							else
+							{
+								offset += playlistTracks.Items.Count;
+							}
+						} while (offset != 0);
 
-							PlaylistAddItemsRequest addQuery = new(new List<string> { tracks.Tracks.Items[0].Uri });
-							SnapshotResponse response = await _client.Playlists.AddItems(playlist.Id, addQuery);
-							ret = (response != null && response.SnapshotId != null) ? 1 : 0;
-						}
+						PlaylistAddItemsRequest addQuery = new(new List<string> { uri });
+						SnapshotResponse response = await _client.Playlists.AddItems(playlist.Id, addQuery);
+						ret = (response != null && response.SnapshotId != null) ? 1 : 0;
 					}
 				}
 			}
@@ -278,8 +279,8 @@ namespace SpotifyDll
 			CurrentlyPlayingContext response = await _client.Player.GetCurrentPlayback();
 			if (response.IsPlaying)
 			{
-			await _client.Player.PausePlayback();
-		}
+				await _client.Player.PausePlayback();
+			}
 		}
 
 		public void Dispose()

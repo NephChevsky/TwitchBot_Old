@@ -26,6 +26,7 @@ namespace DbDll
         public DbSet<Subscription> Subscriptions => Set<Subscription>();
         public DbSet<Token> Tokens => Set<Token>();
         public DbSet<Cheer> Cheers => Set<Cheer>();
+        public DbSet<SongToAdd> SongsToAdd => Set<SongToAdd>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -244,6 +245,22 @@ namespace DbDll
                 AddGenericFields<Cheer>(entity);
             });
             modelBuilder.Entity<Cheer>().HasIndex(t => new { t.Id }).IsUnique(true);
+
+            modelBuilder.Entity<SongToAdd>(entity =>
+            {
+                entity.Property(e => e.Uri)
+                    .HasMaxLength(512)
+                    .IsRequired();
+
+                entity.Property(e => e.RewardId)
+                    .HasMaxLength(512);
+
+                entity.Property(e => e.EventId)
+                    .HasMaxLength(512);
+
+                AddGenericFields<SongToAdd>(entity);
+            });
+            modelBuilder.Entity<SongToAdd>().HasIndex(t => new { t.Id }).IsUnique(true);
 
             Expression<Func<ISoftDeleteable, bool>> filterSoftDeleteable = bm => !bm.Deleted;
             foreach (var type in modelBuilder.Model.GetEntityTypes())

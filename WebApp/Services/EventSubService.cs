@@ -4,6 +4,7 @@ using DbDll;
 using Microsoft.AspNetCore.SignalR;
 using ModelsDll;
 using ModelsDll.Db;
+using SpotifyAPI.Web;
 using SpotifyDll;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.EventSub;
@@ -33,7 +34,7 @@ namespace WebApp.Services
         private Timer BitsCounterTimer;
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
 
-        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api , BasicChat chat, Spotify spotify)
+        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api, BasicChat chat, Spotify spotify)
 		{
 			_logger = logger;
 			_eventSubWebhooks = eventSubWebhooks;
@@ -41,19 +42,19 @@ namespace WebApp.Services
 			_settings = configuration.GetSection("Settings").Get<Settings>();
 			_discord = discord;
 			_api = api;
-            _chat = chat;
-            _spotify = spotify;
+			_chat = chat;
+			_spotify = spotify;
 
-            _eventSubApi = new();
+			_eventSubApi = new();
 			_eventSubApi.Settings.ClientId = _settings.ClientId;
 			_eventSubApi.Settings.Secret = _settings.Secret;
 
-            Start().GetAwaiter().GetResult();
+			Start().GetAwaiter().GetResult();
 
-            BitsCounterTimer = new Timer(BitsCounterReset, null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
+			BitsCounterTimer = new Timer(BitsCounterReset, null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
 		}
 
-        public async Task Start()
+		public async Task Start()
         {
             _eventSubApi.Settings.AccessToken = await _eventSubApi.Auth.GetAccessTokenAsync();
             Subscriptions = new();
@@ -326,21 +327,13 @@ namespace WebApp.Services
                 }
                 else if (string.Equals(e.Notification.Event.Reward.Title, "Ajouter une musique", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    int ret = await _spotify.AddSong(e.Notification.Event.UserInput);
-                    if (ret == 1)
+                    using (TwitchDbContext db = new())
                     {
-                        _chat.SendMessage($"{e.Notification.Event.UserName} : La musique a été ajoutée à la playlist");
-                        validate = true;
-                    }
-                    else if (ret == 2)
-                    {
-                        _chat.SendMessage($"{e.Notification.Event.UserName} : La musique est déjà dans la playlist");
-                        cancel= true;
-                    }
-                    else
-                    {
-                        _chat.SendMessage($"{e.Notification.Event.UserName} : La musique n'a pas pu être ajoutée à la playlist");
-                        cancel = true;
+                        FullTrack song = await _spotify.SearchSong(e.Notification.Event.UserInput);
+                        SongToAdd tmp = new SongToAdd(e.Notification.Event.UserId, song.Uri, e.Notification.Event.Reward.Id, e.Notification.Event.Id);
+                        db.SongsToAdd.Add(tmp);
+                        db.SaveChanges();
+                        _chat.SendMessage($"{e.Notification.Event.UserName} : Ajouter \"{song.Artists[0].Name} - {song.Name}\" ? (!oui/!non)");
                     }
                 }
                 else if (string.Equals(e.Notification.Event.Reward.Title, "Supprimer une musique", StringComparison.InvariantCultureIgnoreCase))
