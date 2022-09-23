@@ -27,17 +27,32 @@ using TwitchLib.Api.Helix.Models.Bits;
 using TwitchLib.Api.Helix.Models.Chat.Badges;
 using TwitchLib.Api.Helix.Models.Chat.Badges.GetChannelChatBadges;
 using TwitchLib.Api.Helix.Models.Chat.Badges.GetGlobalChatBadges;
+using Polly;
 
 namespace ApiDll
 {
     public class Api : IDisposable
     {
         private Settings _settings;
-        private ILogger<Api> _logger;
+        private static ILogger<Api> _logger;
         private TwitchAPI api;
         private List<string> _bots;
 
         private Timer RefreshTokenTimer;
+
+        private readonly IAsyncPolicy<dynamic> _retryPolicy = Policy.WrapAsync(Policy<dynamic>.Handle<Exception>().FallbackAsync(fallbackValue: null, onFallbackAsync: (result, context) =>
+        {
+            _logger.LogWarning($"Spotify API failed again, return null");
+            return Task.CompletedTask;
+        }), Policy<dynamic>.Handle<Exception>()
+            .WaitAndRetryAsync(1, retry =>
+            {
+                return TimeSpan.FromMilliseconds(500);
+            }, (exception, timespan) =>
+            {
+                _logger.LogWarning($"Twitch API call failed: {exception.Exception.Message}");
+                _logger.LogWarning($"Retrying in {timespan.Milliseconds} ms");
+            }));
 
         public Api(IConfiguration configuration, ILogger<Api> logger)
         {
@@ -355,12 +370,18 @@ namespace ApiDll
         public async Task<Dictionary<string, string>> GetBadges()
         {
             Dictionary<string, string> badges = new Dictionary<string, string>();
-            GetGlobalChatBadgesResponse globalBadges = await api.Helix.Chat.GetGlobalChatBadgesAsync();
+            GetGlobalChatBadgesResponse globalBadges = await _retryPolicy.ExecuteAsync(async () =>
+            {
+                return await api.Helix.Chat.GetGlobalChatBadgesAsync();
+            });
             foreach (BadgeEmoteSet badge in globalBadges.EmoteSet)
             {
                 badges.Add(badge.SetId, badge.Versions[0].ImageUrl1x);
 			}
-            GetChannelChatBadgesResponse channelBadges = await api.Helix.Chat.GetChannelChatBadgesAsync(_settings.StreamerTwitchId);
+            GetChannelChatBadgesResponse channelBadges = await _retryPolicy.ExecuteAsync(async () =>
+            {
+                return await api.Helix.Chat.GetChannelChatBadgesAsync(_settings.StreamerTwitchId);
+            });
             foreach (BadgeEmoteSet badge in channelBadges.EmoteSet)
             {
                 badges.Add(badge.SetId, badge.Versions[0].ImageUrl1x);
