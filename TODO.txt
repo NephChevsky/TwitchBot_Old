@@ -26,11 +26,9 @@ Channel Rewards
 Spotify
 ===============
 
-
 ===============
 Stream Deck
 ===============
-Change spotify volume when starting stream
 
 ===============
 Blocked

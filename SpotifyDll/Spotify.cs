@@ -283,6 +283,12 @@ namespace SpotifyDll
 			}
 		}
 
+		public async Task ChangeVolume(int value)
+		{
+			PlayerVolumeRequest query = new(value);
+			await _client.Player.SetVolume(query);
+		}
+
 		public void Dispose()
 		{
 			_logger.LogInformation("Closing spotify api");
