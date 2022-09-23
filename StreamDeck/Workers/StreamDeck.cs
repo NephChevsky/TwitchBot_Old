@@ -44,6 +44,7 @@ namespace StreamDeck.Workers
             HotKeyHandler.RegisterHotKey(Keys.Subtract, KeyModifiers.Alt);
             HotKeyHandler.RegisterHotKey(Keys.End, KeyModifiers.Alt);
             HotKeyHandler.RegisterHotKey(Keys.NumPad1, KeyModifiers.Alt);
+            HotKeyHandler.RegisterHotKey(Keys.NumPad2, KeyModifiers.Alt);
             HotKeyHandler.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HandleHotKeys);
         }
 
@@ -198,7 +199,12 @@ namespace StreamDeck.Workers
                 {
                     _obs.UnMuteAll();
                     _obs.SwitchScene("Playing");
-				}
+                }
+                else if (e.Key == Keys.NumPad2)
+                {
+                    _obs.UnMuteAll();
+                    _obs.SwitchScene("Desktop");
+                }
             }
         }
     }

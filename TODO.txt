@@ -25,12 +25,12 @@ Channel Rewards
 ===============
 Spotify
 ===============
-Demander une confirmation quand on ajoute une musique à la playlist
+
 
 ===============
 Stream Deck
 ===============
-
+Change spotify volume when starting stream
 
 ===============
 Blocked
