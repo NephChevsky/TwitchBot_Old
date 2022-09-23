@@ -18,11 +18,11 @@ namespace SpotifyDll
 		public EmbedIOAuthServer _server;
 		private Timer RefreshTokenTimer;
 
-		private readonly IAsyncPolicy<dynamic> _retryPolicy = Policy.WrapAsync(Policy<dynamic>.Handle<APIException>().FallbackAsync(fallbackValue: null, onFallbackAsync: (result, context) =>
+		private readonly IAsyncPolicy<dynamic> _retryPolicy = Policy.WrapAsync(Policy<dynamic>.Handle<Exception>().FallbackAsync(fallbackValue: null, onFallbackAsync: (result, context) =>
 			{
 				_logger.LogWarning($"Spotify API failed again, return null");
 				return Task.CompletedTask;
-			}), Policy<dynamic>.Handle<APIException>()
+			}), Policy<dynamic>.Handle<Exception>()
 			.WaitAndRetryAsync(1, retry =>
 			{
 				return TimeSpan.FromMilliseconds(500);
