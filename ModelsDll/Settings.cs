@@ -49,6 +49,7 @@
 
     public class SpotifyFunction
     {
+        public string DeviceId { get; set; }
         public string Playlist { get; set; }
         public string LocalCallbackUrl { get; set; }
         public string ExePath { get; set; }

@@ -49,6 +49,7 @@
 			]
 		},
 		"SpotifyFunction": {
+			"DeviceId": "320f432ed50cdcd335c3f115de85150152555173",
 			"Playlist": "Streaming",
 			"LocalCallbackUrl": "http://localhost:5001/spotifyCallback",
 			"ExePath": "Spotify.exe"

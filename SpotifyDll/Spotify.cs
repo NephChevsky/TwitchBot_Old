@@ -263,16 +263,14 @@ namespace SpotifyDll
 		{
 			Paging<SimplePlaylist> playlists = await _client.Playlists.CurrentUsers();
 			SimplePlaylist playlist = playlists.Items.Where(x => x.Name == name).FirstOrDefault();
-			DeviceResponse response = await _client.Player.GetAvailableDevices();
 			PlayerResumePlaybackRequest request = new();
 			request.ContextUri = playlist.Uri;
 			request.OffsetParam = new();
 			request.OffsetParam.Position = 0;
-			string deviceId = response.Devices.Where(x => x.Name == "NEPH-DESKTOP").FirstOrDefault().Id;
-			request.DeviceId = deviceId;
+			request.DeviceId = _settings.SpotifyFunction.DeviceId;
 			await _client.Player.ResumePlayback(request);
 			PlayerShuffleRequest shuffle = new(true);
-			shuffle.DeviceId = deviceId;
+			shuffle.DeviceId = _settings.SpotifyFunction.DeviceId;
 			await _client.Player.SetShuffle(shuffle);
 		}
 
@@ -288,6 +286,7 @@ namespace SpotifyDll
 		public async Task ChangeVolume(int value)
 		{
 			PlayerVolumeRequest query = new(value);
+			query.DeviceId = _settings.SpotifyFunction.DeviceId;
 			await _client.Player.SetVolume(query);
 		}
 
