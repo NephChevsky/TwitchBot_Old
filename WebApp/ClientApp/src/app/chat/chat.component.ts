@@ -41,7 +41,6 @@ export class ChatComponent implements OnInit, OnDestroy
 		data.emotes = data.emotes.sort((a: any, b: any) => a.startIndex > b.startIndex ? 1 : -1);
 		for (var emote of data.emotes)
 		{
-			debugger;
 			var img = " <img src='" + emote.imageUrl + "' /> ";
 			data.message = data.message.substring(0, emote.startIndex + offset) + img + data.message.substring(emote.endIndex + 1 + offset);
 			offset += img.length - ((emote.endIndex + 1) - emote.startIndex);
