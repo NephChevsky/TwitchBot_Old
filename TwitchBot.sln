@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelpersDll", "HelpersDll\He
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamDeck", "StreamDeck\StreamDeck.csproj", "{A8195927-E6C2-40BA-BB87-E026B059CF54}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleDll", "GoogleDll\GoogleDll.csproj", "{67DFC785-E676-401C-97CC-1FDDD98CBAD1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +113,14 @@ Global
 		{A8195927-E6C2-40BA-BB87-E026B059CF54}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A8195927-E6C2-40BA-BB87-E026B059CF54}.Release|x64.ActiveCfg = Release|Any CPU
 		{A8195927-E6C2-40BA-BB87-E026B059CF54}.Release|x64.Build.0 = Release|Any CPU
+		{67DFC785-E676-401C-97CC-1FDDD98CBAD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67DFC785-E676-401C-97CC-1FDDD98CBAD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67DFC785-E676-401C-97CC-1FDDD98CBAD1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{67DFC785-E676-401C-97CC-1FDDD98CBAD1}.Debug|x64.Build.0 = Debug|Any CPU
+		{67DFC785-E676-401C-97CC-1FDDD98CBAD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67DFC785-E676-401C-97CC-1FDDD98CBAD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67DFC785-E676-401C-97CC-1FDDD98CBAD1}.Release|x64.ActiveCfg = Release|Any CPU
+		{67DFC785-E676-401C-97CC-1FDDD98CBAD1}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

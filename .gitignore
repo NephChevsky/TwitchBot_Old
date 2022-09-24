@@ -1,4 +1,5 @@
 config.json
+google_credentials.json
 */.vs
 */bin
 */obj

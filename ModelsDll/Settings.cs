@@ -18,6 +18,7 @@
         public CheckChannelRewardsFunction CheckChannelRewardsFunction { get; set; }
         public DiscordFunction DiscordFunction { get; set; }
         public ObsFunction ObsFunction { get; set; }
+        public GoogleFunction GoogleFunction { get; set; }
 
         public Tags Tags { get; set; }
     }
@@ -74,6 +75,11 @@
         public string Url { get; set; }
         public string Password { get; set; }
         public string ExePath { get; set; }
+    }
+
+    public class GoogleFunction
+    {
+        public string CredentialPath { get; set; }
     }
 
     public class Tags

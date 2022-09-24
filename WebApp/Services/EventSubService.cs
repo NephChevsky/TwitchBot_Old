@@ -3,6 +3,7 @@ using ChatDll;
 using DbDll;
 using Microsoft.AspNetCore.SignalR;
 using ModelsDll;
+using GoogleDll;
 using ModelsDll.Db;
 using SpotifyAPI.Web;
 using SpotifyDll;
@@ -27,6 +28,7 @@ namespace WebApp.Services
         private Api _api;
         private BasicChat _chat;
         private Spotify _spotify;
+        private GoogleDll.Google _google;
 
         private List<EventSubSubscription> Subscriptions;
         private List<string> HandledEvents = new List<string>();
@@ -34,7 +36,7 @@ namespace WebApp.Services
         private Timer BitsCounterTimer;
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
 
-        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api, BasicChat chat, Spotify spotify)
+        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api, BasicChat chat, Spotify spotify, GoogleDll.Google google)
 		{
 			_logger = logger;
 			_eventSubWebhooks = eventSubWebhooks;
@@ -44,6 +46,7 @@ namespace WebApp.Services
 			_api = api;
 			_chat = chat;
 			_spotify = spotify;
+            _google = google;
 
 			_eventSubApi = new();
 			_eventSubApi.Settings.ClientId = _settings.ClientId;
@@ -258,6 +261,11 @@ namespace WebApp.Services
                         alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
                         alert.Add("bits", e.Notification.Event.Bits);
                         alert.Add("message", e.Notification.Event.Message);
+                        if (e.Notification.Event.Bits >= 100)
+                        {
+                            MemoryStream speech = _google.ConvertToSpeech(e.Notification.Event.Message);
+                            alert.Add("tts", Convert.ToBase64String(speech.ToArray()));
+						}
                         _hub.Clients.All.SendAsync("TriggerAlert", alert);
                         BitsCounter++;
                     }

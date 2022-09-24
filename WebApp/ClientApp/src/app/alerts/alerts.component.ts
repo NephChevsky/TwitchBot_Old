@@ -1,4 +1,5 @@
 import { Component, NgZone, OnInit } from '@angular/core';
+import { delay } from 'rxjs';
 import { HubClient } from '../services/hub.service';
 
 @Component({
@@ -104,9 +105,18 @@ export class AlertsComponent implements OnInit
 		{
 			audio = new Audio('../assets/alerts.wav');
 		}
+
 		audio.play();
 		this.toggle(true);
 		setTimeout(this.toggle, 10 * 1000);
-	}
 
+		if (alert.tts)
+		{
+			setTimeout(() =>
+			{
+				audio = new Audio("data:audio/mp3;base64," + alert.tts);
+				audio.play();
+			}, 1 * 1000);
+		}
+	}
 }
