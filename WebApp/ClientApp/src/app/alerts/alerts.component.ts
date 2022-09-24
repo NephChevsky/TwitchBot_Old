@@ -1,5 +1,4 @@
 import { Component, NgZone, OnInit } from '@angular/core';
-import { delay } from 'rxjs';
 import { HubClient } from '../services/hub.service';
 
 @Component({
@@ -10,92 +9,87 @@ import { HubClient } from '../services/hub.service';
 })
 export class AlertsComponent implements OnInit
 {
-
-	public username: string = "";
-	public message: string = "";
-	public value: number = -1;
-	public messageContinued: string = "";
-	public messageContinued1: string = "";
+	public currentAlert!: Alert;
+	public alerts: Alert[] = [];
+	public intervalID!: number;
+	public locked: boolean = false;
 
 	constructor(private ngZone: NgZone, public hubClient: HubClient)
 	{
-		this.hubClient.GetStartedHubConnection().then(hub => hub.on("TriggerAlert", data => this.ngZone.run(() => this.triggerAlert(data))));
+		this.hubClient.GetStartedHubConnection().then(hub => hub.on("TriggerAlert", data => this.ngZone.run(() => this.handleAlert(data))));
 	}
 
 	ngOnInit(): void
 	{
+		this.intervalID = window.setInterval(() =>
+		{
+			if (this.alerts.length > 0 && !this.locked)
+			{
+				this.locked = true;
+				this.triggerAlert(this.alerts[0]);
+			}
+		}, 100);
 	}
 
 	ngOnDestroy()
 	{
+		window.clearTimeout(this.intervalID);
 		this.hubClient.StopHubConnection();
 	}
 
-	toggle(show: boolean = false)
-	{
-		var element = document.getElementById("container");
-		if (show)
-			element?.classList.add("show-item");
-		else
-			element?.classList.remove("show-item");
-	}
-
-	async triggerAlert(alert: any)
+	handleAlert(alert: any)
 	{
 		console.log("Alert " + alert.type + " received");
+		var newAlert = new Alert();
+		newAlert.type = alert.type;
 		switch (alert.type)
 		{
 			case "channel.follow":
-				this.username = alert.username;
-				this.message = "a follow la chaine!";
-				this.value = -1;
-				this.messageContinued = "";
-				this.messageContinued1 = "";
+				newAlert.username = alert.username;
+				newAlert.message = "a follow la chaine!";
+				newAlert.value = -1;
 				break;
 			case "channel.subscribe":
-				this.username = alert.username;
-				this.message = "s'est subscribe à la chaine!"
-				this.value = -1;
-				this.messageContinued = "";
-				this.messageContinued1 = "";
+				newAlert.username = alert.username;
+				newAlert.message = "s'est subscribe à la chaine!"
+				newAlert.value = -1;
 				break;
 			case "channel.subscription.gift":
-				this.username = alert.username;
-				this.message = "a laché";
-				this.value = alert.total;
-				this.messageContinued = "sub gift(s)!";
-				this.messageContinued1 = "";
+				newAlert.username = alert.username;
+				newAlert.message = "a laché";
+				newAlert.value = alert.total;
+				newAlert.messageContinued = "sub gift(s)!";
 				break;
 			case "channel.subscription.message":
-				this.username = alert.username;
-				this.message = "s'est subscribe à la chaine pour";
-				this.value = alert.durationMonths;
-				this.messageContinued = "mois!"
-				this.messageContinued1 = alert.message;
+				newAlert.username = alert.username;
+				newAlert.message = "s'est subscribe à la chaine pour";
+				newAlert.value = alert.durationMonths;
+				newAlert.messageContinued = "mois!"
+				newAlert.messageContinued1 = alert.message;
 				break;
 			case "channel.cheer":
-				this.username = alert.username;
-				this.message = "a laché";
-				this.value = alert.bits;
-				this.messageContinued = "bits!";
-				this.messageContinued1 = alert.message;
+				newAlert.username = alert.username;
+				newAlert.message = "a laché";
+				newAlert.value = alert.bits;
+				newAlert.messageContinued = "bits!";
+				newAlert.messageContinued1 = alert.message;
 				break;
 			case "channel.raid":
-				this.username = alert.username;
-				this.message = "a raid la chaine avec";
-				this.value = alert.viewers;
-				this.messageContinued = "viewers";
-				this.messageContinued1 = "";
+				newAlert.username = alert.username;
+				newAlert.message = "a raid la chaine avec";
+				newAlert.value = alert.viewers;
+				newAlert.messageContinued = "viewers";
 				break;
 			case "channel.hype_train.begin":
-				this.username = "";
-				this.message = "Le hype train a démarré!";
-				this.value = -1;
-				this.messageContinued = "";
-				this.messageContinued1 = "";
+				newAlert.message = "Le hype train a démarré!";
 				break;
 		}
 
+		this.alerts.push(newAlert);
+	}
+
+	triggerAlert(alert: Alert)
+	{
 		var audio;
 		if (alert.type == "channel.hype_train.begin")
 		{
@@ -106,9 +100,25 @@ export class AlertsComponent implements OnInit
 			audio = new Audio('../assets/alerts.wav');
 		}
 
+		this.currentAlert = this.alerts[0];
+
 		audio.play();
-		this.toggle(true);
-		setTimeout(this.toggle, 10 * 1000);
+		var element = document.getElementById("container");
+		element?.classList.add("show-item");
+
+		setTimeout(() =>
+		{
+			var element = document.getElementById("container");
+			element?.classList.add("hide-item");
+			element?.classList.remove("show-item");
+			setTimeout(() =>
+			{
+				var element = document.getElementById("container");
+				element?.classList.remove("hide-item");
+				this.alerts.shift();
+				this.locked = false;
+			}, 1 * 1000);
+		}, 6 * 1000);
 
 		if (alert.tts)
 		{
@@ -119,4 +129,15 @@ export class AlertsComponent implements OnInit
 			}, 1 * 1000);
 		}
 	}
+}
+
+export class Alert
+{
+	public type: string = "";
+	public username: string = "";
+	public message: string = "";
+	public value: number = -1;
+	public messageContinued: string = "";
+	public messageContinued1: string = "";
+	public tts: string = "";
 }

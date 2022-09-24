@@ -2,10 +2,10 @@
   <img src="../../assets/barbarian.png" />
   <br />
   <div class="centered">
-    <div class="text color"> {{username}} </div>
-    <div class="text"> {{message}} </div>
-    <div *ngIf="value != -1" class="text color"> {{value}} </div>
-    <div *ngIf="messageContinued != ''" class="text"> {{messageContinued}} </div>
-    <div *ngIf="messageContinued != ''" class="test"> {{messageContinued1}} </div>
+    <div class="text color"> {{currentAlert.username}} </div>
+    <div class="text"> {{currentAlert.message}} </div>
+    <div *ngIf="currentAlert.value != -1" class="text color"> {{currentAlert.value}} </div>
+    <div *ngIf="currentAlert.messageContinued != ''" class="text"> {{currentAlert.messageContinued}} </div>
+    <div *ngIf="currentAlert.messageContinued != ''" class="test"> {{currentAlert.messageContinued1}} </div>
   </div>
 </div>
