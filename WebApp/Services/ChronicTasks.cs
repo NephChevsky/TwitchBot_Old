@@ -2,8 +2,6 @@
 using DbDll;
 using ModelsDll;
 using ModelsDll.Db;
-using TwitchLib.Api.Core.Enums;
-using TwitchLib.Api.Helix.Models.Bits;
 using TwitchLib.Api.Helix.Models.Channels.GetChannelVIPs;
 using TwitchLib.Api.Helix.Models.Moderation.GetModerators;
 using TwitchLib.Api.Helix.Models.Users.GetUserFollows;
@@ -30,40 +28,6 @@ namespace WebApp.Services
 				_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
 				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
-
-				using (TwitchDbContext db = new())
-				{
-					Cheer lastCheer = db.Cheers.OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
-					if (lastCheer != null)
-					{
-						List<Listing> cheers = await _api.GetBitsLeaderBoard(10, BitsLeaderboardPeriodEnum.Day);
-						foreach (Listing cheer in cheers)
-						{
-							DateTime limit = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
-							limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
-							int currentTotal = db.Cheers.Where(x => x.Owner == cheer.UserId && x.CreationDateTime >= limit).Sum(x => x.Amount);
-							if (currentTotal < cheer.Score)
-							{
-								Cheer tmp = new();
-								tmp.Owner = cheer.UserId;
-								tmp.Amount = cheer.Score - currentTotal;
-								db.Cheers.Add(tmp);
-							}
-						}
-					}
-					else
-					{
-						List<Listing> cheers = await _api.GetBitsLeaderBoard(10, BitsLeaderboardPeriodEnum.All);
-						foreach (Listing cheer in cheers)
-						{
-							Cheer tmp = new();
-							tmp.Owner = cheer.UserId;
-							tmp.Amount = cheer.Score;
-							db.Cheers.Add(tmp);
-						}
-					}
-					db.SaveChanges();
-				}
 
 				using (TwitchDbContext db = new())
 				{

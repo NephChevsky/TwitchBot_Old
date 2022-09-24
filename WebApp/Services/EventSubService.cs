@@ -248,17 +248,26 @@ namespace WebApp.Services
             {
                 
                 _logger.LogInformation($"{e.Notification.Event.UserName} gifted {e.Notification.Event.Bits} cheers");
-                if (e.Notification.Event.Bits > BitsCounter)
+                using (TwitchDbContext db = new())
                 {
-                    Dictionary<string, object> alert = new Dictionary<string, object>();
-                    alert.Add("type", "channel.cheer");
-                    alert.Add("username", e.Notification.Event.UserName);
-                    alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
-                    alert.Add("bits", e.Notification.Event.Bits);
-                    alert.Add("message", e.Notification.Event.Message);
-                    _hub.Clients.All.SendAsync("TriggerAlert", alert);
-                    BitsCounter++;
+                    if (e.Notification.Event.Bits > BitsCounter)
+                    {
+                        Dictionary<string, object> alert = new Dictionary<string, object>();
+                        alert.Add("type", "channel.cheer");
+                        alert.Add("username", e.Notification.Event.UserName);
+                        alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
+                        alert.Add("bits", e.Notification.Event.Bits);
+                        alert.Add("message", e.Notification.Event.Message);
+                        _hub.Clients.All.SendAsync("TriggerAlert", alert);
+                        BitsCounter++;
+                    }
+                    Cheer cheer = new();
+                    cheer.Owner = e.Notification.Event.UserId;
+                    cheer.Amount = e.Notification.Event.Bits;
+                    db.Cheers.Add(cheer);
+                    db.SaveChanges();
                 }
+                
                 HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
             }
         }
