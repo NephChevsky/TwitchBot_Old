@@ -4,7 +4,6 @@ General
 improve sort in stats page
 Ajouter un end screen qui liste tout les subs/cheers follow et les valeurs des boutons
 remplacer les emotes dans les messages des alertes
-Prendre en compte la time zone PST pour les controles journalier des bits leaderboard
 
 ===============
 Commands

@@ -184,7 +184,7 @@ namespace StreamDeck.Workers
                     if (dialogResult == DialogResult.OK)
                     {
                         await _spotify.StartPlaylist(_settings.SpotifyFunction.Playlist);
-                        await _spotify.ChangeVolume(70);
+                        await _spotify.ChangeVolume(65);
                         _obs.StartSteam();
                     }
                     popup.Dispose();
@@ -199,13 +199,13 @@ namespace StreamDeck.Workers
                 else if (e.Key == Keys.NumPad1)
                 {
                     _obs.UnMuteAll();
-                    await _spotify.ChangeVolume(45);
+                    await _spotify.ChangeVolume(40);
                     _obs.SwitchScene("Playing");
                 }
                 else if (e.Key == Keys.NumPad2)
                 {
                     _obs.UnMuteAll();
-                    await _spotify.ChangeVolume(45);
+                    await _spotify.ChangeVolume(40);
                     _obs.SwitchScene("Desktop");
                 }
             }
