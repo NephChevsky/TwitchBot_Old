@@ -9,7 +9,6 @@ rework les alerts
 ===============
 Commands
 ===============
-Ajouter des quotes
 
 ===============
 Discord

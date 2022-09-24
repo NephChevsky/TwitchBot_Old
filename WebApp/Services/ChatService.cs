@@ -22,6 +22,7 @@ namespace WebApp.Services
 
 		private Dictionary<string, string> BadgesCache;
 		private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
+		private Random Rng = new Random(Guid.NewGuid().GetHashCode());
 
 		public ChatService(ILogger<EventSubService> logger, IConfiguration configuration, IHubContext<SignalService> hub, BasicChat chat, Api api, Spotify spotify)
 		{
@@ -298,6 +299,28 @@ namespace WebApp.Services
 							}
 							db.Remove(song);
 							db.SaveChanges();
+						}
+					}
+				}
+				else if (string.Equals(e.Command.CommandText, "quote", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+				{
+					using (TwitchDbContext db = new())
+					{
+						if (!string.IsNullOrEmpty(e.Command.ArgumentsAsString))
+						{
+							Quote quote = new();
+							quote.Owner = e.Command.ChatMessage.UserId;
+							quote.Message = e.Command.ArgumentsAsString;
+							db.Quotes.Add(quote);
+							db.SaveChanges();
+							_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : Citation ajoutée !");
+						}
+						else
+						{
+							int count = db.Quotes.Count();
+							int index = Rng.Next(count);
+							Quote dbQuote = db.Quotes.OrderBy(x => x.CreationDateTime).Skip(index).First();
+							_chat.SendMessage($"\"{dbQuote.Message}\" - Neph {dbQuote.CreationDateTime.ToString("dd/MM/yyyy")}");
 						}
 					}
 				}
