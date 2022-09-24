@@ -212,6 +212,11 @@ namespace WebApp.Services
                 alert.Add("tier", e.Notification.Event.Tier);
                 alert.Add("durationMonths", e.Notification.Event.DurationMonths);
                 alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
+                if (e.Notification.Event.Message.Text.Length > 0)
+                {
+                    MemoryStream speech = _google.ConvertToSpeech(e.Notification.Event.Message.Text);
+                    alert.Add("tts", Convert.ToBase64String(speech.ToArray()));
+                }
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
                 using (TwitchDbContext db = new())
                 {
