@@ -117,7 +117,7 @@ namespace WebApp.Services
 						{
 							int hours = (int)Math.Floor((decimal)viewer.Uptime / 3600);
 							int minutes = (int)Math.Floor((decimal)(viewer.Uptime % 3600) / 60);
-							_chat.SendMessage($"@{viewer.DisplayName} a regardé le stream pendant {hours} heures et {minutes.ToString().PadLeft(2, '0')} minutes. Il est passé {viewer.Seen} fois sur le stream.");
+							_chat.SendMessage($"{viewer.DisplayName} a regardé le stream pendant {hours} heures et {minutes.ToString().PadLeft(2, '0')} minutes. Il est passé {viewer.Seen} fois sur le stream.");
 							updateTimer = true;
 						}
 						else
@@ -321,6 +321,27 @@ namespace WebApp.Services
 							int index = Rng.Next(count);
 							Quote dbQuote = db.Quotes.OrderBy(x => x.CreationDateTime).Skip(index).First();
 							_chat.SendMessage($"\"{dbQuote.Message}\" - Neph {dbQuote.CreationDateTime.ToString("dd/MM/yyyy")}");
+						}
+					}
+				}
+				else if (string.Equals(e.Command.CommandText, "followage", StringComparison.InvariantCultureIgnoreCase) && (e.Command.ChatMessage.IsBroadcaster || e.Command.ChatMessage.IsModerator))
+				{
+					using (TwitchDbContext db = new())
+					{
+						string username = e.Command.ArgumentsAsList.Count > 0 ? e.Command.ArgumentsAsList[0] : e.Command.ChatMessage.Username;
+						Viewer viewer = await _api.GetOrCreateUserByUsername(username);
+						if (viewer != null)
+						{
+							double time = (now - viewer.FirstFollowDateTime).TotalSeconds;
+							int days = (int)Math.Floor(time / (24 * 3600));
+							int hours = (int)Math.Floor(time % (24 * 3600) / 3600);
+							int minutes = (int)Math.Floor(time % 3600 / 60);
+							_chat.SendMessage($"{viewer.DisplayName} est follow à la chaine depuis le {viewer.FirstFollowDateTime.ToString("dd/MM/yyyy")}. Soit {days} jours, {hours.ToString().PadLeft(2, '0')} heures et {minutes.ToString().PadLeft(2, '0')} minutes.");
+							updateTimer = true;
+						}
+						else
+						{
+							_chat.SendMessage($"{e.Command.ChatMessage.DisplayName} : je connais pas ce con");
 						}
 					}
 				}
