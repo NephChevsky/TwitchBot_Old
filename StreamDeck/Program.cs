@@ -15,14 +15,20 @@ namespace StreamDeck
             IHost host = Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, configBuilder) =>
             {
-                string path = "config.json";
-                if (!File.Exists(path))
+                string pathSecret = "secret.json";
+                if (!File.Exists(pathSecret))
                 {
-                    path = Path.Combine(@"D:\dev\Twitch", path);
+                    pathSecret = Path.Combine(@"D:\dev\Twitch", pathSecret);
+                }
+                string pathConfig = "config.json";
+                if (!File.Exists(pathConfig))
+                {
+                    pathConfig = Path.Combine(@"D:\dev\Twitch", pathConfig);
 				}
                 IConfigurationRoot config = configBuilder.SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", false)
-                    .AddJsonFile(path, false)
+                    .AddJsonFile(pathSecret, false)
+                    .AddJsonFile(pathConfig, false)
                     .AddJsonFile("bots.json", false)
                     .Build();
             })

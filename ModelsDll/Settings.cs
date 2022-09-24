@@ -6,8 +6,6 @@
         public string Bot { get; set; }
         public string StreamerTwitchId { get; set; }
         public string BotTwitchId { get; set; }
-        public string ClientId { get; set; }
-        public string Secret { get; set; }
         public string EventSubUrl { get; set; }
         public string SignalRUrl { get; set; }
 
@@ -51,8 +49,6 @@
 
     public class SpotifyFunction
     {
-        public string ClientId { get; set; }
-        public string ClientSecret { get; set; }
         public string Playlist { get; set; }
         public string LocalCallbackUrl { get; set; }
         public string ExePath { get; set; }
@@ -65,15 +61,12 @@
 
     public class DiscordFunction
     {
-        public string ClientId { get; set; }
-        public string ClientSecret { get; set; }
         public ulong NewsChannelId { get; set; }
 	}
 
     public class ObsFunction
     {
         public string Url { get; set; }
-        public string Password { get; set; }
         public string ExePath { get; set; }
     }
 

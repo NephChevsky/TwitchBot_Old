@@ -23,6 +23,7 @@ namespace WebApp.Services
         private readonly ITwitchEventSubWebhooks _eventSubWebhooks;
         readonly IHubContext<SignalService> _hub;
         private Settings _settings;
+        private Secret _secret;
         private DiscordDll.Discord _discord;
         private TwitchAPI _eventSubApi;
         private Api _api;
@@ -42,15 +43,16 @@ namespace WebApp.Services
 			_eventSubWebhooks = eventSubWebhooks;
 			_hub = hub;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
-			_discord = discord;
+            _secret = configuration.GetSection("Secret").Get<Secret>();
+            _discord = discord;
 			_api = api;
 			_chat = chat;
 			_spotify = spotify;
             _google = google;
 
 			_eventSubApi = new();
-			_eventSubApi.Settings.ClientId = _settings.ClientId;
-			_eventSubApi.Settings.Secret = _settings.Secret;
+			_eventSubApi.Settings.ClientId = _secret.Twitch.ClientId;
+			_eventSubApi.Settings.Secret = _secret.Twitch.ClientSecret;
 
 			Start().GetAwaiter().GetResult();
 
@@ -88,7 +90,7 @@ namespace WebApp.Services
                     conditions.Add("broadcaster_user_id", _settings.StreamerTwitchId);
                     break;
             }
-            CreateEventSubSubscriptionResponse response = await _eventSubApi.Helix.EventSub.CreateEventSubSubscriptionAsync(type, "1", conditions, "webhook", _settings.EventSubUrl, _settings.Secret);
+            CreateEventSubSubscriptionResponse response = await _eventSubApi.Helix.EventSub.CreateEventSubSubscriptionAsync(type, "1", conditions, "webhook", _settings.EventSubUrl, _secret.Twitch.ClientSecret);
             return response.Subscriptions[0];
         }
 

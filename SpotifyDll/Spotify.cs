@@ -13,6 +13,7 @@ namespace SpotifyDll
 	public class Spotify : IDisposable
 	{
 		private Settings _settings;
+		private Secret _secret;
 		private static ILogger<Spotify> _logger;
 		private SpotifyClient _client;
 		public EmbedIOAuthServer _server;
@@ -36,6 +37,7 @@ namespace SpotifyDll
 		{
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
+			_secret = configuration.GetSection("Secret").Get<Secret>();
 
 			TimeSpan firstRefresh = TimeSpan.FromMinutes(55);
 
@@ -72,7 +74,7 @@ namespace SpotifyDll
 				_server.AuthorizationCodeReceived += OnAuthorizationCodeReceived;
 				_server.Start().Wait();
 
-				var request = new LoginRequest(_server.BaseUri, _settings.SpotifyFunction.ClientId, LoginRequest.ResponseType.Code)
+				var request = new LoginRequest(_server.BaseUri, _secret.Spotify.ClientId, LoginRequest.ResponseType.Code)
 				{
 					Scope = new List<string> { Scopes.UserReadCurrentlyPlaying, Scopes.UserReadPlaybackState, Scopes.UserModifyPlaybackState, Scopes.PlaylistModifyPrivate, Scopes.PlaylistModifyPublic, Scopes.AppRemoteControl }
 				};
@@ -84,7 +86,7 @@ namespace SpotifyDll
 		{
 			var oauth = new OAuthClient();
 			Uri uri = new Uri(_settings.SpotifyFunction.LocalCallbackUrl);
-			var tokenRequest = new AuthorizationCodeTokenRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, code.Code, uri);
+			var tokenRequest = new AuthorizationCodeTokenRequest(_secret.Spotify.ClientId, _secret.Spotify.ClientSecret, code.Code, uri);
 			var tokenResponse = await oauth.RequestToken(tokenRequest);
 			UpdateTokens(tokenResponse.AccessToken, tokenResponse.RefreshToken);
 			_client = new SpotifyClient(tokenResponse.AccessToken);
@@ -150,7 +152,7 @@ namespace SpotifyDll
 				}
 				else
 				{
-					var tokenResponse = await new OAuthClient().RequestToken(new AuthorizationCodeRefreshRequest(_settings.SpotifyFunction.ClientId, _settings.SpotifyFunction.ClientSecret, token.Value));
+					var tokenResponse = await new OAuthClient().RequestToken(new AuthorizationCodeRefreshRequest(_secret.Spotify.ClientId, _secret.Spotify.ClientSecret, token.Value));
 					UpdateTokens(tokenResponse.AccessToken, tokenResponse.RefreshToken);
 					_client = new SpotifyClient(tokenResponse.AccessToken);
 					RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(55), TimeSpan.FromMinutes(55));

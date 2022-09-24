@@ -34,6 +34,7 @@ namespace ApiDll
     public class Api : IDisposable
     {
         private Settings _settings;
+        private Secret _secret;
         private static ILogger<Api> _logger;
         private TwitchAPI api;
         private List<string> _bots;
@@ -57,12 +58,13 @@ namespace ApiDll
         public Api(IConfiguration configuration, ILogger<Api> logger)
         {
             _settings = configuration.GetSection("Settings").Get<Settings>();
+            _secret = configuration.GetSection("Secret").Get<Secret>();
             _bots = configuration.GetSection("TwitchBotList").Get<List<string>>();
             _logger = logger;
 
             api = new TwitchAPI();
-            api.Settings.ClientId = _settings.ClientId;
-            api.Settings.Secret = _settings.Secret;
+            api.Settings.ClientId = _secret.Twitch.ClientId;
+            api.Settings.Secret = _secret.Twitch.ClientSecret;
 
             CheckAndUpdateTokenStatus().GetAwaiter().GetResult();
         }
@@ -104,7 +106,7 @@ namespace ApiDll
                 Token refreshToken = db.Tokens.Where(x => x.Name == "StreamerRefreshToken").FirstOrDefault();
                 if (refreshToken != null)
                 {
-                    RefreshResponse newToken = await api.Auth.RefreshAuthTokenAsync(refreshToken.Value, _settings.Secret);
+                    RefreshResponse newToken = await api.Auth.RefreshAuthTokenAsync(refreshToken.Value, _secret.Twitch.ClientSecret);
                     accessToken.Value = newToken.AccessToken;
                     refreshToken.Value = newToken.RefreshToken;
                     db.SaveChanges();

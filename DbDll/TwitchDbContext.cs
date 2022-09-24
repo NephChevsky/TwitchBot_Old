@@ -32,7 +32,7 @@ namespace DbDll
         {
             base.OnConfiguring(optionsBuilder);
 
-            string path = "config.json";
+            string path = "secret.json";
             if (!File.Exists(path))
             {
                 path = Path.Combine(@"D:\Dev\Twitch", path);

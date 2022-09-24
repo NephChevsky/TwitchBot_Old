@@ -1,0 +1,78 @@
+{
+	"Settings": {
+		"Streamer": "nephchevsky",
+		"Bot": "neph_bot",
+		"StreamerTwitchId": "40457867",
+		"BotTwitchId": "114536408",
+		"EventSubUrl": "https://p-balleydier.com/webhooks",
+		"SignalRUrl": "https://p-balleydier.com/hub",
+		"ChatFunction": {
+			"AddBotSuffixInTitle": true,
+			"AddCustomCommands": true,
+			"AntiSpam": true,
+			"MaxVips": 10
+		},
+		"CheckUptimeFunction": {
+			"Timer": 60,
+			"ComputeUptime": true,
+			"WelcomeOnFirstJoin": false,
+			"WelcomeOnReJoin": false,
+			"GenericWelcome": true,
+			"WelcomeOnJoinTimer": 3600
+		},
+		"UpdateButtonsFunction": {
+			"Timer": 15,
+			"FollowerGoal": 100,
+			"SubscriptionGoal": 20,
+			"AvailableButtons": [
+				"follower_goal",
+				"subscriber_goal",
+				"viewer_count",
+				"most_present_viewer_daily",
+				"most_speaking_viewer_daily",
+				"most_present_viewer_monthly",
+				"most_speaking_viewer_monthly",
+				"most_present_viewer_total",
+				"most_speaking_viewer_total",
+				"last_follower",
+				"last_cheer",
+				"last_subscriber",
+				"last_subscription_gifter",
+				"current_song",
+				"top_cheers_daily",
+				"top_subscription_gifter_daily",
+				"top_cheers_monthly",
+				"top_subscription_gifter_monthly",
+				"top_cheers_total",
+				"top_subscription_gifter_total",
+				"longest_subscriber"
+			]
+		},
+		"SpotifyFunction": {
+			"Playlist": "Streaming",
+			"LocalCallbackUrl": "http://localhost:5001/spotifyCallback",
+			"ExePath": "Spotify.exe"
+		},
+		"CheckChannelRewardsFunction": {
+			"Timer": 60
+		},
+		"DiscordFunction": {
+			"NewsChannelId": 1005949997021405224
+		},
+		"ObsFunction": {
+			"Url": "ws://192.168.1.10:4455",
+			"ExePath": "C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe"
+		},
+		"GoogleFunction": {
+			"CredentialPath": "google_credentials.json"
+		},
+		"Tags": {
+			"Fps": [
+				"Counter-Strike",
+				"Just Cause",
+				"Valorant",
+				"Apex"
+			]
+		}
+	}
+}

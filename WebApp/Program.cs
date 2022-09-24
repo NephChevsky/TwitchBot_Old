@@ -14,6 +14,11 @@ namespace WebApp
 		public static void Main(string[] args)
 		{
 			WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+			string pathSecret = "secret.json";
+			if (!File.Exists(pathSecret))
+			{
+				pathSecret = Path.Combine(@"D:\Dev\Twitch", pathSecret);
+			}
 			string pathConfig = "config.json";
 			if (!File.Exists(pathConfig))
 			{
@@ -26,6 +31,7 @@ namespace WebApp
 			}
 			builder.Configuration.SetBasePath(Directory.GetCurrentDirectory())
 					.AddJsonFile("appsettings.json", false)
+					.AddJsonFile(pathSecret, false)
 					.AddJsonFile(pathConfig, false)
 					.AddJsonFile(pathBots, false)
 					.Build();
@@ -45,7 +51,7 @@ namespace WebApp
 			builder.Services.AddTwitchLibEventSubWebhooks(config =>
 			{
 				config.CallbackPath = "/webhooks";
-				config.Secret = builder.Configuration.GetSection("Settings").Get<Settings>().Secret;
+				config.Secret = builder.Configuration.GetSection("Secret").Get<Secret>().Twitch.ClientSecret;
 			});
 
 			builder.Services.Configure<HostOptions>(hostOptions =>

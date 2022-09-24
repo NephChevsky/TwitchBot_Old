@@ -29,6 +29,12 @@
 		<Content Include="appsettings.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
+		<Content Include="../secret.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="../config.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
 		<Content Include="../bots.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>

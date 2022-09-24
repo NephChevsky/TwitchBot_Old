@@ -17,6 +17,7 @@ namespace ChatDll
 	public class BasicChat
 	{
 		private Settings _settings;
+		private Secret _secret;
 		private readonly ILogger<BasicChat> _logger;
 		public TwitchClient _client;
 
@@ -24,6 +25,7 @@ namespace ChatDll
 		{
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
+			_secret = configuration.GetSection("Secret").Get<Secret>();
 
 			CheckAndUpdateTokenStatus().GetAwaiter().GetResult();
 
@@ -65,8 +67,8 @@ namespace ChatDll
 		public async Task CheckAndUpdateTokenStatus()
 		{
 			TwitchAPI api = new();
-			api.Settings.ClientId = _settings.ClientId;
-			api.Settings.Secret = _settings.Secret;
+			api.Settings.ClientId = _secret.Twitch.ClientId;
+			api.Settings.Secret = _secret.Twitch.ClientSecret;
 			using (TwitchDbContext db = new())
 			{
 				Token accessToken = db.Tokens.Where(x => x.Name == "BotAccessToken").FirstOrDefault();
@@ -78,7 +80,7 @@ namespace ChatDll
 						Token refreshToken = db.Tokens.Where(x => x.Name == "BotRefreshToken").FirstOrDefault();
 						if (refreshToken != null)
 						{
-							RefreshResponse newToken = await api.Auth.RefreshAuthTokenAsync(refreshToken.Value, _settings.Secret);
+							RefreshResponse newToken = await api.Auth.RefreshAuthTokenAsync(refreshToken.Value, _secret.Twitch.ClientSecret);
 							accessToken.Value = newToken.AccessToken;
 							refreshToken.Value = newToken.RefreshToken;
 							db.SaveChanges();

@@ -9,6 +9,7 @@ namespace ObsDll
 	public class Obs
 	{
 		private Settings _settings;
+		private Secret _secret;
 		private readonly ILogger<Obs> _logger;
 		private OBSWebsocket _obs;
 		public bool IsConnected = false;
@@ -17,6 +18,7 @@ namespace ObsDll
 		{
 			_logger = logger;
 			_settings = configuration.GetSection("Settings").Get<Settings>();
+			_secret = configuration.GetSection("Secret").Get<Secret>();
 		}
 
 		public void Connect()
@@ -24,7 +26,7 @@ namespace ObsDll
 			_obs = new OBSWebsocket();
 			_obs.Connected += Connect;
 			_obs.Disconnected += Disconnected;
-			_obs.ConnectAsync(_settings.ObsFunction.Url, _settings.ObsFunction.Password);
+			_obs.ConnectAsync(_settings.ObsFunction.Url, _secret.Obs.Password);
 		}
 
 		public void ToggleMic()
