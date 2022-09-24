@@ -8,7 +8,7 @@ namespace DbDll
     {
         public TwitchDbContext CreateDbContext(string[] args)
         {
-            string path = "config.json";
+            string path = "secret.json";
             if (!File.Exists(path))
             {
                 path = Path.Combine(@"D:\Dev\Twitch", path);
