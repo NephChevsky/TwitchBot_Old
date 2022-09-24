@@ -82,9 +82,9 @@ namespace WebApp.Services
                                     int uptime = (int)(now - dbViewer.LastViewedDateTime).TotalSeconds;
                                     dbViewer.Uptime += uptime;
                                     DateTime limit = TimeZoneInfo.ConvertTime(now, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
-                                    new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+                                    limit = new DateTime(limit.Year, limit.Month, limit.Day, 0, 0, 0);
                                     limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
-                                    Uptime dbUptime = db.Uptimes.Where(x => x.CreationDateTime >= limit).FirstOrDefault();
+                                    Uptime dbUptime = db.Uptimes.Where(x => x.CreationDateTime >= limit && x.Owner == dbViewer.Id).FirstOrDefault();
                                     if (dbUptime != null)
                                     {
                                         dbUptime.Sum += uptime;
