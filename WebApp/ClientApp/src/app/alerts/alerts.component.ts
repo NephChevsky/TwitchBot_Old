@@ -42,6 +42,17 @@ export class AlertsComponent implements OnInit
 		console.log("Alert " + alert.type + " received");
 		var newAlert = new Alert();
 		newAlert.type = alert.type;
+		if (alert.emotes.length > 0)
+		{
+			var offset = 0;
+			alert.emotes = alert.emotes.sort((a: any, b: any) => a.startIndex > b.startIndex ? 1 : -1);
+			for (var emote of alert.emotes)
+			{
+				var img = " <img src='" + emote.imageUrl + "' /> ";
+				alert.message = alert.message.substring(0, emote.startIndex + offset) + img + alert.message.substring(emote.endIndex + 1 + offset);
+				offset += img.length - ((emote.endIndex + 1) - emote.startIndex);
+			}
+		}
 		switch (alert.type)
 		{
 			case "channel.follow":

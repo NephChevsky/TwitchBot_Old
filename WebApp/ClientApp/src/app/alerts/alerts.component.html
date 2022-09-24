@@ -6,6 +6,6 @@
     <div class="text"> {{currentAlert.message}} </div>
     <div *ngIf="currentAlert.value != -1" class="text color"> {{currentAlert.value}} </div>
     <div *ngIf="currentAlert.messageContinued != ''" class="text"> {{currentAlert.messageContinued}} </div>
-    <div *ngIf="currentAlert.messageContinued != ''" class="test"> {{currentAlert.messageContinued1}} </div>
+    <div *ngIf="currentAlert.messageContinued != ''" class="text" [innerHtml]="currentAlert.messageContinued1"></div>
   </div>
 </div>

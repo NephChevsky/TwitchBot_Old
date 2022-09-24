@@ -31,5 +31,12 @@
 			EndIndex = x.EndIndex;
 			ImageUrl = x.ImageUrl;
 		}
+
+		public Emote(TwitchLib.EventSub.Webhooks.Core.Models.Subscriptions.SubscriptionMessageEmote x)
+		{
+			StartIndex = x.Begin;
+			EndIndex = x.End;
+			ImageUrl = $"https://static-cdn.jtvnw.net/emoticons/v2/{x.Id}/default/light/1.0";
+		}
 	}
 }

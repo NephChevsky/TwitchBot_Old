@@ -3,7 +3,8 @@ General
 ===============
 improve sort in stats page
 Ajouter un end screen qui liste tout les subs/cheers follow et les valeurs des boutons
-remplacer les emotes dans les messages des alertes
+remplacer les emotes dans les messages de cheer
+rework les alerts
 
 ===============
 Commands

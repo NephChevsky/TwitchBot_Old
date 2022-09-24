@@ -14,6 +14,7 @@ using TwitchLib.EventSub.Webhooks.Core;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs.Channel;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs.Stream;
+using ModelsDll.DTO;
 
 namespace WebApp.Services
 {
@@ -209,6 +210,7 @@ namespace WebApp.Services
                 alert.Add("type", "channel.subscription.message");
                 alert.Add("username", e.Notification.Event.UserName);
                 alert.Add("message", e.Notification.Event.Message.Text);
+                alert.Add("emotes", e.Notification.Event.Message.Emotes.Select(x => new Emote(x)).ToList());
                 alert.Add("tier", e.Notification.Event.Tier);
                 alert.Add("durationMonths", e.Notification.Event.DurationMonths);
                 alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
