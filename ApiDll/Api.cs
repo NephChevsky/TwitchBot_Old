@@ -361,7 +361,10 @@ namespace ApiDll
 
         public async Task<bool> IsStreamerLive()
         {
-            GetStreamsResponse response = await api.Helix.Streams.GetStreamsAsync(null, null, 1, null, null, "all", new List<string>() { _settings.StreamerTwitchId });
+            GetStreamsResponse response = await _retryPolicy.ExecuteAsync(async () =>
+            {
+                return await api.Helix.Streams.GetStreamsAsync(null, null, 1, null, null, "all", new List<string>() { _settings.StreamerTwitchId });
+            });
             if (response != null && response.Streams.Count() != 0)
             {
                 return true;
