@@ -25,6 +25,7 @@ Spotify
 ===============
 Stream Deck
 ===============
+add logs
 
 ===============
 Blocked
