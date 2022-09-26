@@ -47,7 +47,7 @@ namespace WebApp.Services
 						Viewer viewer = await _api.GetOrCreateUserById(sub.UserId);
 						db.Viewers.Attach(viewer);
 						viewer.IsSub = true;
-						Subscription tmp = db.Subscriptions.Where(x => x.Owner == sub.UserId && x.CreationDateTime >= now.AddMonths(-1)).FirstOrDefault();
+						Subscription tmp = db.Subscriptions.Where(x => x.Owner == sub.UserId && x.EndDateTime >= now).FirstOrDefault();
 						if (tmp == null)
 						{
 							tmp = new();
