@@ -167,10 +167,9 @@ namespace WebApp.Services
                 Dictionary<string, object> alert = new Dictionary<string, object>();
                 alert.Add("type", "channel.subscribe");
                 alert.Add("username", e.Notification.Event.UserName);
-                alert.Add("isGift", e.Notification.Event.IsGift);
                 alert.Add("tier", e.Notification.Event.Tier);
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
-                if (e.Notification.Event.BroadcasterUserId == _settings.StreamerTwitchId && !e.Notification.Event.IsGift)
+                if (e.Notification.Event.BroadcasterUserId == _settings.StreamerTwitchId)
                 {
                     using (TwitchDbContext db = new())
                     {
@@ -223,20 +222,23 @@ namespace WebApp.Services
                     alert.Add("tts", Convert.ToBase64String(speech.ToArray()));
                 }
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
-                using (TwitchDbContext db = new())
+                if (e.Notification.Event.BroadcasterUserId == _settings.StreamerTwitchId)
                 {
-                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
-                    Subscription lastSub = db.Subscriptions.Where(x => x.Owner == e.Notification.Event.UserId && x.CreationDateTime <= now.AddDays(-15) && x.EndDateTime >= now.AddDays(15)).FirstOrDefault();
-                    if (lastSub != null && lastSub.EndDateTime >= now)
+                    using (TwitchDbContext db = new())
                     {
-                        lastSub.EndDateTime = now;
-					}
-                    Subscription sub = new Subscription();
-                    sub.Owner = e.Notification.Event.UserId;
-                    sub.Tier = e.Notification.Event.Tier;
-                    sub.EndDateTime = now.AddMonths(1);
-                    db.Subscriptions.Add(sub);
-                    db.SaveChanges();
+                        DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                        Subscription lastSub = db.Subscriptions.Where(x => x.Owner == e.Notification.Event.UserId && x.CreationDateTime <= now.AddDays(-15) && x.EndDateTime >= now.AddDays(15)).FirstOrDefault();
+                        if (lastSub != null && lastSub.EndDateTime >= now)
+                        {
+                            lastSub.EndDateTime = now;
+                        }
+                        Subscription sub = new Subscription();
+                        sub.Owner = e.Notification.Event.UserId;
+                        sub.Tier = e.Notification.Event.Tier;
+                        sub.EndDateTime = now.AddMonths(1);
+                        db.Subscriptions.Add(sub);
+                        db.SaveChanges();
+                    }
                 }
                 HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
             }
