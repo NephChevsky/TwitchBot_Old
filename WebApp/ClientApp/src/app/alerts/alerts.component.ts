@@ -9,7 +9,7 @@ import { HubClient } from '../services/hub.service';
 })
 export class AlertsComponent implements OnInit
 {
-	public currentAlert!: Alert;
+	public currentAlert: Alert = new Alert();
 	public alerts: Alert[] = [];
 	public intervalID!: number;
 	public locked: boolean = false;
@@ -25,6 +25,7 @@ export class AlertsComponent implements OnInit
 		{
 			if (this.alerts.length > 0 && !this.locked)
 			{
+				debugger;
 				this.locked = true;
 				this.triggerAlert(this.alerts[0]);
 			}
@@ -39,10 +40,11 @@ export class AlertsComponent implements OnInit
 
 	handleAlert(alert: any)
 	{
+		debugger;
 		console.log("Alert " + alert.type + " received");
 		var newAlert = new Alert();
 		newAlert.type = alert.type;
-		if (alert.emotes.length > 0)
+		if (alert.emotes && alert.emotes.length > 0)
 		{
 			var offset = 0;
 			alert.emotes = alert.emotes.sort((a: any, b: any) => a.startIndex > b.startIndex ? 1 : -1);
