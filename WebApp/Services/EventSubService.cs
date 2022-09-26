@@ -170,16 +170,19 @@ namespace WebApp.Services
                 alert.Add("isGift", e.Notification.Event.IsGift);
                 alert.Add("tier", e.Notification.Event.Tier);
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
-                using (TwitchDbContext db = new())
+                if (e.Notification.Event.BroadcasterUserId == _settings.StreamerTwitchId && !e.Notification.Event.IsGift)
                 {
-                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
-                    Subscription sub = new Subscription();
-                    sub.Owner = e.Notification.Event.UserId;
-                    sub.Tier = e.Notification.Event.Tier;
-                    sub.EndDateTime = now.AddMonths(1);
-                    db.Subscriptions.Add(sub);
-                    db.SaveChanges();
-				}
+                    using (TwitchDbContext db = new())
+                    {
+                        DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                        Subscription sub = new Subscription();
+                        sub.Owner = e.Notification.Event.UserId;
+                        sub.Tier = e.Notification.Event.Tier;
+                        sub.EndDateTime = now.AddMonths(1);
+                        db.Subscriptions.Add(sub);
+                        db.SaveChanges();
+                    }
+                }
                 HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
             }
         }
