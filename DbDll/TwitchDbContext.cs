@@ -212,6 +212,7 @@ namespace DbDll
                     .IsRequired();
 
                 entity.Property(e => e.GifterId)
+                    .HasDefaultValue("")
                     .HasMaxLength(512);
 
                 entity.Property(e => e.Tier)

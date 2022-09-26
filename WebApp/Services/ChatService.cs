@@ -7,6 +7,7 @@ using ModelsDll.Db;
 using ModelsDll.DTO;
 using SpotifyAPI.Web;
 using SpotifyDll;
+using TwitchLib.Client.Enums;
 using TwitchLib.Client.Events;
 
 namespace WebApp.Services
@@ -81,7 +82,24 @@ namespace WebApp.Services
 				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
 				Subscription sub = new Subscription();
 				sub.Owner = e.GiftedSubscription.MsgParamRecipientId;
-				sub.Tier = e.GiftedSubscription.MsgParamSubPlan.ToString();
+				switch (e.GiftedSubscription.MsgParamSubPlan)
+				{
+					case SubscriptionPlan.Prime:
+						sub.Tier = "Prime";
+						break;
+					case SubscriptionPlan.Tier1:
+						sub.Tier = "1000";
+						break;
+					case SubscriptionPlan.Tier2:
+						sub.Tier = "2000";
+						break;
+					case SubscriptionPlan.Tier3:
+						sub.Tier = "3000";
+						break;
+					default:
+						sub.Tier = e.GiftedSubscription.MsgParamSubPlan.ToString();
+						break;
+				}
 				sub.IsGift = true;
 				sub.GifterId = e.GiftedSubscription.UserId;
 				sub.EndDateTime = now.AddMonths(1);
