@@ -83,7 +83,7 @@ namespace WebApp.Services
                                     dbViewer.Uptime += uptime;
                                     DateTime limit = TimeZoneInfo.ConvertTime(now, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
                                     limit = new DateTime(limit.Year, limit.Month, limit.Day, 0, 0, 0);
-                                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                                     Uptime dbUptime = db.Uptimes.Where(x => x.CreationDateTime >= limit && x.Owner == dbViewer.Id).FirstOrDefault();
                                     if (dbUptime != null)
                                     {

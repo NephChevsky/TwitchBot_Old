@@ -83,7 +83,7 @@ namespace WebApp.Controllers
                     {
                         limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
                     }
-                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                     var uptimes = db.Uptimes.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).OrderByDescending(g => g.Sum).ToList();
                     Viewer dbViewer = null;
                     for (int i = 0; i < uptimes.Count; i++)
@@ -125,7 +125,7 @@ namespace WebApp.Controllers
                     {
                         limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
                     }
-                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                     var messages = db.Messages.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).ToList();
                     Viewer dbViewer = null;
                     for (int i = 0; i < messages.Count; i++)
@@ -182,7 +182,7 @@ namespace WebApp.Controllers
                             limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
                         }
                     }
-                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                     var topCheerer = db.Cheers.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Amount) }).OrderByDescending(g => g.Sum).FirstOrDefault();
                     if (topCheerer != null)
                     {
@@ -254,7 +254,7 @@ namespace WebApp.Controllers
                             limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
                         }
                     }
-                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
                     var topSubGifter = db.Subscriptions.Where(x => x.IsGift == true && x.CreationDateTime >= limit).GroupBy(x => x.GifterId).Select(g => new { GifterId = g.Key, Count = g.Count() }).OrderByDescending(g => g.Count).FirstOrDefault();
                     if (topSubGifter != null)
                     {
