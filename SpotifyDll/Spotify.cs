@@ -39,7 +39,7 @@ namespace SpotifyDll
 			_settings = configuration.GetSection("Settings").Get<Settings>();
 			_secret = configuration.GetSection("Secret").Get<Secret>();
 
-			TimeSpan firstRefresh = TimeSpan.FromMinutes(55);
+			TimeSpan firstRefresh = TimeSpan.FromMinutes(50);
 
 			using (TwitchDbContext db = new())
 			{
@@ -51,19 +51,19 @@ namespace SpotifyDll
 				else
 				{
 					DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
-					if (accessToken.LastModificationDateTime < now.AddMinutes(-55))
+					if (accessToken.LastModificationDateTime < now.AddMinutes(-50))
 					{
 						RefreshTokenAsync().GetAwaiter().GetResult();
 					}
 					else
 					{
 						_client = new SpotifyClient(accessToken.Value);
-						firstRefresh = TimeSpan.FromSeconds(Math.Max(0, 55 * 60 - (now - accessToken.LastModificationDateTime).TotalSeconds));
+						firstRefresh = TimeSpan.FromSeconds(Math.Max(0, 50 * 60 - (now - accessToken.LastModificationDateTime).TotalSeconds));
 					}
 				}
 			}
 
-			RefreshTokenTimer = new Timer(RefreshToken, null, firstRefresh, TimeSpan.FromMinutes(55));
+			RefreshTokenTimer = new Timer(RefreshToken, null, firstRefresh, TimeSpan.FromMinutes(50));
 		}
 
 		public void FetchTokens()
@@ -90,7 +90,7 @@ namespace SpotifyDll
 			var tokenResponse = await oauth.RequestToken(tokenRequest);
 			UpdateTokens(tokenResponse.AccessToken, tokenResponse.RefreshToken);
 			_client = new SpotifyClient(tokenResponse.AccessToken);
-			RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(55), TimeSpan.FromMinutes(55));
+			RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(50), TimeSpan.FromMinutes(50));
 			_server.Stop().Wait();
 		}
 
@@ -155,7 +155,7 @@ namespace SpotifyDll
 					var tokenResponse = await new OAuthClient().RequestToken(new AuthorizationCodeRefreshRequest(_secret.Spotify.ClientId, _secret.Spotify.ClientSecret, token.Value));
 					UpdateTokens(tokenResponse.AccessToken, tokenResponse.RefreshToken);
 					_client = new SpotifyClient(tokenResponse.AccessToken);
-					RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(55), TimeSpan.FromMinutes(55));
+					RefreshTokenTimer = new Timer(RefreshToken, null, TimeSpan.FromMinutes(50), TimeSpan.FromMinutes(50));
 				}
 			}
 		}
