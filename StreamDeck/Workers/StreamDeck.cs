@@ -185,15 +185,18 @@ namespace StreamDeck.Workers
                         await _spotify.ChangeVolume(40);
                         _obs.SwitchScene("Playing");
                     }
-                    StartStream popup = new(_api);
-                    DialogResult dialogResult = popup.ShowDialog();
-                    if (dialogResult == DialogResult.OK)
+                    else
                     {
-                        await _spotify.StartPlaylist(_settings.SpotifyFunction.Playlist);
-                        await _spotify.ChangeVolume(65);
-                        _obs.StartSteam();
+                        StartStream popup = new(_api);
+                        DialogResult dialogResult = popup.ShowDialog();
+                        if (dialogResult == DialogResult.OK)
+                        {
+                            await _spotify.StartPlaylist(_settings.SpotifyFunction.Playlist);
+                            await _spotify.ChangeVolume(65);
+                            _obs.StartSteam();
+                        }
+                        popup.Dispose();
                     }
-                    popup.Dispose();
                 }
                 else if (e.Key == Keys.End)
                 {
