@@ -72,8 +72,8 @@ namespace WebApp.Services
 						List<Listing> cheers = await _api.GetBitsLeaderBoard(10, BitsLeaderboardPeriodEnum.Day);
 						foreach (Listing cheer in cheers)
 						{
-							DateTime limit = TimeZoneInfo.ConvertTime(now, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
-							limit = new DateTime(limit.Year, limit.Month, limit.Day, 0, 0, 0);
+							DateTime limit = TimeZoneInfo.ConvertTime(now, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
+							limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
 							limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
 							int currentTotal = db.Cheers.Where(x => x.Owner == cheer.UserId && x.CreationDateTime >= limit).Sum(x => x.Amount);
 							if (currentTotal < cheer.Score)
