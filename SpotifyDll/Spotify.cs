@@ -287,7 +287,10 @@ namespace SpotifyDll
 		{
 			PlayerVolumeRequest query = new(value);
 			query.DeviceId = _settings.SpotifyFunction.DeviceId;
-			await _client.Player.SetVolume(query);
+			await _retryPolicy.ExecuteAsync(async () =>
+			{
+				return await _client.Player.SetVolume(query);
+			});
 		}
 
 		public void Dispose()
