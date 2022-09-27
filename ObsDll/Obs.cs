@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using ModelsDll;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Communication;
+using OBSWebsocketDotNet.Types;
 
 namespace ObsDll
 {
@@ -60,6 +61,12 @@ namespace ObsDll
 		{
 			Task.Delay(5000);
 			_obs.StopStream();
+		}
+
+		public bool IsStreaming()
+		{
+			OutputStatus response = _obs.GetStreamStatus();
+			return response.IsActive;
 		}
 
 		private void Connect(object sender, EventArgs e)

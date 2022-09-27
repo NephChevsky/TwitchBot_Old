@@ -179,6 +179,12 @@ namespace StreamDeck.Workers
                 }
                 else if (e.Key == Keys.Subtract)
                 {
+                    if (_obs.IsStreaming())
+                    {
+                        _obs.UnMuteAll();
+                        await _spotify.ChangeVolume(40);
+                        _obs.SwitchScene("Playing");
+                    }
                     StartStream popup = new(_api);
                     DialogResult dialogResult = popup.ShowDialog();
                     if (dialogResult == DialogResult.OK)
@@ -198,14 +204,10 @@ namespace StreamDeck.Workers
 				}
                 else if (e.Key == Keys.NumPad1)
                 {
-                    _obs.UnMuteAll();
-                    await _spotify.ChangeVolume(40);
                     _obs.SwitchScene("Playing");
                 }
                 else if (e.Key == Keys.NumPad2)
                 {
-                    _obs.UnMuteAll();
-                    await _spotify.ChangeVolume(40);
                     _obs.SwitchScene("Desktop");
                 }
             }
