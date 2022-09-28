@@ -3,7 +3,6 @@ using ChatDll;
 using DbDll;
 using Microsoft.AspNetCore.SignalR;
 using ModelsDll;
-using GoogleDll;
 using ModelsDll.Db;
 using SpotifyAPI.Web;
 using SpotifyDll;
@@ -39,7 +38,7 @@ namespace WebApp.Services
         private int BitsCounter = 0;
         private Timer BitsCounterTimer;
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
-        private List<Cheermote> CheermotesCache;
+        private List<string> CheermotesCache;
 
         public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api, BasicChat chat, Spotify spotify, GoogleDll.Google google)
 		{
@@ -67,7 +66,7 @@ namespace WebApp.Services
         {
             _eventSubApi.Settings.AccessToken = await _eventSubApi.Auth.GetAccessTokenAsync();
 
-            CheermotesCache = await _api.GetCheermotes();
+            CheermotesCache = (await _api.GetCheermotes()).Select(x => x.Prefix).ToList();
 
             Subscriptions = new();
             List<EventSubSubscription> subs = await GetEventSubSubscription();
@@ -281,9 +280,9 @@ namespace WebApp.Services
                         alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
                         alert.Add("bits", e.Notification.Event.Bits);
                         string message = e.Notification.Event.Message;
-                        foreach (Cheermote cheermote in CheermotesCache)
+                        foreach (string cheermote in CheermotesCache)
                         {
-                            message = Regex.Replace(message, cheermote.Prefix + "[0-9]*", "");
+                            message = Regex.Replace(message, cheermote + "[0-9]*", "");
 						}
                         message = message.Trim();
                         alert.Add("message", message);
