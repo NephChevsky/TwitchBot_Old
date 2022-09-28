@@ -60,11 +60,6 @@
 	</Target>
 
 	<ItemGroup>
-	  <None Remove="ClientApp\src\app\material.module.ts" />
-	  <None Remove="ClientApp\src\environments\environment.dev.ts" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\ChatDll\ChatDll.csproj" />
 		<ProjectReference Include="..\GoogleDll\GoogleDll.csproj" />
 		<ProjectReference Include="..\HelpersDll\HelpersDll.csproj" />
@@ -85,10 +80,8 @@
 		<Content Include="../bots.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <TypeScriptCompile Include="ClientApp\src\app\material.module.ts" />
-	  <TypeScriptCompile Include="ClientApp\src\environments\environment.dev.ts" />
+		<Content Include="../nlog.config">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 </Project>

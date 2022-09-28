@@ -3,6 +3,9 @@ using ChatDll;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using NLog;
+using NLog.Extensions.Logging;
 using ObsDll;
 using SpotifyDll;
 
@@ -31,6 +34,7 @@ namespace StreamDeck
                     .AddJsonFile(pathConfig, false)
                     .AddJsonFile("bots.json", false)
                     .Build();
+
             })
             .ConfigureServices(services =>
             {
@@ -38,12 +42,18 @@ namespace StreamDeck
                 {
                     hostOptions.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
                 });
-
                 services.AddSingleton<Api>();
                 services.AddSingleton<BasicChat>();
                 services.AddSingleton<Spotify>();
                 services.AddSingleton<Obs>();
                 services.AddHostedService<Workers.StreamDeck>();
+
+                services.AddLogging(logging =>
+                {
+                    logging.ClearProviders();
+                    logging.AddNLog("nlog.config");
+                    GlobalDiagnosticsContext.Set("appName", "StreamDeck");
+                });
             })
             .Build();
 

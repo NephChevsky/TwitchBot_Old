@@ -2,6 +2,7 @@ using ApiDll;
 using ChatDll;
 using GoogleDll;
 using ModelsDll;
+using NLog;
 using NLog.Extensions.Logging;
 using SpotifyDll;
 using TwitchLib.EventSub.Webhooks.Extensions;
@@ -73,6 +74,7 @@ namespace WebApp
 
 			builder.Logging.ClearProviders();
 			builder.Logging.AddNLog("nlog.config");
+			GlobalDiagnosticsContext.Set("appName", "WebApp");
 
 			var app = builder.Build();
 
