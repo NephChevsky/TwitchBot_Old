@@ -392,6 +392,12 @@ namespace ApiDll
             return badges;
 		}
 
+        public async Task<List<Cheermote>> GetCheermotes()
+        {
+            GetCheermotesResponse response = await api.Helix.Bits.GetCheermotesAsync();
+            return response.Listings.ToList();
+		}
+
         public void Dispose()
         {
             _logger.LogInformation($"Disposing of ApiDll");

@@ -15,6 +15,8 @@ using TwitchLib.EventSub.Webhooks.Core.EventArgs;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs.Channel;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs.Stream;
 using ModelsDll.DTO;
+using TwitchLib.Api.Helix.Models.Bits;
+using System.Text.RegularExpressions;
 
 namespace WebApp.Services
 {
@@ -37,6 +39,7 @@ namespace WebApp.Services
         private int BitsCounter = 0;
         private Timer BitsCounterTimer;
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
+        private List<Cheermote> CheermotesCache;
 
         public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api, BasicChat chat, Spotify spotify, GoogleDll.Google google)
 		{
@@ -63,6 +66,9 @@ namespace WebApp.Services
 		public async Task Start()
         {
             _eventSubApi.Settings.AccessToken = await _eventSubApi.Auth.GetAccessTokenAsync();
+
+            CheermotesCache = await _api.GetCheermotes();
+
             Subscriptions = new();
             List<EventSubSubscription> subs = await GetEventSubSubscription();
             DeleteEventSubSubscription(subs);
@@ -267,17 +273,23 @@ namespace WebApp.Services
                 _logger.LogInformation($"{e.Notification.Event.UserName} gifted {e.Notification.Event.Bits} cheers");
                 using (TwitchDbContext db = new())
                 {
-                    if (e.Notification.Event.Bits > BitsCounter)
+                    if (e.Notification.Event.Bits > BitsCounter || e.Notification.Event.Bits >= 100)
                     {
                         Dictionary<string, object> alert = new Dictionary<string, object>();
                         alert.Add("type", "channel.cheer");
                         alert.Add("username", e.Notification.Event.UserName);
                         alert.Add("isAnonymous", e.Notification.Event.IsAnonymous);
                         alert.Add("bits", e.Notification.Event.Bits);
-                        alert.Add("message", e.Notification.Event.Message);
+                        string message = e.Notification.Event.Message;
+                        foreach (Cheermote cheermote in CheermotesCache)
+                        {
+                            message = Regex.Replace(message, cheermote.Prefix + "[0-9]*", "");
+						}
+                        message = message.Trim();
+                        alert.Add("message", message);
                         if (e.Notification.Event.Bits >= 100)
                         {
-                            MemoryStream speech = _google.ConvertToSpeech(e.Notification.Event.Message);
+                            MemoryStream speech = _google.ConvertToSpeech(message);
                             alert.Add("tts", Convert.ToBase64String(speech.ToArray()));
 						}
                         _hub.Clients.All.SendAsync("TriggerAlert", alert);
