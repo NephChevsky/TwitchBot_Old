@@ -58,7 +58,7 @@ namespace WebApp.Services
                             {
                                 updateReward = true;
                             }
-                            DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                            DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
                             if (reward.CurrentCost >= reward.BeginCost + reward.CostIncreaseAmount && reward.LastUsedDateTime < now.AddSeconds(-reward.CostDecreaseTimer))
                             {
                                 reward.CurrentCost = reward.CurrentCost - reward.CostIncreaseAmount;

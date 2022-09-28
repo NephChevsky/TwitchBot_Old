@@ -37,7 +37,7 @@ namespace WebApp.Controllers
 
 				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
 				DateTime limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
-				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 				var uptimes = db.Uptimes.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).ToList();
 				foreach (var uptime in uptimes)
 				{
@@ -51,7 +51,7 @@ namespace WebApp.Controllers
 				}
 
 				limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
-				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 				uptimes = db.Uptimes.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Sum) }).ToList();
 				foreach (var uptime in uptimes)
 				{
@@ -65,7 +65,7 @@ namespace WebApp.Controllers
 				}
 
 				limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
-				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 				var messages = db.Messages.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count()}).ToList();
 				foreach (var message in messages)
 				{
@@ -77,7 +77,7 @@ namespace WebApp.Controllers
 				}
 
 				limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
-				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 				messages = db.Messages.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Count = g.Count() }).ToList();
 				foreach (var message in messages)
 				{
@@ -99,7 +99,7 @@ namespace WebApp.Controllers
 				}
 
 				limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
-				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 				cheerers = db.Cheers.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Amount) }).ToList();
 				foreach (var cheer in cheerers)
 				{
@@ -111,7 +111,7 @@ namespace WebApp.Controllers
 				}
 
 				limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
-				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 				cheerers = db.Cheers.Where(x => x.CreationDateTime >= limit).GroupBy(x => x.Owner).Select(g => new { Owner = g.Key, Sum = g.Sum(x => x.Amount) }).ToList();
 				foreach (var cheer in cheerers)
 				{
@@ -143,7 +143,7 @@ namespace WebApp.Controllers
 				}
 
 				limit = new DateTime(now.Year, now.Month, 1, 0, 0, 0);
-				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 				subgifts = db.Subscriptions.Where(x => x.IsGift == true && x.CreationDateTime >= limit).GroupBy(x => x.GifterId).Select(g => new { GifterId = g.Key, Count = g.Count() }).ToList();
 				foreach (var subgift in subgifts)
 				{
@@ -155,7 +155,7 @@ namespace WebApp.Controllers
 				}
 
 				limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
-				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 				subgifts = db.Subscriptions.Where(x => x.IsGift == true && x.CreationDateTime >= limit).GroupBy(x => x.GifterId).Select(g => new { GifterId = g.Key, Count = g.Count() }).ToList();
 				foreach (var subgift in subgifts)
 				{

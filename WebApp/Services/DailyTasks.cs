@@ -26,7 +26,7 @@ namespace WebApp.Services
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
-				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 
 				using (TwitchDbContext db = new())
 				{
@@ -69,13 +69,12 @@ namespace WebApp.Services
 					Cheer lastCheer = db.Cheers.OrderByDescending(x => x.CreationDateTime).FirstOrDefault();
 					if (lastCheer != null)
 					{
-						List<Listing> cheers = await _api.GetBitsLeaderBoard(10, BitsLeaderboardPeriodEnum.Day);
-						foreach (Listing cheer in cheers)
+						GetBitsLeaderboardResponse cheers = await _api.GetBitsLeaderBoard(10, BitsLeaderboardPeriodEnum.Day, DateTime.Now.AddDays(-1));
+						DateTime gtLimit = TimeZoneInfo.ConvertTime(cheers.DateRange.StartedAt, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
+						DateTime ltLimit = TimeZoneInfo.ConvertTime(cheers.DateRange.EndedAt, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
+						foreach (Listing cheer in cheers.Listings)
 						{
-							DateTime limit = TimeZoneInfo.ConvertTime(now, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
-							limit = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
-							limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
-							int currentTotal = db.Cheers.Where(x => x.Owner == cheer.UserId && x.CreationDateTime >= limit).Sum(x => x.Amount);
+							int currentTotal = db.Cheers.Where(x => x.Owner == cheer.UserId && x.CreationDateTime >= gtLimit && x.CreationDateTime <= ltLimit).Sum(x => x.Amount);
 							if (currentTotal < cheer.Score)
 							{
 								Cheer tmp = new();
@@ -87,8 +86,8 @@ namespace WebApp.Services
 					}
 					else
 					{
-						List<Listing> cheers = await _api.GetBitsLeaderBoard(10, BitsLeaderboardPeriodEnum.All);
-						foreach (Listing cheer in cheers)
+						GetBitsLeaderboardResponse cheers = await _api.GetBitsLeaderBoard(10, BitsLeaderboardPeriodEnum.All, DateTime.Now);
+						foreach (Listing cheer in cheers.Listings)
 						{
 							Cheer tmp = new();
 							tmp.Owner = cheer.UserId;

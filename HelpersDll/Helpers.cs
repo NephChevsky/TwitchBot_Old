@@ -16,7 +16,7 @@ namespace HelpersDll
 				if (dbReward != null)
 				{
 					dbReward.CurrentCost += dbReward.CostIncreaseAmount;
-					dbReward.LastUsedDateTime = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time")); ;
+					dbReward.LastUsedDateTime = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time")); ;
 					await api.UpdateChannelReward(dbReward);
 					db.SaveChanges();
 				}

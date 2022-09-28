@@ -173,7 +173,7 @@ namespace WebApp.Services
                 {
                     using (TwitchDbContext db = new())
                     {
-                        DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                        DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
                         Subscription sub = new Subscription();
                         sub.Owner = e.Notification.Event.UserId;
                         sub.Tier = e.Notification.Event.Tier;
@@ -226,7 +226,7 @@ namespace WebApp.Services
                 {
                     using (TwitchDbContext db = new())
                     {
-                        DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                        DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
                         Subscription lastSub = db.Subscriptions.Where(x => x.Owner == e.Notification.Event.UserId && x.CreationDateTime <= now.AddDays(-15) && x.EndDateTime >= now.AddDays(15)).FirstOrDefault();
                         if (lastSub != null && lastSub.EndDateTime >= now)
                         {
@@ -250,7 +250,7 @@ namespace WebApp.Services
             {
                 using (TwitchDbContext db = new())
                 {
-                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
                     Subscription sub = db.Subscriptions.Where(x => x.Owner == e.Notification.Event.UserId).OrderByDescending(x => x.EndDateTime).FirstOrDefault();
                     sub.EndDateTime = now;
                     db.SaveChanges();

@@ -79,7 +79,7 @@ namespace WebApp.Services
 		{
 			using (TwitchDbContext db = new TwitchDbContext())
 			{
-				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 				Subscription sub = new Subscription();
 				sub.Owner = e.GiftedSubscription.MsgParamRecipientId;
 				switch (e.GiftedSubscription.MsgParamSubPlan)
@@ -110,7 +110,7 @@ namespace WebApp.Services
 
 		private async void Client_OnChatCommandReceived(object send, OnChatCommandReceivedArgs e)
 		{
-			DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+			DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 
 			if (!AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) || (AntiSpamTimer.ContainsKey(e.Command.CommandText.ToLower()) && AntiSpamTimer[e.Command.CommandText.ToLower()].AddSeconds(60) < now))
 			{

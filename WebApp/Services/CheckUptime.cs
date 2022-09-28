@@ -43,7 +43,7 @@ namespace WebApp.Services
                     List<ChatterFormatted> chatters = await _api.GetChatters();
                     chatters.Add(new ChatterFormatted(_settings.Streamer, UserType.Broadcaster));
                     bool genericWelcome = false;
-                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                    DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
                     foreach (ChatterFormatted chatter in chatters)
                     {
                         using (TwitchDbContext db = new())
@@ -83,7 +83,7 @@ namespace WebApp.Services
                                     dbViewer.Uptime += uptime;
                                     DateTime limit = TimeZoneInfo.ConvertTime(now, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
                                     limit = new DateTime(limit.Year, limit.Month, limit.Day, 0, 0, 0);
-                                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+                                    limit = TimeZoneInfo.ConvertTime(limit, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"), TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
                                     Uptime dbUptime = db.Uptimes.Where(x => x.CreationDateTime >= limit && x.Owner == dbViewer.Id).FirstOrDefault();
                                     if (dbUptime != null)
                                     {

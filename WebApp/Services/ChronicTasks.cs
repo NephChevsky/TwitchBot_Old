@@ -27,7 +27,7 @@ namespace WebApp.Services
 			{
 				_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
-				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+				DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
 
 				using (TwitchDbContext db = new())
 				{

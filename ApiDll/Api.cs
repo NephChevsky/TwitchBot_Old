@@ -289,11 +289,9 @@ namespace ApiDll
             return vips.Data.ToList();
         }
 
-        public async Task<List<Listing>> GetBitsLeaderBoard(int count, BitsLeaderboardPeriodEnum period)
+        public async Task<GetBitsLeaderboardResponse> GetBitsLeaderBoard(int count, BitsLeaderboardPeriodEnum period, DateTime time)
         {
-            DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
-            GetBitsLeaderboardResponse response = await api.Helix.Bits.GetBitsLeaderboardAsync(count, period, now);
-            return response.Listings.ToList();
+            return await api.Helix.Bits.GetBitsLeaderboardAsync(count, period, time);
 		}
 
         public async Task<Viewer> GetOrCreateUserById(string id)
