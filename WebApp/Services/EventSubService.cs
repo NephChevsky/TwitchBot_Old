@@ -294,11 +294,14 @@ namespace WebApp.Services
                         _hub.Clients.All.SendAsync("TriggerAlert", alert);
                         BitsCounter++;
                     }
-                    Cheer cheer = new();
-                    cheer.Owner = e.Notification.Event.UserId;
-                    cheer.Amount = e.Notification.Event.Bits;
-                    db.Cheers.Add(cheer);
-                    db.SaveChanges();
+                    if (e.Notification.Event.BroadcasterUserId == _settings.StreamerTwitchId)
+                    {
+                        Cheer cheer = new();
+                        cheer.Owner = e.Notification.Event.UserId;
+                        cheer.Amount = e.Notification.Event.Bits;
+                        db.Cheers.Add(cheer);
+                        db.SaveChanges();
+                    }
                 }
                 
                 HandledEvents.Add(e.Headers["Twitch-Eventsub-Message-Id"]);
