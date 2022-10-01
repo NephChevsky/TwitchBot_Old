@@ -20,7 +20,7 @@ namespace SpeechDll
 			_logger = logger;
 
 			_reader = new();
-			//_reader.SelectVoiceByHints(VoiceGender.Female, VoiceAge.Adult, 0, new System.Globalization.CultureInfo("fr-FR"));
+			_reader.SelectVoice("Microsoft Hortense Desktop");
 		}
 
 		public MemoryStream TextToSpeech(string text)
