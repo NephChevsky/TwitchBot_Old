@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Extensions.Logging;
 using ObsDll;
+using SpeechDll;
 using SpotifyDll;
 
 namespace StreamDeck
@@ -46,6 +47,7 @@ namespace StreamDeck
                 services.AddSingleton<BasicChat>();
                 services.AddSingleton<Spotify>();
                 services.AddSingleton<Obs>();
+                services.AddSingleton<Speech>();
                 services.AddHostedService<Workers.StreamDeck>();
 
                 services.AddLogging(logging =>

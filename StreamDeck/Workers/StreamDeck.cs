@@ -8,10 +8,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelsDll;
 using ObsDll;
+using SpeechDll;
 using SpotifyDll;
 using StreamDeck.Forms;
 using System.Diagnostics;
 using System.Media;
+using System.Speech.Recognition;
 using WindowsInput;
 
 namespace StreamDeck.Workers
@@ -25,11 +27,12 @@ namespace StreamDeck.Workers
         private Api _api;
         private Spotify _spotify;
         private Obs _obs;
+        private Speech _speech;
         
         private Dictionary<string, DateTime> AntiSpamTimer = new Dictionary<string, DateTime>();
         private HubConnection _connection;
 
-        public StreamDeck(ILogger<StreamDeck> logger, IConfiguration configuration, BasicChat chat, Api api, Spotify spotify, Obs obs)
+        public StreamDeck(ILogger<StreamDeck> logger, IConfiguration configuration, BasicChat chat, Api api, Spotify spotify, Obs obs, Speech speech)
         {
             _logger = logger;
             _settings = configuration.GetSection("Settings").Get<Settings>();
@@ -37,6 +40,8 @@ namespace StreamDeck.Workers
             _spotify = spotify;
             _chat = chat;
             _obs = obs;
+            _speech = speech;
+
             _connection = new HubConnectionBuilder().WithUrl(_settings.SignalRUrl).WithAutomaticReconnect().Build();
             _connection.On<Dictionary<string, string>>("TriggerReward", (reward) => OnTriggerReward(null, reward));
 
@@ -184,6 +189,7 @@ namespace StreamDeck.Workers
                         _obs.UnMuteAll();
                         await _spotify.ChangeVolume(40);
                         _obs.SwitchScene("Playing");
+                        _speech.StartSpeechToText(SpeechRecognized);
                     }
                     else
                     {
@@ -200,9 +206,10 @@ namespace StreamDeck.Workers
                 }
                 else if (e.Key == Keys.End)
                 {
+                    _speech.StopSpeechToText();
                     Task.Delay(5 * 1000).Wait();
                     _obs.StopStream();
-                    Task.Delay(5 * 1000).Wait();
+                    Task.Delay(2 * 1000).Wait();
                     await _spotify.StopPlayback();
 				}
                 else if (e.Key == Keys.NumPad1)
@@ -214,6 +221,11 @@ namespace StreamDeck.Workers
                     _obs.SwitchScene("Desktop");
                 }
             }
+        }
+
+        private void SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            
         }
     }
 }
