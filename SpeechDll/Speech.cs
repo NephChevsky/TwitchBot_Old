@@ -21,8 +21,6 @@ namespace SpeechDll
 
 			_reader = new();
 			_reader.SelectVoice("Microsoft Hortense Desktop");
-
-
 		}
 
 		public MemoryStream TextToSpeech(string text)
