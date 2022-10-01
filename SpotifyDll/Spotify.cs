@@ -277,7 +277,7 @@ namespace SpotifyDll
 		public async Task StopPlayback()
 		{
 			CurrentlyPlayingContext response = await _client.Player.GetCurrentPlayback();
-			if (response.IsPlaying)
+			if (response != null && response.IsPlaying)
 			{
 				await _client.Player.PausePlayback();
 			}
