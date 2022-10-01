@@ -1,9 +1,9 @@
 using ApiDll;
 using ChatDll;
-using GoogleDll;
 using ModelsDll;
 using NLog;
 using NLog.Extensions.Logging;
+using SpeechDll;
 using SpotifyDll;
 using TwitchLib.EventSub.Webhooks.Extensions;
 using WebApp.Services;
@@ -64,7 +64,7 @@ namespace WebApp
 			builder.Services.AddSingleton<BasicChat>();
 			builder.Services.AddSingleton<Spotify>();
 			builder.Services.AddSingleton<DiscordDll.Discord>();
-			builder.Services.AddSingleton<GoogleDll.Google>();
+			builder.Services.AddSingleton<Speech>();
 			builder.Services.AddHostedService<EventSubService>();
 			builder.Services.AddHostedService<DailyTasks>();
 			builder.Services.AddHostedService<ChronicTasks>();

@@ -14,8 +14,8 @@ using TwitchLib.EventSub.Webhooks.Core.EventArgs;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs.Channel;
 using TwitchLib.EventSub.Webhooks.Core.EventArgs.Stream;
 using ModelsDll.DTO;
-using TwitchLib.Api.Helix.Models.Bits;
 using System.Text.RegularExpressions;
+using SpeechDll;
 
 namespace WebApp.Services
 {
@@ -31,7 +31,7 @@ namespace WebApp.Services
         private Api _api;
         private BasicChat _chat;
         private Spotify _spotify;
-        private GoogleDll.Google _google;
+        private Speech _speech;
 
         private List<EventSubSubscription> Subscriptions;
         private List<string> HandledEvents = new List<string>();
@@ -40,7 +40,7 @@ namespace WebApp.Services
         private Random Rng = new Random(Guid.NewGuid().GetHashCode());
         private List<string> CheermotesCache;
 
-        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api, BasicChat chat, Spotify spotify, GoogleDll.Google google)
+        public EventSubService(ILogger<EventSubService> logger, IConfiguration configuration, ITwitchEventSubWebhooks eventSubWebhooks, IHubContext<SignalService> hub, DiscordDll.Discord discord, Api api, BasicChat chat, Spotify spotify, Speech speech)
 		{
 			_logger = logger;
 			_eventSubWebhooks = eventSubWebhooks;
@@ -51,7 +51,7 @@ namespace WebApp.Services
 			_api = api;
 			_chat = chat;
 			_spotify = spotify;
-            _google = google;
+            _speech = speech;
 
 			_eventSubApi = new();
 			_eventSubApi.Settings.ClientId = _secret.Twitch.ClientId;
@@ -223,8 +223,8 @@ namespace WebApp.Services
                 alert.Add("cumulativeTotal", e.Notification.Event.CumulativeTotal);
                 if (e.Notification.Event.Message.Text.Length > 0)
                 {
-                    MemoryStream speech = _google.ConvertToSpeech(e.Notification.Event.Message.Text);
-                    alert.Add("tts", Convert.ToBase64String(speech.ToArray()));
+                    MemoryStream tts = _speech.TextToSpeech(e.Notification.Event.Message.Text);
+                    alert.Add("tts", Convert.ToBase64String(tts.ToArray()));
                 }
                 _hub.Clients.All.SendAsync("TriggerAlert", alert);
                 if (e.Notification.Event.BroadcasterUserId == _settings.StreamerTwitchId)
@@ -288,8 +288,8 @@ namespace WebApp.Services
                         alert.Add("message", message);
                         if (e.Notification.Event.Bits >= 100)
                         {
-                            MemoryStream speech = _google.ConvertToSpeech(message);
-                            alert.Add("tts", Convert.ToBase64String(speech.ToArray()));
+                            MemoryStream tts = _speech.TextToSpeech("Ceci est un test LUL");
+                            alert.Add("tts", Convert.ToBase64String(tts.ToArray()));
 						}
                         _hub.Clients.All.SendAsync("TriggerAlert", alert);
                         BitsCounter++;

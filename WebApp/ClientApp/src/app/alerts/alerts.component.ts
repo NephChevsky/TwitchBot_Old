@@ -25,7 +25,6 @@ export class AlertsComponent implements OnInit
 		{
 			if (this.alerts.length > 0 && !this.locked)
 			{
-				debugger;
 				this.locked = true;
 				this.triggerAlert(this.alerts[0]);
 			}
@@ -40,7 +39,6 @@ export class AlertsComponent implements OnInit
 
 	handleAlert(alert: any)
 	{
-		debugger;
 		console.log("Alert " + alert.type + " received");
 		var newAlert = new Alert();
 		newAlert.type = alert.type;
@@ -98,6 +96,11 @@ export class AlertsComponent implements OnInit
 				break;
 		}
 
+		if (alert.tts)
+		{
+			newAlert.tts = alert.tts;
+		}
+
 		this.alerts.push(newAlert);
 	}
 
@@ -132,12 +135,12 @@ export class AlertsComponent implements OnInit
 				this.locked = false;
 			}, 1 * 1000);
 		}, 6 * 1000);
-
+		
 		if (alert.tts)
 		{
 			setTimeout(() =>
 			{
-				audio = new Audio("data:audio/mp3;base64," + alert.tts);
+				audio = new Audio("data:audio/wav;base64," + alert.tts);
 				audio.play();
 			}, 1 * 1000);
 		}

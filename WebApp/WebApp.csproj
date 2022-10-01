@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net6.0-windows</TargetFramework>
 		<Nullable>disable</Nullable>
 		<IsPackable>false</IsPackable>
 		<SpaRoot>ClientApp\</SpaRoot>
@@ -61,10 +61,10 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ChatDll\ChatDll.csproj" />
-		<ProjectReference Include="..\GoogleDll\GoogleDll.csproj" />
 		<ProjectReference Include="..\HelpersDll\HelpersDll.csproj" />
 		<ProjectReference Include="..\ModelsDll\ModelsDll.csproj" />
 		<ProjectReference Include="..\ApiDll\ApiDll.csproj" />
+		<ProjectReference Include="..\SpeechDll\SpeechDll.csproj" />
 		<ProjectReference Include="..\SpotifyDll\SpotifyDll.csproj" />
 		<ProjectReference Include="..\DiscordDll\DiscordDll.csproj" />
 		<ProjectReference Include="..\DbDll\DbDll.csproj" />
