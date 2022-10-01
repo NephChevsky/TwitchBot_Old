@@ -20,7 +20,7 @@ namespace SpeechDll
 			_logger = logger;
 
 			_reader = new();
-			_reader.SelectVoice("Microsoft Julie Desktop");
+			_reader.SelectVoice("Microsoft Hortense Desktop");
 		}
 
 		public MemoryStream TextToSpeech(string text)
