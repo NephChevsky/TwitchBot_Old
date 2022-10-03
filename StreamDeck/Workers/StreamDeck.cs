@@ -55,6 +55,8 @@ namespace StreamDeck.Workers
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            if (!Debugger.IsAttached)
+            {
             bool waitForStart = false;
             if (Process.GetProcessesByName("Spotify").Length == 0)
             {
@@ -75,6 +77,7 @@ namespace StreamDeck.Workers
             if (waitForStart)
             {
                 Task.Delay(TimeSpan.FromSeconds(5)).Wait();
+            }
             }
 
             if (!_obs.IsConnected)
