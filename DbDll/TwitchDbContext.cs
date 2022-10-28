@@ -115,7 +115,7 @@ namespace DbDll
 
                 AddGenericFields<Command>(entity);
             });
-            modelBuilder.Entity<Viewer>().HasIndex(t => new { t.Id }).IsUnique(true);
+            modelBuilder.Entity<Command>().HasIndex(t => new { t.Id }).IsUnique(true);
             modelBuilder.Entity<Command>().HasIndex(t => new { t.Name }).HasFilter($"{nameof(Command.Deleted)} = 0").IsUnique(true);
 
             modelBuilder.Entity<ChatMessage>(entity =>
